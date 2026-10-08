@@ -1,0 +1,14 @@
+{
+  "name": "Rotation",
+  "short_name": "Rotation",
+  "description": "Closet, outfit log and wear calendar",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#E7E9ED",
+  "theme_color": "#E7E9ED",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}
