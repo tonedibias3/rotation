@@ -152,7 +152,12 @@ svg{width:18px;height:18px;flex:none}
 .stack{display:grid;gap:12px;margin-bottom:12px}
 .cap{font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);margin-bottom:6px;display:block}
 .hint{font:400 12.5px/1.4 var(--f-body);color:var(--ink2);margin:0}
-.tray{position:sticky;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);margin-top:24px;display:flex;align-items:center;gap:12px;padding:10px 14px 10px 10px;border-radius:22px;border:1px solid var(--line);background:color-mix(in srgb,var(--surface) 90%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:var(--shadow-pill);z-index:10}
+.tray{position:fixed;left:0;right:0;bottom:0;display:flex;align-items:center;gap:12px;padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 12px);border-radius:22px 22px 0 0;border:1px solid var(--line);border-bottom:0;background:color-mix(in srgb,var(--surface) 94%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 -6px 24px rgba(0,0,0,.22);z-index:10;transition:background .3s}
+.tray.ok{background:color-mix(in srgb,var(--accent) 22%,var(--surface))}
+.sv{display:inline-flex;align-items:center;gap:5px;justify-content:flex-end;font:500 12px var(--f-body);color:var(--ink2)}
+.sv svg{width:14px;height:14px}
+.tray.ok .sv,.sv.done{color:var(--ink);font-weight:700}
+.tray .thumbs{max-width:calc(100% - 120px)}
 .thumbs{display:flex;gap:6px;flex:1;min-width:0;overflow:hidden;align-items:center;min-height:38px}
 .thumb{display:grid;place-items:center;isolation:isolate;width:38px;height:38px;flex:none;border-radius:11px;background:var(--well);overflow:hidden}
 .thumb.lg{width:48px;height:48px;border-radius:13px}
@@ -171,7 +176,8 @@ svg{width:18px;height:18px;flex:none}
 .hero.none{background:transparent}
 .hero .ph svg{width:60%}
 .hero b{position:absolute;right:3px;bottom:2px;font:500 9px/1 var(--f-mono);color:var(--on-well)}
-.bar{display:block;flex:none;height:3px;border-radius:2px}
+.bar{display:block;flex:1;height:3px;border-radius:2px}
+.bars{display:flex;gap:2px;flex:none}
 .t-work{background:var(--ink)}
 .t-casual{background:var(--accent)}
 .t-mixed{background:linear-gradient(90deg,var(--ink) 50%,var(--accent) 50%)}
@@ -232,6 +238,9 @@ svg{width:18px;height:18px;flex:none}
 .crop-f{position:relative;width:100%;aspect-ratio:1;border-radius:20px;overflow:hidden;background:#fff;touch-action:none;cursor:grab;box-shadow:inset 0 0 0 1px var(--line)}
 .crop-f canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .crop-f::after{content:"";position:absolute;inset:0;border-radius:20px;pointer-events:none;background:linear-gradient(rgba(19,22,27,.14),rgba(19,22,27,.14)) 33.33% 0/1px 100% no-repeat,linear-gradient(rgba(19,22,27,.14),rgba(19,22,27,.14)) 66.66% 0/1px 100% no-repeat,linear-gradient(rgba(19,22,27,.14),rgba(19,22,27,.14)) 0 33.33%/100% 1px no-repeat,linear-gradient(rgba(19,22,27,.14),rgba(19,22,27,.14)) 0 66.66%/100% 1px no-repeat}
+.crop-t{display:flex;gap:8px;margin:0 0 10px}.crop-t .btn{flex:1;padding-inline:8px}
+.crop-t .btn[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.crop-tw{display:flex;align-items:center;gap:10px;margin:-4px 0 10px}.crop-tw label{font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}.crop-tw input{flex:1;margin:0!important}
 .crop input[type=range]{width:100%;margin:16px 0 14px;accent-color:var(--accent)}
 .crop .btn-row .btn{flex:1}
 /* splash */
@@ -327,7 +336,7 @@ const newId=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6
 const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:''}})();
 function saveSet(){try{localStorage.setItem('rotation.settings',JSON.stringify(SET))}catch(e){}}
 function applyTheme(){const r=document.documentElement;if(SET.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',SET.theme);const dark=SET.theme==='dark'||(SET.theme==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);document.querySelectorAll('meta[name=theme-color]').forEach(m=>{m.setAttribute('content',dark?'#0E1115':'#E7E9ED');m.removeAttribute('media')})}
-const S={items:[],days:{},tab:SET.start,filter:'all',q:'',sel:today(),mode:'log',opt:0,month:today().slice(0,7),sheet:null,loading:true,store:'local',saveText:'',gotItems:false,gotDays:false};
+const S={items:[],days:{},tab:SET.start,filter:'all',q:'',sel:today(),mode:'log',opt:0,out:0,month:today().slice(0,7),sheet:null,loading:true,store:'local',saveText:'',gotItems:false,gotDays:false};
 let M=new Map();
 let itemsCol=null,daysCol=null,ASSETS=null,lastSig='';
 const dirty=new Set(),timers={},vers={},chains={};
@@ -338,9 +347,12 @@ function normDay(r){
   r=r||{};
   const pl=Array.isArray(r.plans)?r.plans:[];
   const mk=p=>({items:Array.isArray(p&&p.items)?p.items.slice():[],tag:(p&&p.tag)||''});
-  return {items:Array.isArray(r.items)?r.items.slice():[],tag:r.tag||'',plans:[mk(pl[0]),mk(pl[1])]};
+  const mo=Array.isArray(r.more)?r.more.map(mk):[];
+  return {items:Array.isArray(r.items)?r.items.slice():[],tag:r.tag||'',plans:[mk(pl[0]),mk(pl[1])],more:mo};
 }
-const dayEmpty=d=>!d||(!d.items.length&&!d.plans.some(p=>p.items.length));
+const dayEmpty=d=>!d||(!d.items.length&&!d.plans.some(p=>p.items.length)&&!d.more.some(p=>p.items.length));
+const outfitsOf=d=>{const o=[];if(d&&d.items.length)o.push(d);if(d)d.more.forEach(m=>{if(m.items.length)o.push(m)});return o};
+function outCount(){const d=S.days[S.sel];return d?Math.max(1,1+d.more.length):1}
 const photoSrc=p=>!p?'':(p.indexOf('data:')===0||p.indexOf('blob:')===0)?p:'/_blob/'+p;
 
 /* ---------- storage ---------- */
@@ -407,7 +419,7 @@ function backupRow(inSettings){
 function sigOf(){
   return JSON.stringify([
     S.items.map(i=>[i.id,i.name,i.brand,i.nickname,i.category,i.color,i.photo]),
-    Object.keys(S.days).sort().map(k=>[k,S.days[k].items,S.days[k].tag,S.days[k].plans]),
+    Object.keys(S.days).sort().map(k=>[k,S.days[k].items,S.days[k].tag,S.days[k].plans,S.days[k].more]),
     S.loading
   ]);
 }
@@ -478,12 +490,22 @@ async function flushDay(date){
   if(empty)delete S.days[date];
   if(daysCol){
     try{
-      await enqueue('d:'+date,()=>empty?daysCol.doc(date).delete():daysCol.doc(date).set({items:d.items.slice(),tag:d.tag||'',plans:d.plans.map(p=>({items:p.items.slice(),tag:p.tag||''}))}));
+      await enqueue('d:'+date,()=>empty?daysCol.doc(date).delete():daysCol.doc(date).set({items:d.items.slice(),tag:d.tag||'',plans:d.plans.map(p=>({items:p.items.slice(),tag:p.tag||''})),more:d.more.filter(p=>p.items.length).map(p=>({items:p.items.slice(),tag:p.tag||''}))}));
     }catch(e){toast('Could not sync that day')}
   }else persistLocal('days');
   if(vers[date]===v){dirty.delete(date);if(!dirty.size)setSave('Saved')}
 }
-function setSave(t){S.saveText=t;const e=$('#savestate');if(e)e.textContent=t}
+let okT=null;
+function paintSave(){
+  const e=$('#savestate');if(!e)return;
+  const done=S.saveText==='Saved';
+  e.innerHTML=done?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Saved':esc(S.saveText);
+  e.classList.toggle('done',done);
+}
+function setSave(t){
+  S.saveText=t;paintSave();
+  const tr=$('#tray');if(tr&&t==='Saved'){tr.classList.add('ok');clearTimeout(okT);okT=setTimeout(()=>{const x=$('#tray');if(x)x.classList.remove('ok')},1400)}
+}
 
 /* ---------- derived ---------- */
 function stats(){
@@ -492,8 +514,7 @@ function stats(){
   let any=false;
   keys.forEach(k=>{
     const d=S.days[k];
-    if(d.items.length)any=true;
-    d.items.forEach(id=>{wears[id]=(wears[id]||0)+1;if(!last[id]||k>last[id])last[id]=k});
+    outfitsOf(d).forEach(o=>{any=true;new Set(o.items).forEach(id=>{wears[id]=(wears[id]||0)+1;if(!last[id]||k>last[id])last[id]=k})});
   });
   return {wears:wears,last:last,hasLogs:any};
 }
@@ -558,12 +579,14 @@ async function seed(){
 function target(create){
   let d=S.days[S.sel];
   if(!d){if(!create)return {items:[],tag:''};d=S.days[S.sel]=normDay({})}
-  return S.mode==='plan'?d.plans[S.opt]:d;
+  if(S.mode==='plan')return d.plans[S.opt];
+  if(S.out>0){if(!d.more[S.out-1]){if(!create)return {items:[],tag:''};while(d.more.length<S.out)d.more.push({items:[],tag:''})}return d.more[S.out-1]}
+  return d;
 }
 function defaultMode(d){
   const t=today();
   if(d>t)return 'plan';
-  if(d===t){const dd=S.days[d];if(dd&&!dd.items.length&&dd.plans.some(p=>p.items.length))return 'plan'}
+  if(d===t){const dd=S.days[d];if(dd&&!outfitsOf(dd).length&&dd.plans.some(p=>p.items.length))return 'plan'}
   return 'log';
 }
 function tagSeg(){
@@ -579,17 +602,23 @@ function stripDates(){
   for(let d=from;d<=to;d=addDays(d,1))out.push(d);
   return out;
 }
+function outSegHTML(){
+  if(S.mode==='plan')return '';
+  const dd=S.days[S.sel],nOut=dd?1+dd.more.length:1,cur0=target(false);
+  return '<div><span class="cap">Outfits today</span><div class="seg" role="group" aria-label="Outfit">'+Array.from({length:nOut},(_,i)=>{const o=i===0?dd:dd.more[i-1],tg=o&&o.tag?TAGS.find(x=>x.id===o.tag):null;return '<button type="button" data-act="out" data-v="'+i+'" aria-pressed="'+(S.out===i)+'">Outfit '+(i+1)+'<i>'+(tg?tg.label:(o&&o.items.length)||'')+'</i></button>'}).join('')+(nOut<4&&(cur0.items.length||nOut>1)?'<button type="button" data-act="add-out" aria-label="Add another outfit for this day">+ Another</button>':'')+'</div></div>';
+}
 function viewLog(){
   const t=today(),sel=S.sel,isPlan=S.mode==='plan';
   if(sel<t&&isPlan)S.mode='log';
+  {const dd0=S.days[sel],nOut=dd0?1+dd0.more.length:1;if(S.out>=nOut)S.out=nOut-1;if(S.out<0||isPlan)S.out=0}
   const tgt=target(false);
   const on=new Set(tgt.items);
   const st=stats();
   const dd=S.days[sel];
   const strip=stripDates().map(d=>{
     const x=S.days[d];
-    const has=x&&x.items.length;
-    const planned=x&&!x.items.length&&x.plans.some(p=>p.items.length);
+    const has=x&&outfitsOf(x).length;
+    const planned=x&&!outfitsOf(x).length&&x.plans.some(p=>p.items.length);
     return '<button type="button" class="day'+(has?' has':'')+(planned?' planned':'')+(d===t?' today':'')+'" data-act="day" data-d="'+d+'" aria-pressed="'+(d===sel)+'" aria-label="'+fmt(d,{weekday:'long',month:'long',day:'numeric'})+'"><span class="w">'+fmt(d,{weekday:'short'})+'</span><span class="n">'+parse(d).getDate()+'</span><span class="dot"></span></button>';
   }).join('');
   const modeSeg=sel>=t?'<div class="seg" role="group" aria-label="Mode"><button type="button" data-act="mode" data-v="log" aria-pressed="'+(S.mode==='log')+'">Log</button><button type="button" data-act="mode" data-v="plan" aria-pressed="'+(S.mode==='plan')+'">Plan options</button></div>':'';
@@ -609,7 +638,7 @@ function viewLog(){
   }).join('');
   return '<div class="head"><div><h1 class="h1">Log</h1><div class="sub">'+fmt(sel,{weekday:'long',month:'long',day:'numeric'})+'</div></div><div class="hr"><button type="button" class="chip" data-act="today">Today</button>'+gearBtn()+'</div></div>'
    +'<div class="days" id="days">'+strip+'</div>'
-   +'<div class="stack">'+modeSeg+optSeg
+   +'<div class="stack">'+modeSeg+optSeg+'<div id="outwrap">'+outSegHTML()+'</div>'
    +'<div><span class="cap">Outfit type</span><div class="seg" id="tagseg" role="group" aria-label="Outfit type">'+tagSeg()+'</div></div>'
    +'<div class="btn-row"><button type="button" class="btn ghost" data-act="repeat"'+(canRepeat?'':' disabled')+'>'+(sel===t?'Repeat yesterday':'Repeat day before')+'</button><button type="button" class="btn ghost" data-act="clear">Clear</button>'
    +(S.mode==='plan'?'<button type="button" class="btn primary" id="lock" data-act="lock"'+(tgt.items.length?'':' disabled')+'>Wear option '+'AB'[S.opt]+'</button>':'')
@@ -626,7 +655,8 @@ function afterLogRender(){
 function renderTray(){
   const el=$('#tray');if(!el)return;
   const its=target(false).items.map(id=>M.get(id)).filter(Boolean);
-  el.innerHTML='<div class="thumbs">'+(its.length?its.map(i=>'<span class="thumb">'+tileInner(i)+'</span>').join(''):'<span class="sub">Tap pieces to build the outfit</span>')+'</div><div class="tray-r"><span class="mono">'+its.length+' piece'+(its.length===1?'':'s')+'</span><span class="sub" id="savestate">'+esc(S.saveText)+'</span></div>';
+  el.innerHTML='<div class="thumbs">'+(its.length?its.map(i=>'<span class="thumb">'+tileInner(i)+'</span>').join(''):'<span class="sub">Tap pieces to build the outfit</span>')+'</div><div class="tray-r"><span class="mono">'+(S.mode==='log'&&outCount()>1?'Outfit '+(S.out+1)+' · ':'')+its.length+' piece'+(its.length===1?'':'s')+'</span><span class="sv" id="savestate"></span></div>';
+  paintSave();
 }
 function refreshPicker(){
   const t=target(false),on=new Set(t.items);
@@ -639,6 +669,7 @@ function refreshPicker(){
   });
   const lb=$('#lock');if(lb)lb.disabled=!t.items.length;
   const ts=$('#tagseg');if(ts)ts.innerHTML=tagSeg();
+  const ow=$('#outwrap');if(ow)ow.innerHTML=outSegHTML();
   renderTray();
 }
 function toggleOutfit(id,force){
@@ -650,7 +681,7 @@ function toggleOutfit(id,force){
   scheduleDay(S.sel);
   refreshPicker();
 }
-function setTag(v){const t=target(true);t.tag=t.tag===v?'':v;scheduleDay(S.sel);const ts=$('#tagseg');if(ts)ts.innerHTML=tagSeg()}
+function setTag(v){const t=target(true);t.tag=t.tag===v?'':v;scheduleDay(S.sel);const ts=$('#tagseg');if(ts)ts.innerHTML=tagSeg();const ow=$('#outwrap');if(ow)ow.innerHTML=outSegHTML()}
 function repeatPrev(){
   const y=S.days[addDays(S.sel,-1)];
   if(!y||!y.items.some(id=>M.has(id))){toast('Nothing logged the day before');return}
@@ -668,13 +699,19 @@ function lockPlan(){
   const d=S.days[S.sel];if(!d)return;
   const idx=S.opt,p=d.plans[idx];
   if(!p.items.length)return;
-  d.items=p.items.slice();d.tag=p.tag;
+  if(!d.items.length){d.items=p.items.slice();d.tag=p.tag;S.out=0}
+  else{d.more.push({items:p.items.slice(),tag:p.tag});S.out=d.more.length}
   d.plans=[{items:[],tag:''},{items:[],tag:''}];
   S.mode='log';S.opt=0;
   scheduleDay(S.sel);render();
   toast('Option '+'AB'[idx]+' is your outfit');
 }
-function pickDay(d){S.sel=d;S.mode=defaultMode(d);S.opt=0;render()}
+function pickDay(d){S.sel=d;S.mode=defaultMode(d);S.opt=0;S.out=0;render()}
+function addOutfit(){
+  const d=S.days[S.sel]||(S.days[S.sel]=normDay({}));
+  if(d.more.length>=3){toast('Four outfits is the limit for a day');return}
+  d.more.push({items:[],tag:''});S.out=d.more.length;S.mode='log';render();
+}
 
 /* ---------- calendar ---------- */
 function viewCalendar(){
@@ -684,18 +721,19 @@ function viewCalendar(){
   for(let i=0;i<lead;i++)cells.push('<span class="cell out" aria-hidden="true"></span>');
   for(let d=1;d<=dim;d++){
     const ds=y+'-'+pad(m)+'-'+pad(d),dd=S.days[ds];
-    let ids=(dd?dd.items:[]).filter(id=>M.has(id)),planned=false;
-    if(!ids.length&&dd){const p=dd.plans.find(p=>p.items.some(id=>M.has(id)));if(p){planned=true;ids=p.items.filter(id=>M.has(id))}}
+    let ids=((outfitsOf(dd)[0]||{items:[]}).items).filter(id=>M.has(id)),planned=false;
+    if(!ids.length&&dd&&!outfitsOf(dd).length){const p=dd.plans.find(p=>p.items.some(id=>M.has(id)));if(p){planned=true;ids=p.items.filter(id=>M.has(id))}}
+    const outs=planned?[]:outfitsOf(dd).map(o=>o.items.filter(id=>M.has(id))).filter(a=>a.length);
     const picks=ids.map(id=>M.get(id)).sort((a,b)=>(a.category==='shoes'?0:1)-(b.category==='shoes'?0:1));
     const hero=picks[0];
-    const tag=(!planned&&dd&&ids.length)?(dd.tag?'t-'+dd.tag:'t-none'):'';
-    const lbl=fmt(ds,{weekday:'long',month:'long',day:'numeric'})+(planned?', planned':ids.length?', '+ids.length+' pieces logged':'');
-    cells.push('<button type="button" class="cell'+(ds===t?' today':'')+(planned?' planned':'')+'" data-act="open-day" data-d="'+ds+'" aria-label="'+lbl+'"><span class="n">'+d+'</span><span class="hero'+(hero?'':' none')+'">'+(hero?tileInner(hero)+(ids.length>1?'<b>+'+(ids.length-1)+'</b>':''):'')+'</span><span class="bar '+tag+'"></span></button>');
+    const bars=(!planned&&dd&&ids.length)?outfitsOf(dd).map(o=>'<span class="bar '+(o.tag?'t-'+o.tag:'t-none')+'"></span>').join(''):'';
+    const lbl=fmt(ds,{weekday:'long',month:'long',day:'numeric'})+(planned?', planned':outs.length>1?', '+outs.length+' outfits logged':ids.length?', '+ids.length+' pieces logged':'');
+    cells.push('<button type="button" class="cell'+(ds===t?' today':'')+(planned?' planned':'')+'" data-act="open-day" data-d="'+ds+'" aria-label="'+lbl+'"><span class="n">'+d+'</span><span class="hero'+(hero?'':' none')+'">'+(hero?tileInner(hero)+(outs.length>1?'<b>'+outs.length+' fits</b>':ids.length>1?'<b>+'+(ids.length-1)+'</b>':''):'')+'</span><span class="bars">'+(bars||'<span class="bar"></span>')+'</span></button>');
   }
   const st=stats();
-  const keys=Object.keys(S.days).filter(k=>k.indexOf(S.month)===0&&S.days[k].items.some(id=>M.has(id)));
+  const keys=Object.keys(S.days).filter(k=>k.indexOf(S.month)===0&&outfitsOf(S.days[k]).some(o=>o.items.some(id=>M.has(id))));
   const tc={work:0,casual:0,mixed:0},wm={};
-  keys.forEach(k=>{const d=S.days[k];if(tc[d.tag]!==undefined)tc[d.tag]++;d.items.forEach(id=>{if(M.has(id))wm[id]=(wm[id]||0)+1})});
+  keys.forEach(k=>{outfitsOf(S.days[k]).forEach(d=>{if(tc[d.tag]!==undefined)tc[d.tag]++;new Set(d.items).forEach(id=>{if(M.has(id))wm[id]=(wm[id]||0)+1})})});
   const top=Object.keys(wm).map(id=>[id,wm[id]]).sort((a,b)=>b[1]-a[1]).slice(0,3);
   const rest=st.hasLogs?S.items.filter(i=>i.category==='shoes').map(i=>({i:i,d:st.last[i.id]?daysSince(st.last[i.id]):null})).filter(r=>r.d===null||r.d>=21).sort((a,b)=>(a.d===null)-(b.d===null)||(b.d||0)-(a.d||0)).slice(0,4):[];
   const row=(i,right)=>'<div class="ri"><span class="thumb lg">'+tileInner(i)+'</span><span class="ri-t"><b>'+esc(i.name)+'</b><i>'+esc(i.brand||(CATS[catIdx(i.category)]||CATS[0]).label)+'</i></span><span class="mono">'+right+'</span></div>';
@@ -824,11 +862,13 @@ function openCrop(img){
   const w=img.width||img.naturalWidth,h=img.height||img.naturalHeight;
   if(!w||!h){toast('Could not read that photo');return}
   const host=$('#crop');
-  host.innerHTML='<div class="crop-s"><div class="crop" role="dialog" aria-modal="true" aria-label="Move and crop photo"><h2>Move and crop</h2><p class="hint">Drag to move. Pinch or use the slider to zoom.</p><div class="crop-f" id="crop-f"><canvas id="crop-c"></canvas></div><input id="crop-z" type="range" min="0" max="100" value="0" aria-label="Zoom"><div class="btn-row"><button type="button" class="btn ghost" data-act="crop-reset">Reset</button><button type="button" class="btn ghost" data-act="crop-cancel">Cancel</button><button type="button" class="btn primary" data-act="crop-done">Done</button></div></div></div>';
+  host.innerHTML='<div class="crop-s"><div class="crop" role="dialog" aria-modal="true" aria-label="Move and crop photo"><h2>Move and crop</h2><p class="hint">Drag to move. Pinch or use the slider to zoom.</p><div class="crop-f" id="crop-f"><canvas id="crop-c"></canvas></div><input id="crop-z" type="range" min="0" max="100" value="0" aria-label="Zoom"><div class="crop-t"><button type="button" class="btn ghost" data-act="crop-fit">Center piece</button><button type="button" class="btn ghost" id="crop-cl" data-act="crop-clean" aria-pressed="false">Clean background</button></div><div id="crop-tw" class="crop-tw" hidden><label for="crop-tol">Strength</label><input id="crop-tol" type="range" min="12" max="90" value="40" aria-label="Background cleanup strength"></div><div class="btn-row"><button type="button" class="btn ghost" data-act="crop-reset">Reset</button><button type="button" class="btn ghost" data-act="crop-cancel">Cancel</button><button type="button" class="btn primary" data-act="crop-done">Done</button></div></div></div>';
   const f=$('#crop-f'),c=$('#crop-c'),box=f.clientWidth||300,dpr=Math.min(2,window.devicePixelRatio||1);
   c.width=c.height=Math.round(box*dpr);
-  CR={img:img,w:w,h:h,box:box,cx:w/2,cy:h/2,min:1,max:1,s:1,ptr:new Map(),pd:0};
+  CR={orig:img,clean:false,tol:40,img:img,w:w,h:h,box:box,cx:w/2,cy:h/2,min:1,max:1,s:1,ptr:new Map(),pd:0};
   CR.min=box/Math.max(w,h);CR.max=Math.max(CR.min*6,box/Math.min(w,h)*3);CR.s=CR.min;
+  const tl=$('#crop-tol');
+  tl.oninput=()=>{CR.tol=+tl.value;clearTimeout(CR.tt);CR.tt=setTimeout(applyClean,120)};
   const z=$('#crop-z');
   z.oninput=()=>{setScale(CR.min*Math.pow(CR.max/CR.min,z.value/100))};
   f.onpointerdown=e=>{f.setPointerCapture(e.pointerId);CR.ptr.set(e.pointerId,[e.clientX,e.clientY]);CR.pd=pdist()};
@@ -842,6 +882,66 @@ function openCrop(img){
   f.onpointerup=up;f.onpointercancel=up;
   f.onwheel=e=>{e.preventDefault();setScale(CR.s*(e.deltaY<0?1.08:.93))};
   drawCrop();
+}
+/* background cleanup: flood from the edges over pixels close to the backdrop color */
+const WORK=900;
+function workCanvas(src){
+  const sw=src.width||src.naturalWidth,sh=src.height||src.naturalHeight,k=Math.min(1,WORK/Math.max(sw,sh));
+  const c=document.createElement('canvas');c.width=Math.max(1,Math.round(sw*k));c.height=Math.max(1,Math.round(sh*k));
+  const x=c.getContext('2d',{willReadFrequently:true});x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.imageSmoothingQuality='high';x.drawImage(src,0,0,c.width,c.height);
+  return c;
+}
+function bgMask(c,tol){
+  const w=c.width,h=c.height,id=c.getContext('2d').getImageData(0,0,w,h),d=id.data,m=new Uint8Array(w*h);
+  /* backdrop color = median of the border pixels */
+  const rs=[],gs=[],bs=[];
+  const take=(x,y)=>{const i=(y*w+x)*4;rs.push(d[i]);gs.push(d[i+1]);bs.push(d[i+2])};
+  for(let x=0;x<w;x+=2){take(x,0);take(x,h-1)}for(let y=0;y<h;y+=2){take(0,y);take(w-1,y)}
+  const med=a=>{a.sort((p,q)=>p-q);return a[a.length>>1]};
+  const R=med(rs),G=med(gs),B=med(bs);
+  const dist=(i,r,g,b)=>Math.abs(d[i]-r)+Math.abs(d[i+1]-g)+Math.abs(d[i+2]-b);
+  const q=new Int32Array(w*h);let qh=0,qt=0;
+  const push=(x,y,i0)=>{const p=y*w+x;if(m[p])return;const i=p*4;
+    const near=i0>=0&&dist(i,d[i0],d[i0+1],d[i0+2])<tol*.28;
+    if(dist(i,R,G,B)<tol||(near&&dist(i,R,G,B)<tol*2)){m[p]=1;q[qt++]=p}};
+  for(let x=0;x<w;x++){push(x,0,-1);push(x,h-1,-1)}for(let y=0;y<h;y++){push(0,y,-1);push(w-1,y,-1)}
+  while(qh<qt){const p=q[qh++],x=p%w,y=(p/w)|0,i0=p*4;
+    if(x>0)push(x-1,y,i0);if(x<w-1)push(x+1,y,i0);if(y>0)push(x,y-1,i0);if(y<h-1)push(x,y+1,i0)}
+  return {m:m,w:w,h:h,id:id};
+}
+function cleanCanvas(src,tol){
+  const c=workCanvas(src),M2=bgMask(c,tol),w=M2.w,h=M2.h,d=M2.id.data,m=M2.m;
+  /* soften the edge: pixels next to the cutout blend halfway to white */
+  const out=new Uint8Array(w*h);
+  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const p=y*w+x;if(!m[p]&&(m[p-1]||m[p+1]||m[p-w]||m[p+w]))out[p]=1}
+  for(let p=0;p<w*h;p++){const i=p*4;if(m[p]){d[i]=d[i+1]=d[i+2]=255}else if(out[p]){d[i]=(d[i]+255)>>1;d[i+1]=(d[i+1]+255)>>1;d[i+2]=(d[i+2]+255)>>1}}
+  c.getContext('2d').putImageData(M2.id,0,0);
+  /* bounding box of what is left */
+  let x0=w,y0=h,x1=0,y1=0;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(!m[y*w+x]){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+  const ok=x1>x0&&y1>y0&&((x1-x0)*(y1-y0))>w*h*.02;
+  return {c:c,box:ok?[x0/w,y0/h,x1/w,y1/h]:null};
+}
+function applyClean(){
+  if(!CR)return;
+  const btn=$('#crop-cl'),tw=$('#crop-tw');
+  if(!CR.clean){CR.img=CR.orig;CR.w=CR.orig.width||CR.orig.naturalWidth;CR.h=CR.orig.height||CR.orig.naturalHeight;CR.bbox=null;if(btn)btn.setAttribute('aria-pressed','false');if(tw)tw.hidden=true;drawCrop();return}
+  const r=cleanCanvas(CR.orig,CR.tol);
+  const ow=CR.w,oh=CR.h;CR.img=r.c;CR.w=r.c.width;CR.h=r.c.height;CR.cx*=CR.w/ow;CR.cy*=CR.h/oh;CR.bbox=r.box;
+  CR.min=CR.box/Math.max(CR.w,CR.h);CR.max=Math.max(CR.min*6,CR.box/Math.min(CR.w,CR.h)*3);
+  if(btn)btn.setAttribute('aria-pressed','true');if(tw)tw.hidden=false;
+  setScale(CR.s);
+}
+function toggleClean(){if(!CR)return;CR.clean=!CR.clean;applyClean()}
+function centerPiece(){
+  if(!CR)return;
+  let b=CR.bbox;
+  if(!b){const r=bgMask(workCanvas(CR.img),CR.clean?CR.tol:CR.tol);let x0=r.w,y0=r.h,x1=0,y1=0;
+    for(let y=0;y<r.h;y++)for(let x=0;x<r.w;x++)if(!r.m[y*r.w+x]){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+    b=(x1>x0&&y1>y0)?[x0/r.w,y0/r.h,x1/r.w,y1/r.h]:[0,0,1,1]}
+  const bw=(b[2]-b[0])*CR.w,bh=(b[3]-b[1])*CR.h;
+  CR.cx=(b[0]+b[2])/2*CR.w;CR.cy=(b[1]+b[3])/2*CR.h;
+  setScale(CR.box*.84/Math.max(bw,bh));
 }
 function pdist(){if(!CR||CR.ptr.size<2)return 0;const p=Array.from(CR.ptr.values());return Math.hypot(p[0][0]-p[1][0],p[0][1]-p[1][1])}
 function setScale(v){
@@ -865,7 +965,7 @@ function paintCrop(ctx,size){
   ctx.drawImage(CR.img,size/2-CR.cx*CR.s*k,size/2-CR.cy*CR.s*k,CR.w*CR.s*k,CR.h*CR.s*k);
 }
 function drawCrop(){const c=$('#crop-c');if(c&&CR)paintCrop(c.getContext('2d'),c.width)}
-function cropReset(){if(!CR)return;CR.cx=CR.w/2;CR.cy=CR.h/2;setScale(CR.min)}
+function cropReset(){if(!CR)return;CR.clean=false;applyClean();CR.cx=CR.w/2;CR.cy=CR.h/2;setScale(CR.min)}
 function closeCrop(){CR=null;const h=$('#crop');if(h)h.innerHTML=''}
 async function cropDone(){
   if(!CR||!S.sheet)return closeCrop();
@@ -978,13 +1078,15 @@ document.addEventListener('click',e=>{
     case 'pick':toggleOutfit(id);break;
     case 'day':pickDay(el.dataset.d);break;
     case 'today':S.month=today().slice(0,7);pickDay(today());break;
-    case 'mode':S.mode=el.dataset.v;S.opt=0;render();break;
+    case 'mode':S.mode=el.dataset.v;S.opt=0;S.out=0;render();break;
     case 'opt':S.opt=+el.dataset.v;render();break;
     case 'tag':setTag(el.dataset.v);break;
     case 'repeat':repeatPrev();break;
     case 'clear':clearOutfit();break;
     case 'lock':lockPlan();break;
-    case 'open-day':S.sel=el.dataset.d;S.mode=defaultMode(S.sel);S.opt=0;S.tab='log';render();toTop();break;
+    case 'open-day':S.sel=el.dataset.d;S.mode=defaultMode(S.sel);S.opt=0;S.out=0;S.tab='log';render();toTop();break;
+    case 'out':S.out=+el.dataset.v;render();break;
+    case 'add-out':addOutfit();break;
     case 'month':shiftMonth(+el.dataset.v);break;
     case 'sheet-bg':if(e.target===el)closeSheet();break;
     case 'sheet-close':closeSheet();break;
@@ -993,6 +1095,8 @@ document.addEventListener('click',e=>{
     case 'photo-adjust':adjustPhoto();break;
     case 'pv-tap':adjustPhoto();break;
     case 'crop-reset':cropReset();break;
+    case 'crop-fit':centerPiece();break;
+    case 'crop-clean':toggleClean();break;
     case 'crop-cancel':closeCrop();break;
     case 'crop-done':cropDone();break;
     case 'photo-clear':if(S.sheet){const dr=S.sheet.draft;if(dr.previewUrl){try{URL.revokeObjectURL(dr.previewUrl)}catch(x){}}dr.photo='';dr.photoBlob=null;dr.photoData='';dr.previewUrl='';syncPhoto()}break;
