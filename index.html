@@ -13,7 +13,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <script>try{var _s=JSON.parse(localStorage.getItem('rotation.settings')||'{}');if(_s.accent&&_s.accent!=='cobalt')document.documentElement.setAttribute('data-accent',_s.accent);if(_s.theme==='light'||_s.theme==='dark')document.documentElement.setAttribute('data-theme',_s.theme);if(_s.splash===false)document.documentElement.setAttribute('data-splash','off')}catch(e){}</script>
-<style>html,body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>html,body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>Rotation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -57,8 +57,8 @@ svg{width:18px;height:18px;flex:none}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 /* nav pill */
-#scroll{position:fixed;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding:calc(env(safe-area-inset-top,0px) + 106px) 16px calc(env(safe-area-inset-bottom,0px) + 150px)}
-.nav{position:fixed;inset:0 0 auto 0;padding:calc(env(safe-area-inset-top,0px) + 10px) 10px 0;display:flex;justify-content:center;pointer-events:none;z-index:30;transform:translateZ(0)}
+#scroll{padding:18px 16px calc(env(safe-area-inset-bottom,0px) + 150px)}
+.nav{position:-webkit-sticky;position:sticky;top:0;padding:calc(env(safe-area-inset-top,0px) + 10px) 10px 0;display:flex;justify-content:center;pointer-events:none;z-index:30;transform:translateZ(0)}
 .navbar{pointer-events:auto;display:flex;align-items:center;gap:10px;transform-origin:50% 0;transition:transform .3s cubic-bezier(.3,.7,.2,1)}
 .nav.compact .navbar{transform:scale(.9)}
 .pill,.circ{background:color-mix(in srgb,var(--surface) 88%,transparent);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);box-shadow:var(--shadow-pill);border:1px solid var(--line)}
@@ -815,7 +815,7 @@ async function wipeAll(){
 /* ---------- day view (calendar) ---------- */
 function openDay(d){S.dv=d;renderDay()}
 function closeDay(){S.dv=null;renderDay()}
-function refreshCal(){if(S.tab==='calendar'){const sc=$('#scroll'),y=sc.scrollTop;render();sc.scrollTop=y}}
+function refreshCal(){if(S.tab==='calendar'){const y=window.scrollY;render();window.scrollTo(0,y)}}
 function renderDay(){
   const host=$('#dayv'),d=S.dv;
   if(!d){host.innerHTML='';if(!S.sheet)document.body.style.overflow='';return}
@@ -1122,7 +1122,7 @@ async function delClick(){
   catch(e){toast('Could not remove that piece')}
 }
 
-function toTop(){const sc=$('#scroll');if(sc)sc.scrollTop=0}
+function toTop(){window.scrollTo(0,0)}
 
 /* ---------- toast ---------- */
 let toastT;
@@ -1222,7 +1222,7 @@ document.addEventListener('change',e=>{
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(CR)closeCrop();else if(S.sheet)closeSheet();else if(S.dv)closeDay()}});
 
 let scrollT;
-$('#scroll').addEventListener('scroll',()=>{
+window.addEventListener('scroll',()=>{
   const n=$('#nav');n.classList.add('compact');
   clearTimeout(scrollT);scrollT=setTimeout(()=>n.classList.remove('compact'),240);
 },{passive:true});
