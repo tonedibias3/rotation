@@ -249,6 +249,11 @@ svg{width:18px;height:18px;flex:none}
 .fit-p{border-radius:20px;overflow:hidden;margin-bottom:16px;background:var(--bg);box-shadow:var(--shadow)}
 .fit-p img{display:block;width:100%;max-height:52vh;object-fit:cover}
 .grid.dv .cam{display:none}
+.sc-row{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.sc-row .ri-t{display:grid;gap:2px;min-width:0}
+.sc-row .ri-t b{font:600 15px var(--f-body)}
+.sc-row .ri-t i{font:500 11px var(--f-mono);font-style:normal;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.hero .sn{display:grid;place-items:center;width:100%;height:100%;padding:3px;font:600 9px/1.1 var(--f-body);text-align:center;word-break:break-word;overflow:hidden;color:var(--on-well)}
 .dv-h{margin:18px 0 10px;font:700 13px var(--f-display);font-stretch:115%;text-transform:uppercase;letter-spacing:.04em;color:var(--ink2)}
 /* accent palettes */
 :root[data-accent="heritage"]{--bg:#F2F0E8;--surface:#FBFAF6;--accent:#0B6B43;--accent-ink:#FFFFFF;--accent2:#C8102E}
@@ -303,24 +308,14 @@ svg{width:18px;height:18px;flex:none}
 'use strict';
 
 /* ---------- constants ---------- */
-const CATS=[{id:'tops',label:'Tops'},{id:'bottoms',label:'Bottoms'},{id:'shoes',label:'Shoes'},{id:'outerwear',label:'Outerwear'},{id:'accessories',label:'Accessories'}];
+const CATS=[{id:'tops',label:'Tops'},{id:'bottoms',label:'Bottoms'},{id:'shoes',label:'Shoes'},{id:'outerwear',label:'Outerwear'},{id:'accessories',label:'Accessories'},{id:'scents',label:'Scents'}];
 const TAGS=[{id:'work',label:'Work'},{id:'casual',label:'Casual'},{id:'mixed',label:'Mixed'}];
 const COLORS={black:'#1d1f24',white:'#f2f2ef',grey:'#9a9ea6',navy:'#232f55',blue:'#3d6fd1',green:'#3f8a5c',olive:'#6e6f31',brown:'#6e4a2e',tan:'#c4a47c',red:'#c23b32',pink:'#e79db5',orange:'#e07a2f',yellow:'#e6c53a',purple:'#7a55b8',multi:'#9a9ea6'};
 const SEED=[
-  ['Travis Scott Jordan 1 Low Olive','Jordan','shoes','olive',''],
-  ['Union Jordan 4','Jordan','shoes','',''],
-  ['Joe Freshgoods New Balance','New Balance','shoes','',''],
-  ['Supreme Nike SB','Nike','shoes','',''],
-  ['Nike SB','Nike','shoes','',''],
-  ['Supreme Vans','Vans','shoes','',''],
-  ['Stan Smith','Adidas','shoes','','Beat Stans'],
-  ['Blue/White Oxford','Ralph Lauren','tops','blue',''],
-  ['Green/White Oxford','','tops','green',''],
-  ['Pink Oxford','','tops','pink',''],
-  ['Aztec Shirt','Goodfellow','tops','',''],
-  ['Van Gogh Sweater','Abercrombie & Fitch','tops','',''],
-  ['Brown Chinos','','bottoms','brown',''],
-  ['Jeans','A.P.C.','bottoms','','']
+  ['White T-Shirt','','tops','white',''],
+  ["Levi's Blue Jeans","Levi's",'bottoms','blue',''],
+  ['Jordan 1 Bred','Jordan','shoes','red',''],
+  ['Air Force 1 White','Nike','shoes','white','']
 ];
 const P={
   shoes:'<path d="M3 16.5v-3.4c0-.5.3-1 .8-1.2l3.4-1.2 2.3 2c.5.4 1.1.7 1.8.8l5.1.6c1.7.2 3 1.4 3 2.9v1.5c0 .5-.4.9-.9.9H3.9a.9.9 0 0 1-.9-.9z"/><path d="M3 18.5h18"/>',
@@ -328,6 +323,7 @@ const P={
   bottoms:'<path d="M7 3.5h10l1.2 17h-4.4L12 10.5l-1.8 10H5.8z"/>',
   outerwear:'<path d="M9 3.5 4 6.5 3 15.5l3 .6.5-5.1v9.5h11V11l.5 5.1 3-.6-1-9-5-3c-.5 1.3-1.7 2-3 2s-2.5-.7-3-2z"/><path d="M12 5.5v15"/>',
   accessories:'<path d="M5.5 15.5a6.5 6.5 0 0 1 13 0"/><rect x="4" y="15.5" width="16" height="4" rx="1.6"/><circle cx="12" cy="6" r="1.5"/>',
+  scents:'<rect x="7.5" y="9.5" width="9" height="11" rx="2.4"/><path d="M10 9.5V6.5h4v3M10.5 3.5h3v3h-3z"/>',
   grid:'<rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/>',
   log:'<rect x="4" y="3.5" width="16" height="17" rx="3"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
   cal:'<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
@@ -373,9 +369,9 @@ function normDay(r){
   const pl=Array.isArray(r.plans)?r.plans:[];
   const mk=p=>({items:Array.isArray(p&&p.items)?p.items.slice():[],tag:(p&&p.tag)||'',photo:(p&&typeof p.photo==='string')?p.photo:''});
   const mo=Array.isArray(r.more)?r.more.map(mk):[];
-  return {items:Array.isArray(r.items)?r.items.slice():[],tag:r.tag||'',photo:typeof r.photo==='string'?r.photo:'',plans:[mk(pl[0]),mk(pl[1])],more:mo};
+  return {items:Array.isArray(r.items)?r.items.slice():[],tag:r.tag||'',photo:typeof r.photo==='string'?r.photo:'',scent:typeof r.scent==='string'?r.scent:'',plans:[mk(pl[0]),mk(pl[1])],more:mo};
 }
-const dayEmpty=d=>!d||(!d.items.length&&!d.photo&&!d.plans.some(p=>p.items.length)&&!d.more.some(p=>p.items.length));
+const dayEmpty=d=>!d||(!d.items.length&&!d.photo&&!d.scent&&!d.plans.some(p=>p.items.length)&&!d.more.some(p=>p.items.length));
 const outfitsOf=d=>{const o=[];if(d&&d.items.length)o.push(d);if(d)d.more.forEach(m=>{if(m.items.length)o.push(m)});return o};
 function outCount(){const d=S.days[S.sel];return d?Math.max(1,1+d.more.length):1}
 const photoSrc=p=>!p?'':(p.indexOf('data:')===0||p.indexOf('blob:')===0)?p:'/_blob/'+p;
@@ -515,7 +511,7 @@ async function flushDay(date){
   if(empty)delete S.days[date];
   if(daysCol){
     try{
-      await enqueue('d:'+date,()=>empty?daysCol.doc(date).delete():daysCol.doc(date).set({items:d.items.slice(),tag:d.tag||'',photo:d.photo||'',plans:d.plans.map(p=>({items:p.items.slice(),tag:p.tag||''})),more:d.more.filter(p=>p.items.length).map(p=>({items:p.items.slice(),tag:p.tag||'',photo:p.photo||''}))}));
+      await enqueue('d:'+date,()=>empty?daysCol.doc(date).delete():daysCol.doc(date).set({items:d.items.slice(),tag:d.tag||'',photo:d.photo||'',scent:d.scent||'',plans:d.plans.map(p=>({items:p.items.slice(),tag:p.tag||''})),more:d.more.filter(p=>p.items.length).map(p=>({items:p.items.slice(),tag:p.tag||'',photo:p.photo||''}))}));
     }catch(e){toast('Could not sync that day')}
   }else persistLocal('days');
   if(vers[date]===v){dirty.delete(date);if(!dirty.size)setSave('Saved')}
@@ -539,6 +535,7 @@ function stats(){
   let any=false;
   keys.forEach(k=>{
     const d=S.days[k];
+    if(d&&d.scent){wears[d.scent]=(wears[d.scent]||0)+1;if(!last[d.scent]||k>last[d.scent])last[d.scent]=k}
     outfitsOf(d).forEach(o=>{any=true;new Set(o.items).forEach(id=>{wears[id]=(wears[id]||0)+1;if(!last[id]||k>last[id])last[id]=k})});
   });
   return {wears:wears,last:last,hasLogs:any};
@@ -651,13 +648,15 @@ function viewLog(){
   const y=S.days[addDays(sel,-1)];
   const canRepeat=!!(y&&y.items.some(id=>M.has(id)));
   const groups=CATS.map(c=>{
+    const isSc=c.id==='scents';
+    if(isSc&&isPlan)return '';
     const list=S.items.filter(i=>i.category===c.id).sort((a,b)=>{
       const la=st.last[a.id]||'',lb=st.last[b.id]||'';
       return la===lb?a.name.localeCompare(b.name):(la<lb?1:-1);
     });
-    const n=list.filter(i=>on.has(i.id)).length;
-    return '<section class="grp"><div class="grp-h"><h2>'+c.label+'</h2><span class="sub" id="cnt-'+c.id+'">'+(n?n+' selected · ':'')+list.length+'</span></div><div class="rail">'
-      +list.map(i=>card(i,'data-act="pick" data-id="'+esc(i.id)+'" aria-pressed="'+on.has(i.id)+'"')).join('')
+    const n=isSc?(dd&&dd.scent?1:0):list.filter(i=>on.has(i.id)).length;
+    return '<section class="grp"><div class="grp-h"><h2>'+(isSc?'Scent of the day':c.label)+'</h2><span class="sub" id="cnt-'+c.id+'">'+(n?n+' selected · ':'')+list.length+'</span></div><div class="rail">'
+      +list.map(i=>isSc?card(i,'data-act="scent" data-id="'+esc(i.id)+'" aria-pressed="'+(!!dd&&dd.scent===i.id)+'"'):card(i,'data-act="pick" data-id="'+esc(i.id)+'" aria-pressed="'+on.has(i.id)+'"')).join('')
       +'<button type="button" class="card" data-act="new-item" data-cat="'+c.id+'" aria-label="Add a new '+c.label.toLowerCase()+' piece"><span class="tile add">'+ico(P.plus,1.6)+'</span><span class="brand">New</span><span class="name">Add to '+c.label.toLowerCase()+'</span></button>'
       +'</div></section>';
   }).join('');
@@ -686,10 +685,12 @@ function renderTray(){
 function refreshPicker(){
   const t=target(false),on=new Set(t.items);
   document.querySelectorAll('.card[data-act="pick"]').forEach(b=>b.setAttribute('aria-pressed',on.has(b.dataset.id)?'true':'false'));
+  const sd=S.days[S.sel],sc=sd&&sd.scent||'';
+  document.querySelectorAll('.card[data-act="scent"]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.id===sc?'true':'false'));
   CATS.forEach(c=>{
     const el=$('#cnt-'+c.id);if(!el)return;
     const total=S.items.filter(i=>i.category===c.id).length;
-    const n=S.items.filter(i=>i.category===c.id&&on.has(i.id)).length;
+    const n=c.id==='scents'?(sc&&M.has(sc)?1:0):S.items.filter(i=>i.category===c.id&&on.has(i.id)).length;
     el.textContent=(n?n+' selected · ':'')+total;
   });
   const lb=$('#lock');if(lb)lb.disabled=!t.items.length;
@@ -705,6 +706,11 @@ function toggleOutfit(id,force){
   else if(!want&&i>=0)t.items.splice(i,1);
   scheduleDay(S.sel);
   refreshPicker();
+}
+function pickScent(id){
+  const d=S.days[S.sel]||(S.days[S.sel]=normDay({}));
+  d.scent=d.scent===id?'':id;
+  scheduleDay(S.sel);refreshPicker();
 }
 function setTag(v){const t=target(true);t.tag=t.tag===v?'':v;scheduleDay(S.sel);const ts=$('#tagseg');if(ts)ts.innerHTML=tagSeg();const ow=$('#outwrap');if(ow)ow.innerHTML=outSegHTML()}
 function repeatPrev(){
@@ -750,10 +756,10 @@ function viewCalendar(){
     if(!ids.length&&dd&&!outfitsOf(dd).length){const p=dd.plans.find(p=>p.items.some(id=>M.has(id)));if(p){planned=true;ids=p.items.filter(id=>M.has(id))}}
     const outs=planned?[]:outfitsOf(dd).map(o=>o.items.filter(id=>M.has(id))).filter(a=>a.length);
     const picks=ids.map(id=>M.get(id)).sort((a,b)=>(a.category==='shoes'?0:1)-(b.category==='shoes'?0:1));
-    const hero=picks[0],fo=(!planned&&dd)?outfitsOf(dd).find(o=>o.photo):null,fit=!!fo;
+    const sOnly=(!ids.length&&!planned&&dd&&dd.scent&&M.get(dd.scent))||null,hero=picks[0]||sOnly||undefined,fo=(!planned&&dd)?outfitsOf(dd).find(o=>o.photo):null,fit=!!fo;
     const bars=(!planned&&dd&&ids.length)?outfitsOf(dd).map(o=>'<span class="bar '+(o.tag?'t-'+o.tag:'t-none')+'"></span>').join(''):'';
     const lbl=fmt(ds,{weekday:'long',month:'long',day:'numeric'})+(planned?', planned':outs.length>1?', '+outs.length+' outfits logged':ids.length?', '+ids.length+' pieces logged':'');
-    cells.push('<button type="button" class="cell'+(ds===t?' today':'')+(planned?' planned':'')+'" data-act="open-day" data-d="'+ds+'" aria-label="'+lbl+'"><span class="n">'+d+'</span><span class="hero'+(fit?' fit':hero?'':' none')+'">'+(fit?'<img src="'+esc(photoSrc(fo.photo))+'" alt="" decoding="async">'+(outs.length>1?'<b>'+outs.length+' fits</b>':''):hero?tileInner(hero)+(outs.length>1?'<b>'+outs.length+' fits</b>':ids.length>1?'<b>+'+(ids.length-1)+'</b>':''):'')+'</span><span class="bars">'+(bars||'<span class="bar"></span>')+'</span></button>');
+    cells.push('<button type="button" class="cell'+(ds===t?' today':'')+(planned?' planned':'')+'" data-act="open-day" data-d="'+ds+'" aria-label="'+lbl+'"><span class="n">'+d+'</span><span class="hero'+(fit?' fit':hero?'':' none')+'">'+(sOnly&&!sOnly.photo?'<span class="sn">'+esc(sOnly.name)+'</span>':fit?'<img src="'+esc(photoSrc(fo.photo))+'" alt="" decoding="async">'+(outs.length>1?'<b>'+outs.length+' fits</b>':''):hero?tileInner(hero)+(sOnly?'':outs.length>1?'<b>'+outs.length+' fits</b>':ids.length>1?'<b>+'+(ids.length-1)+'</b>':''):'')+'</span><span class="bars">'+(bars||'<span class="bar"></span>')+'</span></button>');
   }
   const st=stats();
   const keys=Object.keys(S.days).filter(k=>k.indexOf(S.month)===0&&outfitsOf(S.days[k]).some(o=>o.items.some(id=>M.has(id))));
@@ -765,6 +771,9 @@ function viewCalendar(){
   let insights='<div class="panel"><h2>This month</h2>';
   insights+=keys.length?'<div class="nums"><div><b>'+keys.length+'</b><span>Days</span></div><div><b>'+tc.work+'</b><span>Work</span></div><div><b>'+tc.casual+'</b><span>Casual</span></div><div><b>'+tc.mixed+'</b><span>Mixed</span></div></div>':'<p style="margin:0">Log an outfit and this month fills in.</p>';
   insights+='</div>';
+  {const sc={};Object.keys(S.days).forEach(k=>{if(k.indexOf(S.month)===0){const id=S.days[k].scent;if(id&&M.has(id))sc[id]=(sc[id]||0)+1}});
+   const ts=Object.keys(sc).map(id=>[id,sc[id]]).sort((a,b)=>b[1]-a[1]).slice(0,3);
+   if(ts.length)insights+='<div class="panel"><h2>Scents this month</h2>'+ts.map(r=>row(M.get(r[0]),r[1]+'x')).join('')+'</div>'}
   if(top.length)insights+='<div class="panel"><h2>Most worn</h2>'+top.map(r=>row(M.get(r[0]),r[1]+'x')).join('')+'</div>';
   if(rest.length)insights+='<div class="panel"><h2>Resting shoes</h2>'+rest.map(r=>row(r.i,r.d===null?'Never':r.d+'d')).join('')+'<p class="hint" style="margin-top:10px">Shoes not logged in 21 days or more.</p></div>';
   return '<div class="head"><div><h1 class="h1">Calendar</h1><div class="sub">'+fmt(S.month+'-01',{month:'long',year:'numeric'})+'</div></div><div class="mnav"><button type="button" class="rb" data-act="month" data-v="-1" aria-label="Previous month">'+ico(P.left)+'</button><button type="button" class="rb" data-act="month" data-v="1" aria-label="Next month">'+ico(P.right)+'</button>'+gearBtn()+'</div></div>'
@@ -816,7 +825,9 @@ function renderDay(){
   const grid=l=>'<div class="grid dv">'+l.map(i=>card(i,'data-act="noop"')).join('')+'</div>';
   const shown=all.map((o,k)=>({o:o,k:k,l:sorted(o.items)})).filter(x=>x.l.length||x.o.photo);
   const multi=shown.length>1;
+  const sc=dd.scent&&M.get(dd.scent)||null;
   let body='',total=0;
+  if(sc)body+='<h3 class="dv-h" style="margin-top:0">Scent of the day</h3><div class="sc-row"><span class="thumb lg">'+tileInner(sc)+'</span><span class="ri-t"><b>'+esc(sc.name)+'</b><i>'+esc(sc.brand||'')+'</i></span></div>';
   shown.forEach(x=>{
     total+=x.l.length;
     const tl=(TAGS.find(t=>t.id===x.o.tag)||{}).label||'';
@@ -826,7 +837,7 @@ function renderDay(){
     body+='<div class="btn-row" style="margin:12px 0 4px"><button type="button" class="btn ghost" data-act="fit-pick" data-o="'+x.k+'">'+ico(P.cam)+(x.o.photo?'Replace photo':'Add outfit photo')+'</button>'+(x.o.photo?'<button type="button" class="btn danger" data-act="fit-clear" data-o="'+x.k+'">Remove photo</button>':'')+'</div>';
   });
   if(!shown.length){
-    body+='<p class="hint" style="margin:0 0 4px">Nothing logged for this day.</p>';
+    if(!sc)body+='<p class="hint" style="margin:0 0 4px">Nothing logged for this day.</p>';
     dd.plans.forEach((p,k)=>{
       const l=sorted(p.items);
       if(l.length)body+='<h3 class="dv-h">Planned, option '+(k+1)+((TAGS.find(t=>t.id===p.tag)||{}).label?' · '+TAGS.find(t=>t.id===p.tag).label:'')+'</h3>'+grid(l);
@@ -834,9 +845,9 @@ function renderDay(){
   }
   const tag0=(!multi&&shown[0]&&(TAGS.find(t=>t.id===shown[0].o.tag)||{}).label)||'';
   host.innerHTML='<div class="scrim" data-act="day-bg"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="dv-t" tabindex="-1">'
-   +'<div class="sheet-h"><div><h2 id="dv-t">'+esc(fmt(d,{weekday:'long',month:'short',day:'numeric'}))+'</h2><div class="sub" style="margin-top:4px">'+(total?total+' piece'+(total===1?'':'s'):'')+(multi?' · '+shown.length+' outfits':'')+(tag0?(total?' · ':'')+tag0:'')+'</div></div><button type="button" class="x" data-act="day-close" aria-label="Close">'+ico(P.x)+'</button></div>'
+   +'<div class="sheet-h"><div><h2 id="dv-t">'+esc(fmt(d,{weekday:'long',month:'short',day:'numeric'}))+'</h2><div class="sub" style="margin-top:4px">'+(total?total+' piece'+(total===1?'':'s'):(sc?'Scent only':''))+(multi?' · '+shown.length+' outfits':'')+(tag0?(total?' · ':'')+tag0:'')+'</div></div><button type="button" class="x" data-act="day-close" aria-label="Close">'+ico(P.x)+'</button></div>'
    +body
-   +'<div class="btn-row" style="margin-top:16px"><button type="button" class="btn primary" data-act="day-edit" data-o="0">Edit outfit</button></div>'
+   +'<div class="btn-row" style="margin-top:16px"><button type="button" class="btn primary" data-act="day-edit" data-o="0">Edit this day</button></div>'
    +'<input class="vh" id="f-fit" type="file" accept="image/*">'
    +'</div></div>';
   document.body.style.overflow='hidden';
@@ -1163,6 +1174,7 @@ document.addEventListener('click',e=>{
     case 'search':{S.tab='closet';S.filter='all';render();toTop();const q=$('#q');if(q)q.focus();break}
     case 'filter':S.filter=el.dataset.v;render();toTop();break;
     case 'pick':toggleOutfit(id);break;
+    case 'scent':pickScent(id);break;
     case 'day':pickDay(el.dataset.d);break;
     case 'today':S.month=today().slice(0,7);pickDay(today());break;
     case 'mode':S.mode=el.dataset.v;S.opt=0;S.out=0;render();break;
