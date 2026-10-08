@@ -182,9 +182,10 @@ svg{width:18px;height:18px;flex:none}
 .t-casual{background:var(--accent)}
 .t-mixed{background:linear-gradient(90deg,var(--ink) 50%,var(--accent) 50%)}
 .t-none{background:var(--line)}
+.t-out{background:var(--accent2,#C8102E)}
 .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
 .legend i{display:inline-block;width:16px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
-.nums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:10px 8px}
 .nums b{display:block;font:800 28px/1 var(--f-display);font-stretch:112%;font-variant-numeric:tabular-nums;margin-bottom:6px}
 .nums span{font:500 10px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
 .ri{display:flex;align-items:center;gap:12px;padding:9px 0}
@@ -273,6 +274,16 @@ svg{width:18px;height:18px;flex:none}
 .pal i{display:flex;flex:none;width:34px;height:20px;border-radius:999px;overflow:hidden;border:1px solid var(--line)}
 .pal i b{flex:1}
 .find{max-height:88vh;overflow:auto}
+.tray-done{flex:none;min-height:42px;padding:8px 18px}
+.look{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.look-b{flex:1;min-width:0;display:grid;gap:8px;text-align:left;padding:10px;border-radius:16px;border:1px solid var(--line);background:var(--bg);cursor:pointer}
+.look-t{display:flex;gap:6px;align-items:center}
+.look-t b{font:500 11px var(--f-mono);color:var(--ink2)}
+.look-n{font:600 13px/1.3 var(--f-body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.look-n i{font:500 10px var(--f-mono);font-style:normal;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);margin-left:8px}
+.occ{display:flex;flex-wrap:wrap;gap:8px}
+.occx{border:0;background:none;padding:0;margin-left:8px;display:inline-grid;place-items:center;cursor:pointer;color:var(--ink2)}
+.occx svg{width:14px;height:14px}
 .fr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .fr button{padding:0;border:1px solid var(--line);border-radius:14px;background:#fff;aspect-ratio:1;overflow:hidden;cursor:pointer}
 .fr img{display:block;width:100%;height:100%;object-fit:contain}
@@ -315,6 +326,7 @@ svg{width:18px;height:18px;flex:none}
 <div id="sheet"></div>
 <div id="crop"></div>
 <div id="find"></div>
+<div id="looks"></div>
 <div id="splash" aria-hidden="true"><div class="in"></div><div class="door dl"></div><div class="door dr"></div><div class="mark"><b>Rotation</b><span>Your closet</span></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
@@ -324,7 +336,11 @@ svg{width:18px;height:18px;flex:none}
 
 /* ---------- constants ---------- */
 const CATS=[{id:'tops',label:'Tops'},{id:'bottoms',label:'Bottoms'},{id:'shoes',label:'Shoes'},{id:'outerwear',label:'Outerwear'},{id:'accessories',label:'Accessories'},{id:'scents',label:'Scents'}];
-const TAGS=[{id:'work',label:'Work'},{id:'casual',label:'Casual'},{id:'mixed',label:'Mixed'}];
+const BASE_TAGS=[{id:'work',label:'Work'},{id:'casual',label:'Casual'},{id:'mixed',label:'Mixed'},{id:'out',label:'Going out'}];
+const OCC_COL=['#E0A100','#7A55B8','#1F9D8B','#D9480F'];
+let TAGS=BASE_TAGS.slice();
+function buildTags(){TAGS=BASE_TAGS.concat((SET.occ||[]).slice(0,4).map((o,i)=>({id:o.id,label:o.label,color:OCC_COL[i%4],custom:true})))}
+const tagBar=id=>{const t=TAGS.find(x=>x.id===id);return '<span class="bar '+(t&&!t.custom?'t-'+id:id?'':'t-none')+'"'+(t&&t.custom?' style="background:'+t.color+'"':'')+'></span>'};
 const COLORS={black:'#1d1f24',white:'#f2f2ef',grey:'#9a9ea6',navy:'#232f55',blue:'#3d6fd1',green:'#3f8a5c',olive:'#6e6f31',brown:'#6e4a2e',tan:'#c4a47c',red:'#c23b32',pink:'#e79db5',orange:'#e07a2f',yellow:'#e6c53a',purple:'#7a55b8',multi:'#9a9ea6'};
 const SEED=[
   ['White T-Shirt','','tops','white',''],
@@ -369,10 +385,11 @@ const daysSince=s=>Math.round((parse(today())-parse(s))/864e5);
 const newId=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
 /* ---------- state ---------- */
-const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,gkey:typeof o.gkey==='string'?o.gkey:'',gcx:typeof o.gcx==='string'?o.gcx:'',accent:['cobalt','heritage','graphite','ember'].indexOf(o.accent)>=0?o.accent:'cobalt',start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:''}})();
+const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,gkey:typeof o.gkey==='string'?o.gkey:'',gcx:typeof o.gcx==='string'?o.gcx:'',occ:Array.isArray(o.occ)?o.occ.filter(x=>x&&x.id&&x.label).slice(0,4):[],accent:['cobalt','heritage','graphite','ember'].indexOf(o.accent)>=0?o.accent:'cobalt',start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:''}})();
 function saveSet(){try{localStorage.setItem('rotation.settings',JSON.stringify(SET))}catch(e){}}
 function applyTheme(){const r=document.documentElement;if(SET.accent==='cobalt')r.removeAttribute('data-accent');else r.setAttribute('data-accent',SET.accent);if(SET.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',SET.theme);const dark=SET.theme==='dark'||(SET.theme==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);document.querySelectorAll('meta[name=theme-color]').forEach(m=>{m.setAttribute('content',dark?'#0E1115':'#E7E9ED');m.removeAttribute('media')})}
-const S={items:[],days:{},tab:SET.start,filter:'all',q:'',sel:today(),mode:'log',opt:0,out:0,month:today().slice(0,7),sheet:null,dv:null,fo:0,loading:true,store:'local',saveText:'',gotItems:false,gotDays:false};
+buildTags();
+const S={items:[],looks:[],days:{},tab:SET.start,filter:'all',q:'',sel:today(),mode:'log',opt:0,out:0,month:today().slice(0,7),sheet:null,dv:null,fo:0,loading:true,store:'local',saveText:'',gotItems:false,gotDays:false};
 let M=new Map();
 let itemsCol=null,daysCol=null,ASSETS=null,lastSig='';
 const dirty=new Set(),timers={},vers={},chains={};
@@ -382,9 +399,9 @@ const enqueue=(key,fn)=>{const p=(chains[key]||Promise.resolve()).then(fn);chain
 function normDay(r){
   r=r||{};
   const pl=Array.isArray(r.plans)?r.plans:[];
-  const mk=p=>({items:Array.isArray(p&&p.items)?p.items.slice():[],tag:(p&&p.tag)||'',photo:(p&&typeof p.photo==='string')?p.photo:'',rating:(p&&typeof p.rating==='number'&&p.rating>0&&p.rating<=5)?Math.round(p.rating*2)/2:0});
+  const mk=p=>({items:Array.isArray(p&&p.items)?p.items.slice():[],tag:(p&&p.tag)||'',when:(p&&['morning','afternoon','evening'].indexOf(p.when)>=0)?p.when:'',photo:(p&&typeof p.photo==='string')?p.photo:'',rating:(p&&typeof p.rating==='number'&&p.rating>0&&p.rating<=5)?Math.round(p.rating*2)/2:0});
   const mo=Array.isArray(r.more)?r.more.map(mk).filter(o=>o.items.length||o.photo):[];
-  return {items:Array.isArray(r.items)?r.items.slice():[],tag:r.tag||'',photo:typeof r.photo==='string'?r.photo:'',scent:typeof r.scent==='string'?r.scent:'',plans:[mk(pl[0]),mk(pl[1])],more:mo};
+  return {items:Array.isArray(r.items)?r.items.slice():[],tag:r.tag||'',photo:typeof r.photo==='string'?r.photo:'',scent:typeof r.scent==='string'?r.scent:'',when:['morning','afternoon','evening'].indexOf(r.when)>=0?r.when:'',plans:[mk(pl[0]),mk(pl[1]),mk(pl[2]),mk(pl[3])],more:mo};
 }
 const dayEmpty=d=>!d||(!d.items.length&&!d.photo&&!d.scent&&!d.plans.some(p=>p.items.length)&&!d.more.some(p=>p.items.length));
 const outfitsOf=d=>{const o=[];if(d&&d.items.length)o.push(d);if(d)d.more.forEach(m=>{if(m.items.length)o.push(m)});return o};
@@ -414,11 +431,13 @@ function persistLocal(part){
   const jobs=[];
   if(!part||part==='items')jobs.push(idbSet('items',S.items));
   if(!part||part==='days')jobs.push(idbSet('days',S.days));
+  if(!part||part==='looks')jobs.push(idbSet('looks',S.looks));
   Promise.all(jobs).catch(()=>{if(!warned){warned=true;toast('Could not save on this device')}});
 }
 async function loadLocal(){
   try{
     let items=await idbGet('items'),days=await idbGet('days');
+    {const lk=await idbGet('looks');S.looks=Array.isArray(lk)?lk.filter(x=>x&&x.id&&Array.isArray(x.items)):[]}
     if(!items&&!days){
       try{const j=JSON.parse(localStorage.getItem('rotation.v1')||'null');if(j){items=j.items;days=j.days}}catch(e){}
     }
@@ -429,7 +448,7 @@ async function loadLocal(){
   rebuild();
 }
 function exportData(){
-  const blob=new Blob([JSON.stringify({app:'rotation',v:1,items:S.items,days:S.days})],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({app:'rotation',v:1,items:S.items,days:S.days,looks:S.looks})],{type:'application/json'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download='rotation-backup-'+today()+'.json';
   document.body.appendChild(a);a.click();a.remove();
@@ -444,6 +463,7 @@ async function importData(file){
     });
     S.items.sort((a,b)=>a.id<b.id?-1:1);
     Object.keys(j.days||{}).forEach(k=>{S.days[k]=normDay(j.days[k])});
+    (Array.isArray(j.looks)?j.looks:[]).forEach(l=>{if(l&&l.id&&Array.isArray(l.items)&&!S.looks.some(x=>x.id===l.id))S.looks.push(l)});
     rebuild();persistLocal();render();
     toast('Restored '+j.items.length+' pieces');
   }catch(e){toast('That file is not a Rotation backup')}
@@ -526,7 +546,7 @@ async function flushDay(date){
   if(empty)delete S.days[date];
   if(daysCol){
     try{
-      await enqueue('d:'+date,()=>empty?daysCol.doc(date).delete():daysCol.doc(date).set({items:d.items.slice(),tag:d.tag||'',photo:d.photo||'',scent:d.scent||'',rating:d.rating||0,plans:d.plans.map(p=>({items:p.items.slice(),tag:p.tag||''})),more:d.more.filter(p=>p.items.length).map(p=>({items:p.items.slice(),tag:p.tag||'',photo:p.photo||'',rating:p.rating||0}))}));
+      await enqueue('d:'+date,()=>empty?daysCol.doc(date).delete():daysCol.doc(date).set({items:d.items.slice(),tag:d.tag||'',photo:d.photo||'',scent:d.scent||'',rating:d.rating||0,when:d.when||'',plans:d.plans.map(p=>({items:p.items.slice(),tag:p.tag||'',when:p.when||''})),more:d.more.filter(p=>p.items.length).map(p=>({items:p.items.slice(),tag:p.tag||'',when:p.when||'',photo:p.photo||'',rating:p.rating||0}))}));
     }catch(e){toast('Could not sync that day')}
   }else persistLocal('days');
   if(vers[date]===v){dirty.delete(date);if(!dirty.size)setSave('Saved')}
@@ -642,7 +662,7 @@ function stripDates(){
 function outSegHTML(){
   if(S.mode==='plan')return '';
   const dd=S.days[S.sel],nOut=dd?1+dd.more.length:1,cur0=target(false);
-  return '<div><span class="cap">Outfits today</span><div class="seg" role="group" aria-label="Outfit">'+Array.from({length:nOut},(_,i)=>{const o=i===0?dd:dd.more[i-1],tg=o&&o.tag?TAGS.find(x=>x.id===o.tag):null;return '<button type="button" data-act="out" data-v="'+i+'" aria-pressed="'+(S.out===i)+'">Outfit '+(i+1)+'<i>'+(tg?tg.label:(o&&o.items.length)||'')+'</i></button>'}).join('')+(nOut<4&&cur0.items.length?'<button type="button" data-act="add-out" aria-label="Add another outfit for this day">+ Another</button>':'')+'</div></div>';
+  return '<div><span class="cap">Outfits today</span><div class="seg" role="group" aria-label="Outfit">'+Array.from({length:nOut},(_,i)=>{const o=i===0?dd:dd.more[i-1],tg=o&&o.tag?TAGS.find(x=>x.id===o.tag):null;return '<button type="button" data-act="out" data-v="'+i+'" aria-pressed="'+(S.out===i)+'">Outfit '+(i+1)+'<i>'+((o&&o.when)?o.when.charAt(0).toUpperCase()+o.when.slice(1):tg?tg.label:(o&&o.items.length)||'')+'</i></button>'}).join('')+(nOut<4&&cur0.items.length?'<button type="button" data-act="add-out" aria-label="Add another outfit for this day">+ Another</button>':'')+'</div></div>';
 }
 function viewLog(){
   const t=today(),sel=S.sel,isPlan=S.mode==='plan';
@@ -660,7 +680,7 @@ function viewLog(){
     return '<button type="button" class="day'+(has?' has':'')+(planned?' planned':'')+(d===t?' today':'')+'" data-act="day" data-d="'+d+'" aria-pressed="'+(d===sel)+'" aria-label="'+fmt(d,{weekday:'long',month:'long',day:'numeric'})+'"><span class="w">'+fmt(d,{weekday:'short'})+'</span><span class="n">'+parse(d).getDate()+'</span><span class="dot"></span></button>';
   }).join('');
   const modeSeg=sel>=t?'<div class="seg" role="group" aria-label="Mode"><button type="button" data-act="mode" data-v="log" aria-pressed="'+(S.mode==='log')+'">Log</button><button type="button" data-act="mode" data-v="plan" aria-pressed="'+(S.mode==='plan')+'">Plan options</button></div>':'';
-  const optSeg=S.mode==='plan'?'<div><div class="seg" role="group" aria-label="Option">'+['A','B'].map((l,i)=>'<button type="button" data-act="opt" data-v="'+i+'" aria-pressed="'+(S.opt===i)+'">Option '+l+'<i>'+((dd&&dd.plans[i].items.length)||'')+'</i></button>').join('')+'</div><p class="hint" style="margin-top:8px">Build two outfits, then lock in the one you wear.</p></div>':'';
+  const optSeg=S.mode==='plan'?'<div><div class="seg" role="group" aria-label="Option">'+['A','B','C','D'].map((l,i)=>'<button type="button" data-act="opt" data-v="'+i+'" aria-pressed="'+(S.opt===i)+'">Option '+l+'<i>'+((dd&&dd.plans[i].items.length)||'')+'</i></button>').join('')+'</div><p class="hint" style="margin-top:8px">Plan up to four options. When you wear one, the other options for the same time of day clear.</p></div>':'';
   const y=S.days[addDays(sel,-1)];
   const canRepeat=!!(y&&y.items.some(id=>M.has(id)));
   const groups=CATS.map(c=>{
@@ -679,10 +699,11 @@ function viewLog(){
   return '<div class="head"><div><h1 class="h1">Log</h1><div class="sub">'+fmt(sel,{weekday:'long',month:'long',day:'numeric'})+'</div></div><div class="hr"><button type="button" class="chip" data-act="today">Today</button>'+gearBtn()+'</div></div>'
    +'<div class="days" id="days">'+strip+'</div>'
    +'<div class="stack">'+modeSeg+optSeg+'<div id="outwrap">'+outSegHTML()+'</div>'
-   +'<div><span class="cap">Outfit type</span><div class="seg" id="tagseg" role="group" aria-label="Outfit type">'+tagSeg()+'</div></div>'
+   +'<div><span class="cap">Time of day</span><div class="seg" id="whenseg" role="group" aria-label="Time of day">'+whenSeg()+'</div></div>'
+   +'<div><span class="cap">Outfit type</span><div class="seg wrap" id="tagseg" role="group" aria-label="Outfit type">'+tagSeg()+'</div></div>'
    +'<div id="rate">'+rateHTML()+'</div>'
-   +'<div class="btn-row"><button type="button" class="btn ghost" data-act="repeat"'+(canRepeat?'':' disabled')+'>'+(sel===t?'Repeat yesterday':'Repeat day before')+'</button><button type="button" class="btn ghost" data-act="clear">Clear</button>'+(S.mode==='log'&&S.out>0?'<button type="button" class="btn ghost" id="rm-out" data-act="rm-out">Remove outfit</button>':'')
-   +(S.mode==='plan'?'<button type="button" class="btn primary" id="lock" data-act="lock"'+(tgt.items.length?'':' disabled')+'>Wear option '+'AB'[S.opt]+'</button>':'')
+   +'<div class="btn-row"><button type="button" class="btn ghost" data-act="repeat"'+(canRepeat?'':' disabled')+'>'+(sel===t?'Repeat yesterday':'Repeat day before')+'</button><button type="button" class="btn ghost" data-act="clear">Clear</button><button type="button" class="btn ghost" data-act="look-save"'+(tgt.items.length?'':' disabled')+'>Save look</button><button type="button" class="btn ghost" data-act="looks-open">Saved looks'+(S.looks.length?' ('+S.looks.length+')':'')+'</button>'+(S.mode==='log'&&S.out>0?'<button type="button" class="btn ghost" id="rm-out" data-act="rm-out">Remove outfit</button>':'')
+   +(S.mode==='plan'?'<button type="button" class="btn primary" id="lock" data-act="lock"'+(tgt.items.length?'':' disabled')+'>Wear option '+'ABCD'[S.opt]+'</button>':'')
    +'</div></div>'
    +'<p class="hint" style="margin-top:18px">Tap to select. Hold a piece to edit it or add a photo.</p>'
    +(S.loading?'<div class="grid">'+'<div class="skel"></div>'.repeat(6)+'</div>':groups)
@@ -696,7 +717,7 @@ function afterLogRender(){
 function renderTray(){
   const el=$('#tray');if(!el)return;
   const its=target(false).items.map(id=>M.get(id)).filter(Boolean);
-  el.innerHTML='<div class="thumbs">'+(its.length?its.map(i=>'<span class="thumb">'+tileInner(i)+'</span>').join(''):'<span class="sub">Tap pieces to build the outfit</span>')+'</div><div class="tray-r"><span class="mono">'+(S.mode==='log'&&outCount()>1?'Outfit '+(S.out+1)+' · ':'')+its.length+' piece'+(its.length===1?'':'s')+'</span><span class="sv" id="savestate"></span></div>';
+  el.innerHTML='<div class="thumbs">'+(its.length?its.map(i=>'<span class="thumb">'+tileInner(i)+'</span>').join(''):'<span class="sub">Tap pieces to build the outfit</span>')+'</div><div class="tray-r"><span class="mono">'+(S.mode==='log'&&outCount()>1?'Outfit '+(S.out+1)+' · ':'')+its.length+' piece'+(its.length===1?'':'s')+'</span><span class="sv" id="savestate"></span></div><button type="button" class="btn primary tray-done" data-act="done">Done</button>';
   paintSave();
 }
 function refreshPicker(){
@@ -711,7 +732,9 @@ function refreshPicker(){
     el.textContent=(n?n+' selected · ':'')+total;
   });
   const lb=$('#lock');if(lb)lb.disabled=!t.items.length;
+  const sl=document.querySelector('[data-act="look-save"]');if(sl)sl.disabled=!t.items.length;
   const ts=$('#tagseg');if(ts)ts.innerHTML=tagSeg();
+  const wsg=$('#whenseg');if(wsg)wsg.innerHTML=whenSeg();
   const ow=$('#outwrap');if(ow)ow.innerHTML=outSegHTML();
   renderTray();
 }
@@ -729,6 +752,9 @@ function pickScent(id){
   d.scent=d.scent===id?'':id;
   scheduleDay(S.sel);refreshPicker();
 }
+const WHENS=[['','Any'],['morning','Morning'],['afternoon','Afternoon'],['evening','Evening']];
+function whenSeg(){const t=target(false);return WHENS.map(w=>'<button type="button" data-act="when" data-v="'+w[0]+'" aria-pressed="'+((t.when||'')===w[0])+'">'+w[1]+'</button>').join('')}
+function setWhen(v){const t=target(true);t.when=v;scheduleDay(S.sel);const e=$('#whenseg');if(e)e.innerHTML=whenSeg();const ow=$('#outwrap');if(ow)ow.innerHTML=outSegHTML()}
 function setTag(v){const t=target(true);t.tag=t.tag===v?'':v;scheduleDay(S.sel);const ts=$('#tagseg');if(ts)ts.innerHTML=tagSeg();const ow=$('#outwrap');if(ow)ow.innerHTML=outSegHTML()}
 function repeatPrev(){
   const y=S.days[addDays(S.sel,-1)];
@@ -740,19 +766,20 @@ function repeatPrev(){
 function clearOutfit(){
   const t=target(true);
   if(!t.items.length&&!t.tag&&!t.rating)return;
-  t.items=[];t.tag='';t.rating=0;
+  t.items=[];t.tag='';t.rating=0;t.when='';
   scheduleDay(S.sel);refreshPicker();const rr=$('#rate');if(rr)rr.innerHTML=rateHTML();
 }
 function lockPlan(){
   const d=S.days[S.sel];if(!d)return;
   const idx=S.opt,p=d.plans[idx];
   if(!p.items.length)return;
-  if(!d.items.length){d.items=p.items.slice();d.tag=p.tag;S.out=0}
-  else{d.more.push({items:p.items.slice(),tag:p.tag});S.out=d.more.length}
-  d.plans=[{items:[],tag:''},{items:[],tag:''}];
+  const w=p.when||'';
+  if(!d.items.length){d.items=p.items.slice();d.tag=p.tag;d.when=w;S.out=0}
+  else{d.more.push({items:p.items.slice(),tag:p.tag,when:w,photo:'',rating:0});S.out=d.more.length}
+  d.plans=d.plans.map((q,i)=>(i===idx||(q.when||'')===w)?{items:[],tag:'',when:''}:q);
   S.mode='log';S.opt=0;
   scheduleDay(S.sel);render();
-  toast('Option '+'AB'[idx]+' is your outfit');
+  toast('Option '+'ABCD'[idx]+' is your outfit');
 }
 function pickDay(d){S.sel=d;S.mode=defaultMode(d);S.opt=0;S.out=0;render()}
 function addOutfit(){
@@ -801,6 +828,43 @@ function removeOutfit(){
   S.rmArm=false;d.more.splice(S.out-1,1);S.out=Math.min(S.out,d.more.length);
   scheduleDay(S.sel);render();
 }
+
+/* ---------- saved looks ---------- */
+const sameSet=(a,b)=>a.length===b.length&&a.every(x=>b.indexOf(x)>=0);
+function saveLook(){
+  const t=target(false),ids=t.items.filter(id=>M.has(id));
+  if(!ids.length){toast('Pick some pieces first');return}
+  if(S.looks.some(l=>sameSet(l.items,ids))){toast('That look is already saved');return}
+  S.looks.unshift({id:newId(),items:ids.slice(),tag:t.tag||'',createdAt:Date.now()});
+  persistLocal('looks');toast('Saved to your looks');
+}
+function lookLabel(l){return l.items.map(id=>M.get(id)).filter(Boolean).map(i=>i.name).slice(0,3).join(' · ')}
+function openLooks(){renderLooks(true)}
+function closeLooks(){const h=$('#looks');if(h)h.innerHTML=''}
+function renderLooks(open){
+  const h=$('#looks');if(!open&&!h.innerHTML)return;
+  const list=S.looks.map(l=>({l:l,its:l.items.map(id=>M.get(id)).filter(Boolean)})).filter(x=>x.its.length);
+  const sorted=list.map(x=>({l:x.l,its:x.its.slice().sort((a,b)=>catIdx(a.category)-catIdx(b.category))}));
+  h.innerHTML='<div class="crop-s"><div class="crop find" role="dialog" aria-modal="true" aria-label="Saved looks"><div class="sheet-h" style="margin-bottom:10px"><h2 style="margin:0">Saved looks</h2><button type="button" class="x" data-act="looks-close" aria-label="Close">'+ico(P.x)+'</button></div>'
+   +(sorted.length?'<p class="hint" style="margin-top:0">Tap a look to load it into '+(S.mode==='plan'?'Option '+'ABCD'[S.opt]:'this outfit')+'. You can change it after.</p>'+sorted.map(x=>{
+      const tg=TAGS.find(t=>t.id===x.l.tag);
+      return '<div class="look"><button type="button" class="look-b" data-act="look-use" data-id="'+esc(x.l.id)+'"><span class="look-t">'+x.its.slice(0,5).map(i=>'<span class="thumb">'+tileInner(i)+'</span>').join('')+(x.its.length>5?'<b>+'+(x.its.length-5)+'</b>':'')+'</span><span class="look-n">'+esc(lookLabel(x.l))+(tg?'<i>'+esc(tg.label)+'</i>':'')+'</span></button><button type="button" class="x" data-act="look-del" data-id="'+esc(x.l.id)+'" aria-label="Delete saved look">'+ico(P.x)+'</button></div>'}).join('')
+    :'<p class="hint">Nothing saved yet. Build an outfit and tap Save look. It keeps the pieces so you can load it on another day, no naming needed.</p>')
+   +'</div></div>';
+}
+function useLook(id){
+  const l=S.looks.find(x=>x.id===id);if(!l)return;
+  const t=target(true);
+  t.items=l.items.filter(i=>M.has(i));
+  if(!t.tag&&l.tag)t.tag=l.tag;
+  scheduleDay(S.sel);closeLooks();refreshPicker();
+  toast('Look loaded. Change anything you like.');
+}
+function delLook(id){S.looks=S.looks.filter(x=>x.id!==id);persistLocal('looks');renderLooks(true)}
+function finishDay(){
+  const d=S.sel;
+  S.tab='calendar';S.month=d.slice(0,7);render();toTop();openDay(d);
+}
 /* ---------- calendar ---------- */
 function viewCalendar(){
   const ym=S.month.split('-').map(Number),y=ym[0],m=ym[1];
@@ -814,20 +878,20 @@ function viewCalendar(){
     const outs=planned?[]:outfitsOf(dd).map(o=>o.items.filter(id=>M.has(id))).filter(a=>a.length);
     const picks=ids.map(id=>M.get(id)).sort((a,b)=>(a.category==='shoes'?0:1)-(b.category==='shoes'?0:1));
     const sOnly=(!ids.length&&!planned&&dd&&dd.scent&&M.get(dd.scent))||null,hero=picks[0]||sOnly||undefined,fo=(!planned&&dd)?outfitsOf(dd).find(o=>o.photo):null,fit=!!fo;
-    const bars=(!planned&&dd&&ids.length)?outfitsOf(dd).map(o=>'<span class="bar '+(o.tag?'t-'+o.tag:'t-none')+'"></span>').join(''):'';
+    const bars=(!planned&&dd&&ids.length)?outfitsOf(dd).map(o=>tagBar(o.tag)).join(''):'';
     const lbl=fmt(ds,{weekday:'long',month:'long',day:'numeric'})+(planned?', planned':outs.length>1?', '+outs.length+' outfits logged':ids.length?', '+ids.length+' pieces logged':'');
     cells.push('<button type="button" class="cell'+(ds===t?' today':'')+(planned?' planned':'')+'" data-act="open-day" data-d="'+ds+'" aria-label="'+lbl+'"><span class="n">'+d+'</span><span class="hero'+(fit?' fit':hero?'':' none')+'">'+(sOnly&&!sOnly.photo?'<span class="sn">'+esc(sOnly.name)+'</span>':fit?'<img src="'+esc(photoSrc(fo.photo))+'" alt="" decoding="async">'+(outs.length>1?'<b>'+outs.length+' fits</b>':''):hero?tileInner(hero)+(sOnly?'':outs.length>1?'<b>'+outs.length+' fits</b>':ids.length>1?'<b>+'+(ids.length-1)+'</b>':''):'')+'</span><span class="bars">'+(bars||'<span class="bar"></span>')+'</span></button>');
   }
   const st=stats();
   const keys=Object.keys(S.days).filter(k=>k.indexOf(S.month)===0&&outfitsOf(S.days[k]).some(o=>o.items.some(id=>M.has(id))));
-  const tc={work:0,casual:0,mixed:0},wm={};
-  keys.forEach(k=>{outfitsOf(S.days[k]).forEach(d=>{if(tc[d.tag]!==undefined)tc[d.tag]++;new Set(d.items).forEach(id=>{if(M.has(id))wm[id]=(wm[id]||0)+1})})});
+  const tc={work:0,casual:0,mixed:0},wm={},tcnt={};
+  keys.forEach(k=>{outfitsOf(S.days[k]).forEach(d=>{if(d.tag)tcnt[d.tag]=(tcnt[d.tag]||0)+1;new Set(d.items).forEach(id=>{if(M.has(id))wm[id]=(wm[id]||0)+1})})});
   const top=Object.keys(wm).map(id=>[id,wm[id]]).sort((a,b)=>b[1]-a[1]).slice(0,3);
   const rest=st.hasLogs?S.items.filter(i=>i.category==='shoes').map(i=>({i:i,d:st.last[i.id]?daysSince(st.last[i.id]):null})).filter(r=>r.d===null||r.d>=21).sort((a,b)=>(a.d===null)-(b.d===null)||(b.d||0)-(a.d||0)).slice(0,4):[];
   const row=(i,right)=>'<div class="ri"><span class="thumb lg">'+tileInner(i)+'</span><span class="ri-t"><b>'+esc(i.name)+'</b><i>'+esc(i.brand||(CATS[catIdx(i.category)]||CATS[0]).label)+'</i></span><span class="mono">'+right+'</span></div>';
   const rts=[];keys.forEach(k=>outfitsOf(S.days[k]).forEach(o=>{if(o.rating)rts.push(o.rating)}));
   let insights='<div class="panel"><h2>This month</h2>';
-  insights+=keys.length?'<div class="nums"><div><b>'+keys.length+'</b><span>Days</span></div><div><b>'+tc.work+'</b><span>Work</span></div><div><b>'+tc.casual+'</b><span>Casual</span></div><div><b>'+tc.mixed+'</b><span>Mixed</span></div></div>'+(rts.length?'<div class="rate-row" style="margin-top:14px">'+starsHTML(Math.round(rts.reduce((a,b)=>a+b,0)/rts.length*2)/2,false)+'<span class="mono">Avg '+(rts.reduce((a,b)=>a+b,0)/rts.length).toFixed(1)+' · '+rts.length+' rated</span></div>':''):'<p style="margin:0">Log an outfit and this month fills in.</p>';
+  insights+=keys.length?'<div class="nums"><div><b>'+keys.length+'</b><span>Days</span></div>'+TAGS.filter(t=>tcnt[t.id]||['work','casual'].indexOf(t.id)>=0).slice(0,5).map(t=>'<div><b>'+(tcnt[t.id]||0)+'</b><span>'+esc(t.label)+'</span></div>').join('')+'</div>'+(rts.length?'<div class="rate-row" style="margin-top:14px">'+starsHTML(Math.round(rts.reduce((a,b)=>a+b,0)/rts.length*2)/2,false)+'<span class="mono">Avg '+(rts.reduce((a,b)=>a+b,0)/rts.length).toFixed(1)+' · '+rts.length+' rated</span></div>':''):'<p style="margin:0">Log an outfit and this month fills in.</p>';
   insights+='</div>';
   {const sc={};Object.keys(S.days).forEach(k=>{if(k.indexOf(S.month)===0){const id=S.days[k].scent;if(id&&M.has(id))sc[id]=(sc[id]||0)+1}});
    const ts=Object.keys(sc).map(id=>[id,sc[id]]).sort((a,b)=>b[1]-a[1]).slice(0,3);
@@ -836,7 +900,7 @@ function viewCalendar(){
   if(rest.length)insights+='<div class="panel"><h2>Resting shoes</h2>'+rest.map(r=>row(r.i,r.d===null?'Never':r.d+'d')).join('')+'<p class="hint" style="margin-top:10px">Shoes not logged in 21 days or more.</p></div>';
   return '<div class="head"><div><h1 class="h1">Calendar</h1><div class="sub">'+fmt(S.month+'-01',{month:'long',year:'numeric'})+'</div></div><div class="mnav"><button type="button" class="rb" data-act="month" data-v="-1" aria-label="Previous month">'+ico(P.left)+'</button><button type="button" class="rb" data-act="month" data-v="1" aria-label="Next month">'+ico(P.right)+'</button>'+gearBtn()+'</div></div>'
    +'<div class="cal" role="group" aria-label="Month">'+(SET.week==='1'?['M','T','W','T','F','S','S']:['S','M','T','W','T','F','S']).map(d=>'<span class="dow">'+d+'</span>').join('')+cells.join('')+'</div>'
-   +'<div class="legend"><span><i class="t-work"></i>Work</span><span><i class="t-casual"></i>Casual</span><span><i class="t-mixed"></i>Mixed</span></div>'
+   +'<div class="legend">'+TAGS.map(t=>'<span><i class="'+(t.custom?'':'t-'+t.id)+'"'+(t.custom?' style="background:'+t.color+'"':'')+'></i>'+esc(t.label)+'</span>').join('')+'</div>'
    +insights+footText();
 }
 function shiftMonth(n){
@@ -859,6 +923,9 @@ function viewSettings(){
       +'<div class="panel"><h2>Defaults</h2>'
    +'<div class="set-row"><span><b>Week starts on</b><i>Calendar layout.</i></span>'+seg('week',[['0','Sun'],['1','Mon']])+'</div>'
    +'<div class="set-row"><span><b>Default tag</b><i>Applied when you log your first piece of a day.</i></span>'+seg('dtag',[['','None'],['work','Work'],['casual','Casual'],['mixed','Mixed']])+'</div></div>'
+   +'<div class="panel"><h2>Outfit types</h2><p>Work, Casual, Mixed and Going out are built in. Add your own, like Gym, Church or Date night.</p>'
+   +(SET.occ.length?'<div class="occ">'+SET.occ.map((o,i)=>'<span class="chip" style="cursor:default"><i style="width:8px;height:8px;border-radius:50%;background:'+OCC_COL[i%4]+';opacity:1;margin:0 8px 0 0;display:inline-block"></i>'+esc(o.label)+'<button type="button" class="occx" data-act="occ-del" data-id="'+esc(o.id)+'" aria-label="Remove '+esc(o.label)+'">'+ico(P.x)+'</button></span>').join('')+'</div>':'')
+   +(SET.occ.length<4?'<div class="field" style="margin:12px 0 0"><div style="display:flex;gap:8px"><input id="f-occ" placeholder="New outfit type" maxlength="16" autocomplete="off" style="flex:1"><button type="button" class="btn ghost" data-act="occ-add" style="min-height:46px">Add</button></div></div>':'<p class="hint" style="margin:10px 0 0">Four custom types is the limit.</p>')+'</div>'
    +'<div class="panel"><h2>Photo search</h2><p>Lets you search the web for a product photo when adding a piece. It uses your own free Google search key, so nothing is shared with anyone else.</p>'
    +'<div class="field"><label for="f-gk">Google API key</label><input id="f-gk" data-sf="gkey" value="'+esc(SET.gkey)+'" placeholder="AIza..." autocomplete="off" autocapitalize="off" spellcheck="false"></div>'
    +'<div class="field"><label for="f-gc">Search engine ID</label><input id="f-gc" data-sf="gcx" value="'+esc(SET.gcx)+'" placeholder="a1b2c3..." autocomplete="off" autocapitalize="off" spellcheck="false"></div>'
@@ -899,13 +966,11 @@ function renderDay(){
     if(x.l.length)body+=grid(x.l);
     body+='<div class="btn-row" style="margin:12px 0 4px"><button type="button" class="btn ghost" data-act="fit-pick" data-o="'+x.k+'">'+ico(P.cam)+(x.o.photo?'Replace photo':'Add outfit photo')+'</button>'+(x.o.photo?'<button type="button" class="btn danger" data-act="fit-clear" data-o="'+x.k+'">Remove photo</button>':'')+'</div>';
   });
-  if(!shown.length){
-    if(!sc)body+='<p class="hint" style="margin:0 0 4px">Nothing logged for this day.</p>';
-    dd.plans.forEach((p,k)=>{
-      const l=sorted(p.items);
-      if(l.length)body+='<h3 class="dv-h">Planned, option '+(k+1)+((TAGS.find(t=>t.id===p.tag)||{}).label?' · '+TAGS.find(t=>t.id===p.tag).label:'')+'</h3>'+grid(l);
-    });
-  }
+  if(!shown.length&&!sc&&!dd.plans.some(p=>p.items.length))body+='<p class="hint" style="margin:0 0 4px">Nothing logged for this day.</p>';
+  dd.plans.forEach((p,k)=>{
+    const l=sorted(p.items);
+    if(l.length)body+='<h3 class="dv-h">Planned, option '+'ABCD'[k]+(p.when?' · '+p.when:'')+((TAGS.find(t=>t.id===p.tag)||{}).label?' · '+TAGS.find(t=>t.id===p.tag).label:'')+'</h3>'+grid(l);
+  });
   const tag0=(!multi&&shown[0]&&(TAGS.find(t=>t.id===shown[0].o.tag)||{}).label)||'';
   host.innerHTML='<div class="scrim" data-act="day-bg"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="dv-t" tabindex="-1">'
    +'<div class="sheet-h"><div><h2 id="dv-t">'+esc(fmt(d,{weekday:'long',month:'short',day:'numeric'}))+'</h2><div class="sub" style="margin-top:4px">'+(total?total+' piece'+(total===1?'':'s'):(sc?'Scent only':''))+(multi?' · '+shown.length+' outfits':'')+(tag0?(total?' · ':'')+tag0:'')+'</div></div><button type="button" class="x" data-act="day-close" aria-label="Close">'+ico(P.x)+'</button></div>'
@@ -1296,6 +1361,13 @@ document.addEventListener('click',e=>{
     case 'mode':S.mode=el.dataset.v;S.opt=0;S.out=0;render();break;
     case 'opt':S.opt=+el.dataset.v;render();break;
     case 'tag':setTag(el.dataset.v);break;
+    case 'look-save':saveLook();break;
+    case 'looks-open':openLooks();break;
+    case 'looks-close':closeLooks();break;
+    case 'look-use':useLook(id);break;
+    case 'look-del':delLook(id);break;
+    case 'done':finishDay();break;
+    case 'when':setWhen(el.dataset.v);break;
     case 'repeat':repeatPrev();break;
     case 'clear':clearOutfit();break;
     case 'lock':lockPlan();break;
@@ -1315,6 +1387,8 @@ document.addEventListener('click',e=>{
     case 'sheet-close':closeSheet();break;
     case 's-cat':if(S.sheet){S.sheet.draft.category=el.dataset.v;syncChoices()}break;
     case 's-col':if(S.sheet){const dr=S.sheet.draft;dr.color=dr.color===el.dataset.v?'':el.dataset.v;syncChoices()}break;
+    case 'occ-add':{const i=$('#f-occ'),v=i&&i.value.trim();if(!v)break;if(SET.occ.length>=4)break;if(BASE_TAGS.concat(SET.occ).some(t=>t.label.toLowerCase()===v.toLowerCase())){toast('You already have that one');break}SET.occ.push({id:'c'+Date.now().toString(36),label:v});saveSet();buildTags();render();break}
+    case 'occ-del':SET.occ=SET.occ.filter(o=>o.id!==id);saveSet();buildTags();render();break;
     case 'find-open':openFind();break;
     case 'find-go':runFind();break;
     case 'find-close':closeFind();break;
