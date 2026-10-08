@@ -272,6 +272,11 @@ svg{width:18px;height:18px;flex:none}
 .pal button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--accent)}
 .pal i{display:flex;flex:none;width:34px;height:20px;border-radius:999px;overflow:hidden;border:1px solid var(--line)}
 .pal i b{flex:1}
+.find{max-height:88vh;overflow:auto}
+.fr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.fr button{padding:0;border:1px solid var(--line);border-radius:14px;background:#fff;aspect-ratio:1;overflow:hidden;cursor:pointer}
+.fr img{display:block;width:100%;height:100%;object-fit:contain}
+.crop-s:has(.find){z-index:70}
 /* splash */
 #splash{position:fixed;inset:0;z-index:100;overflow:hidden;perspective:1200px;pointer-events:all}
 [data-splash="off"] #splash{display:none}
@@ -300,6 +305,7 @@ svg{width:18px;height:18px;flex:none}
 <div id="dayv"></div>
 <div id="sheet"></div>
 <div id="crop"></div>
+<div id="find"></div>
 <div id="splash" aria-hidden="true"><div class="in"></div><div class="door dl"></div><div class="door dr"></div><div class="mark"><b>Rotation</b><span>Your closet</span></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
@@ -354,7 +360,7 @@ const daysSince=s=>Math.round((parse(today())-parse(s))/864e5);
 const newId=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
 /* ---------- state ---------- */
-const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,accent:['cobalt','heritage','graphite','ember'].indexOf(o.accent)>=0?o.accent:'cobalt',start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:''}})();
+const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,gkey:typeof o.gkey==='string'?o.gkey:'',gcx:typeof o.gcx==='string'?o.gcx:'',accent:['cobalt','heritage','graphite','ember'].indexOf(o.accent)>=0?o.accent:'cobalt',start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:''}})();
 function saveSet(){try{localStorage.setItem('rotation.settings',JSON.stringify(SET))}catch(e){}}
 function applyTheme(){const r=document.documentElement;if(SET.accent==='cobalt')r.removeAttribute('data-accent');else r.setAttribute('data-accent',SET.accent);if(SET.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',SET.theme);const dark=SET.theme==='dark'||(SET.theme==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);document.querySelectorAll('meta[name=theme-color]').forEach(m=>{m.setAttribute('content',dark?'#0E1115':'#E7E9ED');m.removeAttribute('media')})}
 const S={items:[],days:{},tab:SET.start,filter:'all',q:'',sel:today(),mode:'log',opt:0,out:0,month:today().slice(0,7),sheet:null,dv:null,fo:0,loading:true,store:'local',saveText:'',gotItems:false,gotDays:false};
@@ -801,6 +807,10 @@ function viewSettings(){
       +'<div class="panel"><h2>Defaults</h2>'
    +'<div class="set-row"><span><b>Week starts on</b><i>Calendar layout.</i></span>'+seg('week',[['0','Sun'],['1','Mon']])+'</div>'
    +'<div class="set-row"><span><b>Default tag</b><i>Applied when you log your first piece of a day.</i></span>'+seg('dtag',[['','None'],['work','Work'],['casual','Casual'],['mixed','Mixed']])+'</div></div>'
+   +'<div class="panel"><h2>Photo search</h2><p>Lets you search the web for a product photo when adding a piece. It uses your own free Google search key, so nothing is shared with anyone else.</p>'
+   +'<div class="field"><label for="f-gk">Google API key</label><input id="f-gk" data-sf="gkey" value="'+esc(SET.gkey)+'" placeholder="AIza..." autocomplete="off" autocapitalize="off" spellcheck="false"></div>'
+   +'<div class="field"><label for="f-gc">Search engine ID</label><input id="f-gc" data-sf="gcx" value="'+esc(SET.gcx)+'" placeholder="a1b2c3..." autocomplete="off" autocapitalize="off" spellcheck="false"></div>'
+   +'<p class="hint" style="margin:0">One-time setup, about 5 minutes. 1) At programmablesearchengine.google.com create a search engine that searches the entire web and turn on Image search. Copy its ID. 2) At console.cloud.google.com turn on the Custom Search API and create an API key. Free for 100 searches a day.</p></div>'
    +backupRow(true)
    +(S.store==='local'?'<div class="panel"><h2>Data</h2><p>Erase every piece and every logged day from this device. Export a backup first if you might want them back.</p><button type="button" class="btn danger" id="b-wipe" data-act="wipe">Erase everything</button></div>':'')
    +'<div class="panel"><h2>About</h2><p style="margin:0">Rotation. Your closet, what you wore, and what is next.</p></div>'
@@ -873,6 +883,58 @@ async function onFit(file){
   }catch(e){toast('Could not save that photo')}
 }
 
+
+/* ---------- find photo online ---------- */
+let FD=null;
+function openFind(){
+  const sh=S.sheet;if(!sh)return;
+  const d=sh.draft,q=((d.brand||'')+' '+(d.name||'')).trim();
+  FD={q:q,res:[],busy:false,msg:'',did:false};
+  renderFind();
+  if(SET.gkey&&SET.gcx&&q)runFind();
+}
+function closeFind(){FD=null;const h=$('#find');if(h)h.innerHTML=''}
+function renderFind(){
+  const h=$('#find');if(!FD){h.innerHTML='';return}
+  const ready=SET.gkey&&SET.gcx;
+  let body;
+  if(!ready)body='<p class="hint">Photo search needs a free Google key first. Open Settings, then Photo search, and follow the steps there. It is a one-time setup.</p>';
+  else body='<div class="field" style="margin-bottom:10px"><div style="display:flex;gap:8px"><input id="fd-q" value="'+esc(FD.q)+'" placeholder="Brand and name" autocomplete="off" enterkeyhint="search" style="flex:1"><button type="button" class="btn primary" data-act="find-go" style="min-height:46px">Search</button></div></div>'
+    +(FD.busy?'<p class="hint">Searching</p>':FD.msg?'<p class="hint">'+esc(FD.msg)+'</p>':'')
+    +'<div class="fr">'+FD.res.map((r,i)=>'<button type="button" data-act="find-pick" data-i="'+i+'" aria-label="Use photo '+(i+1)+'"><img src="'+esc(r.th)+'" alt="" referrerpolicy="no-referrer" loading="lazy"></button>').join('')+'</div>'
+    +(FD.res.length?'<p class="hint" style="margin-top:10px">Tap the best match. You can move and crop it next.</p>':'');
+  h.innerHTML='<div class="crop-s"><div class="crop find" role="dialog" aria-modal="true" aria-label="Find photo online"><div class="sheet-h" style="margin-bottom:10px"><h2 style="margin:0">Find photo</h2><button type="button" class="x" data-act="find-close" aria-label="Close">'+ico(P.x)+'</button></div>'+body+'</div></div>';
+}
+async function runFind(){
+  if(!FD)return;
+  const qi=$('#fd-q');if(qi)FD.q=qi.value.trim();
+  if(!FD.q)return;
+  FD.busy=true;FD.msg='';FD.res=[];renderFind();
+  try{
+    const u='https://www.googleapis.com/customsearch/v1?key='+encodeURIComponent(SET.gkey)+'&cx='+encodeURIComponent(SET.gcx)+'&q='+encodeURIComponent(FD.q+' product')+'&searchType=image&num=9&imgType=photo&safe=active';
+    const r=await fetch(u),j=await r.json();
+    if(!FD)return;
+    if(j.error){FD.msg=r.status===429||/quota|limit/i.test(j.error.message||'')?'Daily search limit reached. Try again tomorrow.':'Search failed: '+(j.error.message||r.status);FD.res=[]}
+    else{FD.res=(j.items||[]).map(it=>({full:it.link,th:(it.image&&it.image.thumbnailLink)||it.link})).slice(0,9);if(!FD.res.length)FD.msg='No results. Try fewer words.'}
+  }catch(e){if(FD)FD.msg='Could not reach search. Check your connection.'}
+  if(FD){FD.busy=false;renderFind();const qi2=$('#fd-q');if(qi2)qi2.value=FD.q}
+}
+function loadCors(url){
+  return new Promise((res,rej)=>{
+    const im=new Image();im.crossOrigin='anonymous';im.referrerPolicy='no-referrer';
+    im.onload=()=>res(im);im.onerror=()=>rej(new Error('img'));im.src=url;
+  });
+}
+async function pickFind(i){
+  if(!FD||!FD.res[i])return;
+  const r=FD.res[i];
+  toast('Loading photo');
+  const prox=u=>'https://images.weserv.nl/?url='+encodeURIComponent(u.replace(/^https?:\/\//,''))+'&w=1000&output=jpg&bg=white';
+  let im=null;
+  try{im=await loadCors(prox(r.full))}catch(e){try{im=await loadCors(prox(r.th))}catch(e2){}}
+  if(!im){toast('That photo would not load. Try another.');return}
+  closeFind();openCrop(im);
+}
 /* ---------- sheet: add / edit piece ---------- */
 function openItem(id,preset){
   const it=id?M.get(id):null;
@@ -893,7 +955,7 @@ function renderSheet(){
   if(it){const w=st.wears[it.id]||0;line=w?'Worn '+w+' time'+(w===1?'':'s')+' · last '+fmt(st.last[it.id],{month:'short',day:'numeric'}):'Not logged yet'}
   host.innerHTML='<div class="scrim" data-act="sheet-bg"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t" tabindex="-1">'
    +'<div class="sheet-h"><h2 id="sh-t">'+(it?'Edit piece':'New piece')+'</h2><button type="button" class="x" data-act="sheet-close" aria-label="Close">'+ico(P.x)+'</button></div>'
-   +'<div class="photo-row"><div class="tile" id="pv" data-act="pv-tap"></div><div class="photo-side"><label class="btn ghost" for="f-file">'+ico(P.cam)+'<span id="pv-l">Add photo</span></label><input class="vh" id="f-file" type="file" accept="image/*"><button type="button" class="btn ghost" id="pv-a" data-act="photo-adjust" hidden>Move and crop</button><button type="button" class="link" id="pv-c" data-act="photo-clear" hidden>Remove photo</button><p class="hint">A side view on a plain background looks best. Tap the photo to move or crop it.</p></div></div>'
+   +'<div class="photo-row"><div class="tile" id="pv" data-act="pv-tap"></div><div class="photo-side"><label class="btn ghost" for="f-file">'+ico(P.cam)+'<span id="pv-l">Add photo</span></label><input class="vh" id="f-file" type="file" accept="image/*"><button type="button" class="btn ghost" data-act="find-open">'+ico(P.search)+'Find photo online</button><button type="button" class="btn ghost" id="pv-a" data-act="photo-adjust" hidden>Move and crop</button><button type="button" class="link" id="pv-c" data-act="photo-clear" hidden>Remove photo</button><p class="hint">A side view on a plain background looks best. Tap the photo to move or crop it.</p></div></div>'
    +'<div class="field"><label for="f-name">Name</label><input id="f-name" data-f="name" value="'+esc(d.name)+'" placeholder="Union Jordan 4" autocomplete="off"></div>'
    +'<div class="two"><div class="field"><label for="f-brand">Brand</label><input id="f-brand" data-f="brand" list="brands" value="'+esc(d.brand)+'" placeholder="Jordan" autocomplete="off"></div><div class="field"><label for="f-nick">Nickname</label><input id="f-nick" data-f="nickname" value="'+esc(d.nickname)+'" placeholder="Optional" autocomplete="off"></div></div>'
    +'<datalist id="brands">'+brands.map(b=>'<option value="'+esc(b)+'">').join('')+'</datalist>'
@@ -1197,6 +1259,10 @@ document.addEventListener('click',e=>{
     case 'sheet-close':closeSheet();break;
     case 's-cat':if(S.sheet){S.sheet.draft.category=el.dataset.v;syncChoices()}break;
     case 's-col':if(S.sheet){const dr=S.sheet.draft;dr.color=dr.color===el.dataset.v?'':el.dataset.v;syncChoices()}break;
+    case 'find-open':openFind();break;
+    case 'find-go':runFind();break;
+    case 'find-close':closeFind();break;
+    case 'find-pick':pickFind(+el.dataset.i);break;
     case 'photo-adjust':adjustPhoto();break;
     case 'pv-tap':adjustPhoto();break;
     case 'crop-reset':cropReset();break;
@@ -1211,6 +1277,7 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('input',e=>{
   const t=e.target;
+  if(t.dataset&&t.dataset.sf){SET[t.dataset.sf]=t.value.trim();saveSet()}
   if(t.dataset&&t.dataset.f&&S.sheet)S.sheet.draft[t.dataset.f]=t.value;
   if(t.id==='q'){S.q=t.value;fillGrid()}
 });
@@ -1219,7 +1286,7 @@ document.addEventListener('change',e=>{
   if(e.target.id==='f-fit'){const f=e.target.files&&e.target.files[0];if(f)onFit(f);e.target.value=''}
   if(e.target.id==='f-import'){const f=e.target.files&&e.target.files[0];if(f)importData(f);e.target.value=''}
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(CR)closeCrop();else if(S.sheet)closeSheet();else if(S.dv)closeDay()}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(FD)closeFind();else if(CR)closeCrop();else if(S.sheet)closeSheet();else if(S.dv)closeDay()}});
 
 let scrollT;
 window.addEventListener('scroll',()=>{
