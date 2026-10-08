@@ -324,7 +324,7 @@ const daysSince=s=>Math.round((parse(today())-parse(s))/864e5);
 const newId=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
 /* ---------- state ---------- */
-const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet'}})();
+const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:''}})();
 function saveSet(){try{localStorage.setItem('rotation.settings',JSON.stringify(SET))}catch(e){}}
 function applyTheme(){const r=document.documentElement;if(SET.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',SET.theme);const dark=SET.theme==='dark'||(SET.theme==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);document.querySelectorAll('meta[name=theme-color]').forEach(m=>{m.setAttribute('content',dark?'#0E1115':'#E7E9ED');m.removeAttribute('media')})}
 const S={items:[],days:{},tab:SET.start,filter:'all',q:'',sel:today(),mode:'log',opt:0,month:today().slice(0,7),sheet:null,loading:true,store:'local',saveText:'',gotItems:false,gotDays:false};
@@ -644,7 +644,7 @@ function toggleOutfit(id,force){
   const t=target(true);
   const i=t.items.indexOf(id);
   const want=force===undefined?i<0:force;
-  if(want&&i<0)t.items.push(id);
+  if(want&&i<0){t.items.push(id);if(!t.tag&&SET.dtag){t.tag=SET.dtag;const ts=$('#tagseg');if(ts)ts.innerHTML=tagSeg()}}
   else if(!want&&i>=0)t.items.splice(i,1);
   scheduleDay(S.sel);
   refreshPicker();
@@ -678,7 +678,7 @@ function pickDay(d){S.sel=d;S.mode=defaultMode(d);S.opt=0;render()}
 /* ---------- calendar ---------- */
 function viewCalendar(){
   const ym=S.month.split('-').map(Number),y=ym[0],m=ym[1];
-  const lead=new Date(y,m-1,1).getDay(),dim=new Date(y,m,0).getDate(),t=today();
+  const lead=(new Date(y,m-1,1).getDay()-(+SET.week)+7)%7,dim=new Date(y,m,0).getDate(),t=today();
   const cells=[];
   for(let i=0;i<lead;i++)cells.push('<span class="cell out" aria-hidden="true"></span>');
   for(let d=1;d<=dim;d++){
@@ -704,7 +704,7 @@ function viewCalendar(){
   if(top.length)insights+='<div class="panel"><h2>Most worn</h2>'+top.map(r=>row(M.get(r[0]),r[1]+'x')).join('')+'</div>';
   if(rest.length)insights+='<div class="panel"><h2>Resting shoes</h2>'+rest.map(r=>row(r.i,r.d===null?'Never':r.d+'d')).join('')+'<p class="hint" style="margin-top:10px">Shoes not logged in 21 days or more.</p></div>';
   return '<div class="head"><div><h1 class="h1">Calendar</h1><div class="sub">'+fmt(S.month+'-01',{month:'long',year:'numeric'})+'</div></div><div class="mnav"><button type="button" class="rb" data-act="month" data-v="-1" aria-label="Previous month">'+ico(P.left)+'</button><button type="button" class="rb" data-act="month" data-v="1" aria-label="Next month">'+ico(P.right)+'</button>'+gearBtn()+'</div></div>'
-   +'<div class="cal" role="group" aria-label="Month">'+['S','M','T','W','T','F','S'].map(d=>'<span class="dow">'+d+'</span>').join('')+cells.join('')+'</div>'
+   +'<div class="cal" role="group" aria-label="Month">'+(SET.week==='1'?['M','T','W','T','F','S','S']:['S','M','T','W','T','F','S']).map(d=>'<span class="dow">'+d+'</span>').join('')+cells.join('')+'</div>'
    +'<div class="legend"><span><i class="t-work"></i>Work</span><span><i class="t-casual"></i>Casual</span><span><i class="t-mixed"></i>Mixed</span></div>'
    +insights+footText();
 }
@@ -723,6 +723,9 @@ function viewSettings(){
    +'<div class="set-row"><span><b>Theme</b><i>Auto follows your device.</i></span>'+seg('theme',[['auto','Auto'],['light','Light'],['dark','Dark']])+'</div>'
    +'<div class="set-row"><span><b>Opening animation</b><i>The closet doors when the app starts.</i></span><button type="button" class="sw-t" data-act="set" data-k="splash" data-v="'+(!SET.splash)+'" aria-pressed="'+SET.splash+'" aria-label="Opening animation"></button></div>'
    +'<div class="set-row"><span><b>Opens on</b><i>The first screen you see.</i></span>'+seg('start',[['closet','Closet'],['log','Log'],['calendar','Cal']])+'</div></div>'
+      +'<div class="panel"><h2>Defaults</h2>'
+   +'<div class="set-row"><span><b>Week starts on</b><i>Calendar layout.</i></span>'+seg('week',[['0','Sun'],['1','Mon']])+'</div>'
+   +'<div class="set-row"><span><b>Default tag</b><i>Applied when you log your first piece of a day.</i></span>'+seg('dtag',[['','None'],['work','Work'],['casual','Casual'],['mixed','Mixed']])+'</div></div>'
    +backupRow(true)
    +(S.store==='local'?'<div class="panel"><h2>Data</h2><p>Erase every piece and every logged day from this device. Export a backup first if you might want them back.</p><button type="button" class="btn danger" id="b-wipe" data-act="wipe">Erase everything</button></div>':'')
    +'<div class="panel"><h2>About</h2><p style="margin:0">Rotation. Your closet, what you wore, and what is next.</p></div>'
