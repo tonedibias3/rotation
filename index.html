@@ -277,6 +277,15 @@ svg{width:18px;height:18px;flex:none}
 .fr button{padding:0;border:1px solid var(--line);border-radius:14px;background:#fff;aspect-ratio:1;overflow:hidden;cursor:pointer}
 .fr img{display:block;width:100%;height:100%;object-fit:contain}
 .crop-s:has(.find){z-index:70}
+.stars{display:inline-flex;gap:2px;color:var(--accent)}
+.st{position:relative;display:block;width:30px;height:30px}
+.st svg{position:absolute;inset:0;width:100%;height:100%}
+.st .o{opacity:.45}
+.st .h{position:absolute;top:0;bottom:0;width:50%;border:0;background:transparent;padding:0;cursor:pointer}
+.st .l{left:0}.st .r{right:0}
+.stars:not(.live) .st{width:18px;height:18px}
+.rate-row{display:flex;align-items:center;gap:12px;margin:2px 0 14px}
+.rate-row .mono{font:500 12px var(--f-mono);color:var(--ink2)}
 /* splash */
 #splash{position:fixed;inset:0;z-index:100;overflow:hidden;perspective:1200px;pointer-events:all}
 [data-splash="off"] #splash{display:none}
@@ -373,8 +382,8 @@ const enqueue=(key,fn)=>{const p=(chains[key]||Promise.resolve()).then(fn);chain
 function normDay(r){
   r=r||{};
   const pl=Array.isArray(r.plans)?r.plans:[];
-  const mk=p=>({items:Array.isArray(p&&p.items)?p.items.slice():[],tag:(p&&p.tag)||'',photo:(p&&typeof p.photo==='string')?p.photo:''});
-  const mo=Array.isArray(r.more)?r.more.map(mk):[];
+  const mk=p=>({items:Array.isArray(p&&p.items)?p.items.slice():[],tag:(p&&p.tag)||'',photo:(p&&typeof p.photo==='string')?p.photo:'',rating:(p&&typeof p.rating==='number'&&p.rating>0&&p.rating<=5)?Math.round(p.rating*2)/2:0});
+  const mo=Array.isArray(r.more)?r.more.map(mk).filter(o=>o.items.length||o.photo):[];
   return {items:Array.isArray(r.items)?r.items.slice():[],tag:r.tag||'',photo:typeof r.photo==='string'?r.photo:'',scent:typeof r.scent==='string'?r.scent:'',plans:[mk(pl[0]),mk(pl[1])],more:mo};
 }
 const dayEmpty=d=>!d||(!d.items.length&&!d.photo&&!d.scent&&!d.plans.some(p=>p.items.length)&&!d.more.some(p=>p.items.length));
@@ -517,7 +526,7 @@ async function flushDay(date){
   if(empty)delete S.days[date];
   if(daysCol){
     try{
-      await enqueue('d:'+date,()=>empty?daysCol.doc(date).delete():daysCol.doc(date).set({items:d.items.slice(),tag:d.tag||'',photo:d.photo||'',scent:d.scent||'',plans:d.plans.map(p=>({items:p.items.slice(),tag:p.tag||''})),more:d.more.filter(p=>p.items.length).map(p=>({items:p.items.slice(),tag:p.tag||'',photo:p.photo||''}))}));
+      await enqueue('d:'+date,()=>empty?daysCol.doc(date).delete():daysCol.doc(date).set({items:d.items.slice(),tag:d.tag||'',photo:d.photo||'',scent:d.scent||'',rating:d.rating||0,plans:d.plans.map(p=>({items:p.items.slice(),tag:p.tag||''})),more:d.more.filter(p=>p.items.length).map(p=>({items:p.items.slice(),tag:p.tag||'',photo:p.photo||'',rating:p.rating||0}))}));
     }catch(e){toast('Could not sync that day')}
   }else persistLocal('days');
   if(vers[date]===v){dirty.delete(date);if(!dirty.size)setSave('Saved')}
@@ -633,10 +642,11 @@ function stripDates(){
 function outSegHTML(){
   if(S.mode==='plan')return '';
   const dd=S.days[S.sel],nOut=dd?1+dd.more.length:1,cur0=target(false);
-  return '<div><span class="cap">Outfits today</span><div class="seg" role="group" aria-label="Outfit">'+Array.from({length:nOut},(_,i)=>{const o=i===0?dd:dd.more[i-1],tg=o&&o.tag?TAGS.find(x=>x.id===o.tag):null;return '<button type="button" data-act="out" data-v="'+i+'" aria-pressed="'+(S.out===i)+'">Outfit '+(i+1)+'<i>'+(tg?tg.label:(o&&o.items.length)||'')+'</i></button>'}).join('')+(nOut<4&&(cur0.items.length||nOut>1)?'<button type="button" data-act="add-out" aria-label="Add another outfit for this day">+ Another</button>':'')+'</div></div>';
+  return '<div><span class="cap">Outfits today</span><div class="seg" role="group" aria-label="Outfit">'+Array.from({length:nOut},(_,i)=>{const o=i===0?dd:dd.more[i-1],tg=o&&o.tag?TAGS.find(x=>x.id===o.tag):null;return '<button type="button" data-act="out" data-v="'+i+'" aria-pressed="'+(S.out===i)+'">Outfit '+(i+1)+'<i>'+(tg?tg.label:(o&&o.items.length)||'')+'</i></button>'}).join('')+(nOut<4&&cur0.items.length?'<button type="button" data-act="add-out" aria-label="Add another outfit for this day">+ Another</button>':'')+'</div></div>';
 }
 function viewLog(){
   const t=today(),sel=S.sel,isPlan=S.mode==='plan';
+  {const dp=S.days[sel];if(dp&&dp.more.length){const keep=(!isPlan&&S.out>0)?dp.more[S.out-1]:null;pruneMore(sel,keep)}}
   if(sel<t&&isPlan)S.mode='log';
   {const dd0=S.days[sel],nOut=dd0?1+dd0.more.length:1;if(S.out>=nOut)S.out=nOut-1;if(S.out<0||isPlan)S.out=0}
   const tgt=target(false);
@@ -670,7 +680,8 @@ function viewLog(){
    +'<div class="days" id="days">'+strip+'</div>'
    +'<div class="stack">'+modeSeg+optSeg+'<div id="outwrap">'+outSegHTML()+'</div>'
    +'<div><span class="cap">Outfit type</span><div class="seg" id="tagseg" role="group" aria-label="Outfit type">'+tagSeg()+'</div></div>'
-   +'<div class="btn-row"><button type="button" class="btn ghost" data-act="repeat"'+(canRepeat?'':' disabled')+'>'+(sel===t?'Repeat yesterday':'Repeat day before')+'</button><button type="button" class="btn ghost" data-act="clear">Clear</button>'
+   +'<div id="rate">'+rateHTML()+'</div>'
+   +'<div class="btn-row"><button type="button" class="btn ghost" data-act="repeat"'+(canRepeat?'':' disabled')+'>'+(sel===t?'Repeat yesterday':'Repeat day before')+'</button><button type="button" class="btn ghost" data-act="clear">Clear</button>'+(S.mode==='log'&&S.out>0?'<button type="button" class="btn ghost" id="rm-out" data-act="rm-out">Remove outfit</button>':'')
    +(S.mode==='plan'?'<button type="button" class="btn primary" id="lock" data-act="lock"'+(tgt.items.length?'':' disabled')+'>Wear option '+'AB'[S.opt]+'</button>':'')
    +'</div></div>'
    +'<p class="hint" style="margin-top:18px">Tap to select. Hold a piece to edit it or add a photo.</p>'
@@ -728,9 +739,9 @@ function repeatPrev(){
 }
 function clearOutfit(){
   const t=target(true);
-  if(!t.items.length&&!t.tag)return;
-  t.items=[];t.tag='';
-  scheduleDay(S.sel);refreshPicker();
+  if(!t.items.length&&!t.tag&&!t.rating)return;
+  t.items=[];t.tag='';t.rating=0;
+  scheduleDay(S.sel);refreshPicker();const rr=$('#rate');if(rr)rr.innerHTML=rateHTML();
 }
 function lockPlan(){
   const d=S.days[S.sel];if(!d)return;
@@ -746,10 +757,50 @@ function lockPlan(){
 function pickDay(d){S.sel=d;S.mode=defaultMode(d);S.opt=0;S.out=0;render()}
 function addOutfit(){
   const d=S.days[S.sel]||(S.days[S.sel]=normDay({}));
+  if(!target(false).items.length){toast('Add pieces to this outfit first');return}
   if(d.more.length>=3){toast('Four outfits is the limit for a day');return}
   d.more.push({items:[],tag:''});S.out=d.more.length;S.mode='log';render();
 }
 
+
+/* ---------- empty-outfit cleanup and ratings ---------- */
+function pruneMore(date,keep){
+  const d=S.days[date];if(!d||!d.more.length)return;
+  const before=d.more.length;
+  d.more=d.more.filter(o=>o===keep||o.items.length||o.photo);
+  if(d.more.length!==before){
+    if(date===S.sel){const i=keep?d.more.indexOf(keep):-1;S.out=i>=0?i+1:0}
+    scheduleDay(date);
+  }
+}
+const STAR='<path d="M12 3.4l2.7 5.5 6 .9-4.4 4.2 1.1 6-5.4-2.9-5.4 2.9 1.1-6L3.3 9.8l6-.9z"/>';
+function starsHTML(v,live){
+  let h='<span class="stars'+(live?' live':'')+'" role="'+(live?'group':'img')+'" aria-label="'+(v?v+' out of 5 stars':'Not rated')+'">';
+  for(let i=0;i<5;i++){
+    const f=v>=i+1?0:v>=i+.5?50:100;
+    h+='<span class="st"><svg viewBox="0 0 24 24" class="o" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">'+STAR+'</svg><svg viewBox="0 0 24 24" class="f" fill="currentColor" style="clip-path:inset(0 '+f+'% 0 0)">'+STAR+'</svg>'
+      +(live?'<button type="button" class="h l" data-act="rate" data-v="'+(i+.5)+'" aria-label="'+(i+.5)+' stars"></button><button type="button" class="h r" data-act="rate" data-v="'+(i+1)+'" aria-label="'+(i+1)+' stars"></button>':'')+'</span>';
+  }
+  return h+'</span>';
+}
+function rateHTML(){
+  if(S.mode==='plan')return '';
+  const t=target(false),v=t.rating||0;
+  return '<span class="cap">Rate this fit</span><div class="rate-row">'+starsHTML(v,true)+'<span class="mono">'+(v?v.toFixed(1):'Not rated')+'</span></div>';
+}
+function setRating(v){
+  const t=target(true);
+  t.rating=(t.rating===v)?0:v;
+  scheduleDay(S.sel);
+  const r=$('#rate');if(r)r.innerHTML=rateHTML();
+}
+function removeOutfit(){
+  const d=S.days[S.sel];if(!d||S.out<1||!d.more[S.out-1])return;
+  const o=d.more[S.out-1],b=$('#rm-out');
+  if(o.items.length&&!S.rmArm){S.rmArm=true;if(b)b.textContent='Tap again to remove';setTimeout(()=>{S.rmArm=false;const b2=$('#rm-out');if(b2)b2.textContent='Remove outfit'},4000);return}
+  S.rmArm=false;d.more.splice(S.out-1,1);S.out=Math.min(S.out,d.more.length);
+  scheduleDay(S.sel);render();
+}
 /* ---------- calendar ---------- */
 function viewCalendar(){
   const ym=S.month.split('-').map(Number),y=ym[0],m=ym[1];
@@ -774,8 +825,9 @@ function viewCalendar(){
   const top=Object.keys(wm).map(id=>[id,wm[id]]).sort((a,b)=>b[1]-a[1]).slice(0,3);
   const rest=st.hasLogs?S.items.filter(i=>i.category==='shoes').map(i=>({i:i,d:st.last[i.id]?daysSince(st.last[i.id]):null})).filter(r=>r.d===null||r.d>=21).sort((a,b)=>(a.d===null)-(b.d===null)||(b.d||0)-(a.d||0)).slice(0,4):[];
   const row=(i,right)=>'<div class="ri"><span class="thumb lg">'+tileInner(i)+'</span><span class="ri-t"><b>'+esc(i.name)+'</b><i>'+esc(i.brand||(CATS[catIdx(i.category)]||CATS[0]).label)+'</i></span><span class="mono">'+right+'</span></div>';
+  const rts=[];keys.forEach(k=>outfitsOf(S.days[k]).forEach(o=>{if(o.rating)rts.push(o.rating)}));
   let insights='<div class="panel"><h2>This month</h2>';
-  insights+=keys.length?'<div class="nums"><div><b>'+keys.length+'</b><span>Days</span></div><div><b>'+tc.work+'</b><span>Work</span></div><div><b>'+tc.casual+'</b><span>Casual</span></div><div><b>'+tc.mixed+'</b><span>Mixed</span></div></div>':'<p style="margin:0">Log an outfit and this month fills in.</p>';
+  insights+=keys.length?'<div class="nums"><div><b>'+keys.length+'</b><span>Days</span></div><div><b>'+tc.work+'</b><span>Work</span></div><div><b>'+tc.casual+'</b><span>Casual</span></div><div><b>'+tc.mixed+'</b><span>Mixed</span></div></div>'+(rts.length?'<div class="rate-row" style="margin-top:14px">'+starsHTML(Math.round(rts.reduce((a,b)=>a+b,0)/rts.length*2)/2,false)+'<span class="mono">Avg '+(rts.reduce((a,b)=>a+b,0)/rts.length).toFixed(1)+' · '+rts.length+' rated</span></div>':''):'<p style="margin:0">Log an outfit and this month fills in.</p>';
   insights+='</div>';
   {const sc={};Object.keys(S.days).forEach(k=>{if(k.indexOf(S.month)===0){const id=S.days[k].scent;if(id&&M.has(id))sc[id]=(sc[id]||0)+1}});
    const ts=Object.keys(sc).map(id=>[id,sc[id]]).sort((a,b)=>b[1]-a[1]).slice(0,3);
@@ -842,6 +894,7 @@ function renderDay(){
     total+=x.l.length;
     const tl=(TAGS.find(t=>t.id===x.o.tag)||{}).label||'';
     if(multi)body+='<h3 class="dv-h">Outfit '+(x.k+1)+(tl?' · '+tl:'')+'</h3>';
+    if(x.o.rating)body+='<div class="rate-row" style="margin-bottom:10px">'+starsHTML(x.o.rating,false)+'<span class="mono">'+x.o.rating.toFixed(1)+'</span></div>';
     if(x.o.photo)body+='<div class="fit-p"><img src="'+esc(photoSrc(x.o.photo))+'" alt="Outfit photo"></div>';
     if(x.l.length)body+=grid(x.l);
     body+='<div class="btn-row" style="margin:12px 0 4px"><button type="button" class="btn ghost" data-act="fit-pick" data-o="'+x.k+'">'+ico(P.cam)+(x.o.photo?'Replace photo':'Add outfit photo')+'</button>'+(x.o.photo?'<button type="button" class="btn danger" data-act="fit-clear" data-o="'+x.k+'">Remove photo</button>':'')+'</div>';
@@ -1196,6 +1249,7 @@ function toast(msg){
 /* ---------- render ---------- */
 function render(){
   rebuild();
+  if(S.tab!=='log'&&S.days[S.sel])pruneMore(S.sel,null);
   document.querySelectorAll('#pill button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===S.tab?'page':'false'));
   $('#b-add').hidden=$('#b-search').hidden=false;
   const v=$('#view');
@@ -1254,6 +1308,8 @@ document.addEventListener('click',e=>{
     case 'noop':break;
     case 'out':S.out=+el.dataset.v;render();break;
     case 'add-out':addOutfit();break;
+    case 'rm-out':removeOutfit();break;
+    case 'rate':setRating(+el.dataset.v);break;
     case 'month':shiftMonth(+el.dataset.v);break;
     case 'sheet-bg':if(e.target===el)closeSheet();break;
     case 'sheet-close':closeSheet();break;
