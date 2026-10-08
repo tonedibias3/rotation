@@ -257,7 +257,7 @@ svg{width:18px;height:18px;flex:none}
 
 </head>
 <body>
-<header class="nav" id="nav"><div class="navbar"><button type="button" class="circ" id="b-add" data-act="new-item" aria-label="Add a piece"></button><nav class="pill" id="pill" aria-label="Sections"></nav><button type="button" class="circ" id="b-search" data-act="search" aria-label="Search closet"></button></div></header>
+<header class="nav" id="nav"><div class="navbar"><button type="button" class="circ" id="b-search" data-act="search" aria-label="Search closet"></button><nav class="pill" id="pill" aria-label="Sections"></nav><button type="button" class="circ" id="b-add" data-act="new-item" aria-label="Add a piece"></button></div></header>
 <div id="scroll"><main class="wrap" id="view"></main></div>
 <div id="sheet"></div>
 <div id="crop"></div>
@@ -537,12 +537,13 @@ function fillGrid(){
   const q=S.q.trim().toLowerCase();
   const list=S.items.filter(i=>(S.filter==='all'||i.category===S.filter)&&(!q||[i.name,i.brand,i.nickname,i.color].join(' ').toLowerCase().indexOf(q)>=0)).sort(byCat);
   const open=i=>card(i,'data-act="open-item" data-id="'+esc(i.id)+'"');
-  if(!list.length){g.innerHTML='<p class="empty-note">Nothing matches that search.</p>';return}
-  if(S.filter!=='all'){g.innerHTML='<div class="grid">'+list.map(open).join('')+'</div>';return}
+  const plus=c=>'<button type="button" class="card" data-act="new-item" data-cat="'+c.id+'" aria-label="Add a new '+c.label.toLowerCase()+' piece"><span class="tile add">'+ico(P.plus,1.6)+'</span><span class="brand">New</span><span class="name">Add to '+c.label.toLowerCase()+'</span></button>';
+  if(!list.length&&q){g.innerHTML='<p class="empty-note">Nothing matches that search.</p>';return}
+  if(S.filter!=='all'){const c=CATS[catIdx(S.filter)];g.innerHTML='<div class="grid">'+(q?'':plus(c))+list.map(open).join('')+'</div>';return}
   g.innerHTML=CATS.map(c=>{
     const l=list.filter(i=>i.category===c.id);
-    if(!l.length)return '';
-    return '<section class="grp"><div class="grp-h"><h2>'+c.label+'</h2><button type="button" class="link seeall" data-act="filter" data-v="'+c.id+'">See all '+l.length+'</button></div><div class="rail">'+l.map(open).join('')+'</div></section>';
+    if(!l.length&&q)return '';
+    return '<section class="grp"><div class="grp-h"><h2>'+c.label+'</h2><button type="button" class="link seeall" data-act="filter" data-v="'+c.id+'">See all '+l.length+'</button></div><div class="rail">'+(q?'':plus(c))+l.map(open).join('')+'</div></section>';
   }).join('');
 }
 async function seed(){
