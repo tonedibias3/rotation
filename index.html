@@ -13,7 +13,21 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <script>try{var _s=JSON.parse(localStorage.getItem('rotation.settings')||'{}');if(_s.accent&&_s.accent!=='cobalt')document.documentElement.setAttribute('data-accent',_s.accent);if(_s.theme==='light'||_s.theme==='dark')document.documentElement.setAttribute('data-theme',_s.theme);if(_s.splash===false)document.documentElement.setAttribute('data-splash','off')}catch(e){}</script>
-<style>html,body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>html,body{margin:0}img{max-width:100%}[hidden]{display:none!important}.ctl{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-4px 0 10px}
+.seg.mini{padding:3px;border-radius:11px;flex:none}.seg.mini button{padding:7px 14px;font-size:12.5px;border-radius:8px}
+.chips i{font-style:normal;font:500 11px var(--f-mono);opacity:.6;margin-left:6px}
+.chips.wrapc{flex-wrap:wrap;overflow:visible;margin-inline:0;padding:2px 0 8px}
+.addk{display:flex;gap:8px}.addk input{flex:1;min-width:0;font:400 16px var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.lbln{font:400 11px var(--f-body);text-transform:none;letter-spacing:0;color:var(--ink2);font-style:normal;margin-left:6px}
+.grid.hz{grid-template-columns:none;grid-auto-flow:column;grid-template-rows:repeat(3,auto);grid-auto-columns:clamp(104px,29vw,150px);overflow-x:auto;margin-inline:-16px;padding:6px 16px 22px;scroll-snap-type:x proximity;scroll-padding-inline:16px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.grid.hz::-webkit-scrollbar{display:none}.grid.hz .card{scroll-snap-align:start}
+.vbig{aspect-ratio:1;border-radius:22px;overflow:hidden;background:var(--well);margin-bottom:14px;display:grid;place-items:center}
+.vbig img{width:100%;height:100%;object-fit:contain}.vbig .ph svg{width:40%;height:40%}
+.vkinds{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}.vkinds span{font:600 12px var(--f-body);padding:6px 12px;border-radius:999px;background:color-mix(in srgb,var(--ink) 8%,transparent)}
+.vrow{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-top:1px solid var(--line);font-size:14.5px}.vrow span{color:var(--ink2);font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;align-self:center}.vrow b{font-weight:600;text-align:right}
+.vrow .dots{display:flex;gap:6px}.vrow .dots i{width:20px;height:20px;border-radius:50%;border:1px solid var(--line)}
+.arr-r{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font:600 15px var(--f-body)}.arr-r div{display:flex;gap:8px}.arr-r .rb:disabled{opacity:.3}
+</style>
 <title>Rotation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -386,11 +400,15 @@ const daysSince=s=>Math.round((parse(today())-parse(s))/864e5);
 const newId=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
 /* ---------- state ---------- */
-const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,gkey:typeof o.gkey==='string'?o.gkey:'',gcx:typeof o.gcx==='string'?o.gcx:'',occ:Array.isArray(o.occ)?o.occ.filter(x=>x&&x.id&&x.label).slice(0,4):[],accent:['cobalt','heritage','graphite','ember'].indexOf(o.accent)>=0?o.accent:'cobalt',start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:''}})();
+const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,gkey:typeof o.gkey==='string'?o.gkey:'',gcx:typeof o.gcx==='string'?o.gcx:'',occ:Array.isArray(o.occ)?o.occ.filter(x=>x&&x.id&&x.label).slice(0,4):[],accent:['cobalt','heritage','graphite','ember'].indexOf(o.accent)>=0?o.accent:'cobalt',start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:'',order:Array.isArray(o.order)?o.order.filter(x=>typeof x==='string'):[],cview:o.cview==='swipe'?'swipe':'grid',subs:(o.subs&&typeof o.subs==='object')?o.subs:{}}})();
+function applyOrder(){const o=SET.order;CATS.sort((a,b)=>{const ia=o.indexOf(a.id),ib=o.indexOf(b.id);return (ia<0?99:ia)-(ib<0?99:ib)})}
+applyOrder();
+const SUBS={tops:['Short sleeve','Long sleeve','T-shirt','Polo','Dress shirt','Collared','Sweater','Hoodie','Tank'],bottoms:['Jeans','Pants','Slacks','Shorts','Joggers'],shoes:['Sneakers','Boots','Dress','Loafers','Sandals'],outerwear:['Jacket','Coat','Vest','Blazer','Hoodie'],accessories:['Hat','Watch','Belt','Chain','Bag','Sunglasses'],scents:['Fresh','Woody','Sweet','Spicy']};
+const subsFor=c=>(SUBS[c]||[]).concat((SET.subs&&SET.subs[c])||[]);
 function saveSet(){try{localStorage.setItem('rotation.settings',JSON.stringify(SET))}catch(e){}}
 function applyTheme(){const r=document.documentElement;if(SET.accent==='cobalt')r.removeAttribute('data-accent');else r.setAttribute('data-accent',SET.accent);if(SET.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',SET.theme);const dark=SET.theme==='dark'||(SET.theme==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);document.querySelectorAll('meta[name=theme-color]').forEach(m=>{m.setAttribute('content',dark?'#0E1115':'#E7E9ED');m.removeAttribute('media')})}
 buildTags();
-const S={items:[],looks:[],days:{},tab:SET.start,filter:'all',q:'',sel:today(),mode:'log',opt:0,out:0,month:today().slice(0,7),sheet:null,dv:null,fo:0,loading:true,store:'local',saveText:'',gotItems:false,gotDays:false};
+const S={items:[],looks:[],days:{},tab:SET.start,filter:'all',q:'',sel:today(),mode:'log',opt:0,out:0,month:today().slice(0,7),sheet:null,vw:null,arr:false,kinds:[],dv:null,fo:0,loading:true,store:'local',saveText:'',gotItems:false,gotDays:false};
 let M=new Map();
 let itemsCol=null,daysCol=null,ASSETS=null,lastSig='';
 const dirty=new Set(),timers={},vers={},chains={};
@@ -603,8 +621,18 @@ function viewCloset(){
   return '<div class="head"><div><h1 class="h1">Closet</h1><div class="sub">'+(S.loading?'Loading':n+' piece'+(n===1?'':'s'))+'</div></div>'+gearBtn()+'</div>'
    +'<label class="search">'+ico(P.search)+'<input id="q" type="search" placeholder="Search name, brand or nickname" value="'+esc(S.q)+'" autocomplete="off" aria-label="Search closet"></label>'
    +'<div class="chips" role="group" aria-label="Filter by type">'+chip('all','All',n)+CATS.map(c=>chip(c.id,c.label,count(c.id))).join('')+'</div>'
-   +(!S.loading&&S.items.some(i=>!i.photo)?'<p class="hint" style="margin-bottom:4px">Tap a piece to edit it or add a photo.</p>':'')
+   +'<div class="ctl">'+(S.filter!=='all'?'<div class="seg mini" role="group" aria-label="Layout"><button type="button" data-act="cview" data-v="grid" aria-pressed="'+(SET.cview==='grid')+'">Grid</button><button type="button" data-act="cview" data-v="swipe" aria-pressed="'+(SET.cview==='swipe')+'">Swipe</button></div>':'')+'<button type="button" class="link" data-act="arrange">Arrange sections</button></div>'
+   +(S.filter!=='all'?'<div class="chips" id="kinds" role="group" aria-label="Filter by style"></div>':'')
+   +(!S.loading&&S.items.length?'<p class="hint" style="margin-bottom:4px">Tap a piece to edit it. Press and hold to view it.</p>':'')
    +'<div id="grid"></div>'+backupRow()+footText();
+}
+function fillKinds(){
+  const h=$('#kinds');if(!h)return;
+  const inCat=S.items.filter(i=>i.category===S.filter);
+  const used=subsFor(S.filter).map(k=>[k,inCat.filter(i=>Array.isArray(i.kinds)&&i.kinds.indexOf(k)>=0).length]).filter(x=>x[1]>0);
+  S.kinds=S.kinds.filter(k=>used.some(u=>u[0]===k));
+  h.hidden=!used.length;
+  h.innerHTML=used.map(u=>'<button type="button" class="chip" data-act="kind-filter" data-v="'+esc(u[0])+'" aria-pressed="'+(S.kinds.indexOf(u[0])>=0)+'">'+esc(u[0])+'<i>'+u[1]+'</i></button>').join('');
 }
 function fillGrid(){
   const g=$('#grid');if(!g)return;
@@ -614,11 +642,11 @@ function fillGrid(){
     return;
   }
   const q=S.q.trim().toLowerCase();
-  const list=S.items.filter(i=>(S.filter==='all'||i.category===S.filter)&&(!q||[i.name,i.brand,i.nickname,i.color].join(' ').toLowerCase().indexOf(q)>=0)).sort(byCat);
+  const list=S.items.filter(i=>(S.filter==='all'||i.category===S.filter)&&(S.filter==='all'||S.kinds.every(k=>(i.kinds||[]).indexOf(k)>=0))&&(!q||[i.name,i.brand,i.nickname,i.color].concat(i.colors||[],i.kinds||[]).join(' ').toLowerCase().indexOf(q)>=0)).sort(byCat);
   const open=i=>card(i,'data-act="open-item" data-id="'+esc(i.id)+'"');
   const plus=c=>'<button type="button" class="card" data-act="new-item" data-cat="'+c.id+'" aria-label="Add a new '+c.label.toLowerCase()+' piece"><span class="tile add">'+ico(P.plus,1.6)+'</span><span class="brand">New</span><span class="name">Add to '+c.label.toLowerCase()+'</span></button>';
   if(!list.length&&q){g.innerHTML='<p class="empty-note">Nothing matches that search.</p>';return}
-  if(S.filter!=='all'){const c=CATS[catIdx(S.filter)];g.innerHTML='<div class="grid">'+(q?'':plus(c))+list.map(open).join('')+'</div>';return}
+  if(S.filter!=='all'){const c=CATS[catIdx(S.filter)];g.innerHTML='<div class="grid'+(SET.cview==='swipe'?' hz':'')+'">'+(q?'':plus(c))+list.map(open).join('')+'</div>';return}
   g.innerHTML=CATS.map(c=>{
     const l=list.filter(i=>i.category===c.id);
     if(!l.length&&q)return '';
@@ -1102,13 +1130,46 @@ async function pickFind(i){
 /* ---------- sheet: add / edit piece ---------- */
 const parsePrice=v=>{const n=parseFloat(String(v==null?'':v).replace(/[^0-9.]/g,''));return isFinite(n)&&n>=0&&String(v).trim()!==''?Math.round(n*100)/100:''};
 const money=n=>'$'+(n%1?n.toFixed(2):String(n));
+function viewItem(id){
+  const it=M.get(id);if(!it||S.sheet||S.arr)return;
+  S.vw=id;
+  const st=stats(),w=st.wears[id]||0,src=photoSrc(it.photo);
+  const cols=(Array.isArray(it.colors)&&it.colors.length?it.colors:(it.color?[it.color]:[]));
+  const row=(k,v)=>v?'<div class="vrow"><span>'+k+'</span><b>'+esc(v)+'</b></div>':'';
+  const host=$('#sheet');
+  host.innerHTML='<div class="scrim" data-act="view-bg"><div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(it.name)+'" tabindex="-1">'
+   +'<div class="sheet-h"><h2>'+esc(it.name)+'</h2><button type="button" class="x" data-act="view-close" aria-label="Close">'+ico(P.x)+'</button></div>'
+   +'<div class="vbig">'+(src?'<img src="'+esc(src)+'" alt="">':'<span class="ph" style="--c:'+(COLORS[it.color]||'#9a9ea6')+'">'+(ICONS[it.category]||ICONS.tops)+'</span>')+'</div>'
+   +(Array.isArray(it.kinds)&&it.kinds.length?'<div class="vkinds">'+it.kinds.map(k=>'<span>'+esc(k)+'</span>').join('')+'</div>':'')
+   +row('Brand',it.brand)+row('Nickname',it.nickname)+row('Type',(CATS[catIdx(it.category)]||{}).label)
+   +(cols.length?'<div class="vrow"><span>Colors</span><b class="dots">'+cols.map(c=>'<i style="background:'+(COLORS[c]||'#9a9ea6')+'" title="'+esc(c)+'"></i>').join('')+'</b></div>':'')
+   +row('Worn',w?w+' time'+(w===1?'':'s')+' · last '+fmt(st.last[id],{month:'short',day:'numeric'}):'Not logged yet')
+   +(typeof it.price==='number'?row('Paid',money(it.price))+(w?row('Cost per wear',money(Math.round(it.price/w*100)/100)):''):'')
+   +row('Bought at',it.source)
+   +'<div class="btn-row" style="margin-top:18px"><button type="button" class="btn primary" data-act="view-edit">Edit</button><button type="button" class="btn ghost" data-act="view-close">Close</button></div>'
+   +'</div></div>';
+  document.body.style.overflow='hidden';
+}
+function closeView(){S.vw=null;$('#sheet').innerHTML='';document.body.style.overflow=''}
+function renderArrange(){
+  const host=$('#sheet');
+  if(!S.arr){host.innerHTML='';document.body.style.overflow='';return}
+  const up='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>',dn='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+  host.innerHTML='<div class="scrim" data-act="arr-bg"><div class="sheet" role="dialog" aria-modal="true" aria-label="Arrange sections" tabindex="-1">'
+   +'<div class="sheet-h"><h2>Arrange sections</h2><button type="button" class="x" data-act="arr-close" aria-label="Done">'+ico(P.x)+'</button></div>'
+   +'<p class="hint" style="margin-bottom:12px">Move a section up or down. The Closet and the Log both follow this order.</p>'
+   +CATS.map((c,i)=>'<div class="arr-r"><span>'+c.label+'</span><div><button type="button" class="rb" data-act="arr-mv" data-v="'+c.id+'" data-d="-1" aria-label="Move '+c.label+' up"'+(i===0?' disabled':'')+'>'+up+'</button><button type="button" class="rb" data-act="arr-mv" data-v="'+c.id+'" data-d="1" aria-label="Move '+c.label+' down"'+(i===CATS.length-1?' disabled':'')+'>'+dn+'</button></div></div>').join('')
+   +'<div class="btn-row" style="margin-top:16px"><button type="button" class="btn primary" data-act="arr-close">Done</button><button type="button" class="btn ghost" data-act="arr-reset">Reset order</button></div>'
+   +'</div></div>';
+  document.body.style.overflow='hidden';
+}
 function openItem(id,preset){
   const it=id?M.get(id):null;
   if(id&&!it)return;
   S.sheet={id:id||null,confirm:false,busy:false,addToLog:!!(preset&&preset.log),draft:{
     name:it?it.name:'',brand:it?it.brand||'':'',nickname:it?it.nickname||'':'',
     category:it?it.category:(preset&&preset.cat)||(S.tab==='closet'&&S.filter!=='all'?S.filter:'shoes'),
-    color:it?it.color||'':'',price:(it&&typeof it.price==='number')?String(it.price):'',source:it?it.source||'':'',photo:it?it.photo||'':'',photoBlob:null,photoData:'',previewUrl:''
+    color:it?it.color||'':'',colors:it?(Array.isArray(it.colors)&&it.colors.length?it.colors.slice():(it.color?[it.color]:[])):[],kinds:it&&Array.isArray(it.kinds)?it.kinds.slice():[],price:(it&&typeof it.price==='number')?String(it.price):'',source:it?it.source||'':'',photo:it?it.photo||'':'',photoBlob:null,photoData:'',previewUrl:''
   }};
   renderSheet();
 }
@@ -1128,12 +1189,13 @@ function renderSheet(){
    +'<datalist id="sources">'+Array.from(new Set(S.items.map(i=>i.source).filter(Boolean))).sort().map(b=>'<option value="'+esc(b)+'">').join('')+'</datalist>'
    +'<datalist id="brands">'+brands.map(b=>'<option value="'+esc(b)+'">').join('')+'</datalist>'
    +'<div class="field"><span class="lbl">Type</span><div class="seg wrap" id="s-cat" role="group" aria-label="Type">'+CATS.map(c=>'<button type="button" data-act="s-cat" data-v="'+c.id+'" aria-pressed="'+(d.category===c.id)+'">'+c.label+'</button>').join('')+'</div></div>'
-   +'<div class="field"><span class="lbl">Main color</span><div class="swatches" id="s-col" role="group" aria-label="Main color">'+Object.keys(COLORS).map(k=>'<button type="button" class="sw" data-act="s-col" data-v="'+k+'" aria-label="'+k+'" aria-pressed="'+(d.color===k)+'" style="--c:'+COLORS[k]+'"></button>').join('')+'</div></div>'
+   +'<div class="field"><span class="lbl">Style</span><div class="chips wrapc" id="s-kind"></div><div class="addk"><input id="f-kind" placeholder="Add your own" autocomplete="off" aria-label="Add your own style"><button type="button" class="btn ghost" data-act="kind-add">Add</button></div></div>'
+   +'<div class="field"><span class="lbl">Colors <i class="lbln">tap more than one if it has several</i></span><div class="swatches" id="s-col" role="group" aria-label="Colors">'+Object.keys(COLORS).map(k=>'<button type="button" class="sw" data-act="s-col" data-v="'+k+'" aria-label="'+k+'" aria-pressed="'+(d.colors.indexOf(k)>=0)+'" style="--c:'+COLORS[k]+'"></button>').join('')+'</div></div>'
    +(it?'<p class="sub" style="margin:0 0 16px">'+esc(line)+'</p>':'')
    +'<div class="btn-row"><button type="button" class="btn primary" id="b-save" data-act="s-save">Save</button>'+(it?'<button type="button" class="btn danger" id="b-del" data-act="s-del">Remove</button>':'')+'</div>'
    +'</div></div>';
   document.body.style.overflow='hidden';
-  syncPhoto();
+  syncPhoto();syncKinds();
   const dlg=host.querySelector('.sheet');if(dlg)dlg.focus();
 }
 function syncPhoto(){
@@ -1145,10 +1207,17 @@ function syncPhoto(){
   $('#pv-c').hidden=!src;
   $('#pv-a').hidden=!src;
 }
+function syncKinds(){
+  const sh=S.sheet,h=$('#s-kind');if(!sh||!h)return;
+  const d=sh.draft,l=subsFor(d.category);
+  d.kinds=d.kinds.filter(k=>l.indexOf(k)>=0);
+  h.innerHTML=l.map(k=>'<button type="button" class="chip" data-act="kind-pick" data-v="'+esc(k)+'" aria-pressed="'+(d.kinds.indexOf(k)>=0)+'">'+esc(k)+'</button>').join('');
+}
 function syncChoices(){
   const sh=S.sheet;if(!sh)return;
+  syncKinds();
   document.querySelectorAll('#s-cat button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===sh.draft.category?'true':'false'));
-  document.querySelectorAll('#s-col button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===sh.draft.color?'true':'false'));
+  document.querySelectorAll('#s-col button').forEach(b=>b.setAttribute('aria-pressed',sh.draft.colors.indexOf(b.dataset.v)>=0?'true':'false'));
   syncPhoto();
 }
 function closeSheet(){
@@ -1360,7 +1429,7 @@ async function saveItem(){
       else photo=d.photoData;
     }
     const id=sh.id||newId(),ex=sh.id?M.get(sh.id):null;
-    await putItem(id,{name:d.name.trim(),brand:d.brand.trim(),nickname:d.nickname.trim(),category:d.category,color:d.color,price:parsePrice(d.price),source:(d.source||'').trim(),photo:photo,createdAt:ex&&ex.createdAt||Date.now()});
+    await putItem(id,{name:d.name.trim(),brand:d.brand.trim(),nickname:d.nickname.trim(),category:d.category,color:(d.colors[0]||''),colors:d.colors.slice(),kinds:d.kinds.filter(k=>subsFor(d.category).indexOf(k)>=0),price:parsePrice(d.price),source:(d.source||'').trim(),photo:photo,createdAt:ex&&ex.createdAt||Date.now()});
     const wasNew=!sh.id,log=sh.addToLog;
     closeSheet();
     render();
@@ -1401,7 +1470,7 @@ function render(){
   $('#b-add').hidden=$('#b-search').hidden=false;
   const v=$('#view');
   v.innerHTML=S.tab==='closet'?viewCloset():S.tab==='log'?viewLog():S.tab==='settings'?viewSettings():viewCalendar();
-  if(S.tab==='closet')fillGrid();
+  if(S.tab==='closet'){fillKinds();fillGrid()}
   if(S.tab==='log')afterLogRender();
 }
 
@@ -1412,7 +1481,7 @@ document.addEventListener('pointerdown',e=>{
   const c=e.target.closest('.card[data-id]');
   if(!c||e.button>0)return;
   lpX=e.clientX;lpY=e.clientY;
-  lpT=setTimeout(()=>{lpFired=true;openItem(c.dataset.id)},450);
+  lpT=setTimeout(()=>{lpFired=true;viewItem(c.dataset.id)},450);
 });
 document.addEventListener('pointermove',e=>{if(lpT&&(Math.abs(e.clientX-lpX)>8||Math.abs(e.clientY-lpY)>8))clearTimeout(lpT)});
 ['pointerup','pointercancel'].forEach(t=>document.addEventListener(t,()=>clearTimeout(lpT)));
@@ -1420,7 +1489,7 @@ document.addEventListener('contextmenu',e=>{
   const c=e.target.closest('.card[data-id]');
   if(!c)return;
   e.preventDefault();
-  if(!lpFired){lpFired=true;openItem(c.dataset.id)}
+  if(!lpFired){lpFired=true;viewItem(c.dataset.id)}
 });
 document.addEventListener('click',e=>{
   if(lpFired){lpFired=false;return}
@@ -1434,8 +1503,8 @@ document.addEventListener('click',e=>{
     case 'wipe':wipeAll();break;
     case 'seed':seed();break;
     case 'export':exportData();break;
-    case 'search':{S.tab='closet';S.filter='all';render();toTop();const q=$('#q');if(q)q.focus();break}
-    case 'filter':S.filter=el.dataset.v;render();toTop();break;
+    case 'search':{S.tab='closet';S.filter='all';S.kinds=[];render();toTop();const q=$('#q');if(q)q.focus();break}
+    case 'filter':S.filter=el.dataset.v;S.kinds=[];render();toTop();break;
     case 'pick':toggleOutfit(id);break;
     case 'scent':pickScent(id);break;
     case 'day':pickDay(el.dataset.d);break;
@@ -1468,7 +1537,19 @@ document.addEventListener('click',e=>{
     case 'sheet-bg':if(e.target===el)closeSheet();break;
     case 'sheet-close':closeSheet();break;
     case 's-cat':if(S.sheet){S.sheet.draft.category=el.dataset.v;syncChoices()}break;
-    case 's-col':if(S.sheet){const dr=S.sheet.draft;dr.color=dr.color===el.dataset.v?'':el.dataset.v;syncChoices()}break;
+    case 's-col':if(S.sheet){const dr=S.sheet.draft,v=el.dataset.v,i=dr.colors.indexOf(v);if(i>=0)dr.colors.splice(i,1);else dr.colors.push(v);dr.color=dr.colors[0]||'';syncChoices()}break;
+    case 'kind-pick':if(S.sheet){const dr=S.sheet.draft,v=el.dataset.v,i=dr.kinds.indexOf(v);if(i>=0)dr.kinds.splice(i,1);else dr.kinds.push(v);syncKinds()}break;
+    case 'kind-add':if(S.sheet){const inp=$('#f-kind'),v=inp&&inp.value.trim().slice(0,24),dr=S.sheet.draft;if(!v)break;if(!subsFor(dr.category).some(k=>k.toLowerCase()===v.toLowerCase())){(SET.subs[dr.category]=SET.subs[dr.category]||[]).push(v);saveSet()}const ex=subsFor(dr.category).find(k=>k.toLowerCase()===v.toLowerCase());if(dr.kinds.indexOf(ex)<0)dr.kinds.push(ex);inp.value='';syncKinds()}break;
+    case 'kind-filter':{const v=el.dataset.v,i=S.kinds.indexOf(v);if(i>=0)S.kinds.splice(i,1);else S.kinds.push(v);fillKinds();fillGrid();break}
+    case 'cview':SET.cview=el.dataset.v;saveSet();render();break;
+    case 'arrange':S.arr=true;renderArrange();break;
+    case 'arr-close':S.arr=false;renderArrange();render();break;
+    case 'arr-bg':if(e.target===el){S.arr=false;renderArrange();render()}break;
+    case 'arr-mv':{const i=catIdx(el.dataset.v),j=i+(+el.dataset.d);if(j>=0&&j<CATS.length){const t=CATS[i];CATS[i]=CATS[j];CATS[j]=t;SET.order=CATS.map(c=>c.id);saveSet();renderArrange()}break}
+    case 'arr-reset':SET.order=['tops','bottoms','shoes','outerwear','accessories','scents'];applyOrder();saveSet();renderArrange();break;
+    case 'view-close':closeView();break;
+    case 'view-bg':if(e.target===el)closeView();break;
+    case 'view-edit':{const id2=S.vw;closeView();openItem(id2);break}
     case 'occ-add':{const i=$('#f-occ'),v=i&&i.value.trim();if(!v)break;if(SET.occ.length>=4)break;if(BASE_TAGS.concat(SET.occ).some(t=>t.label.toLowerCase()===v.toLowerCase())){toast('You already have that one');break}SET.occ.push({id:'c'+Date.now().toString(36),label:v});saveSet();buildTags();render();break}
     case 'occ-del':SET.occ=SET.occ.filter(o=>o.id!==id);saveSet();buildTags();render();break;
     case 'find-open':openFind();break;
@@ -1498,7 +1579,7 @@ document.addEventListener('change',e=>{
   if(e.target.id==='f-fit'){const f=e.target.files&&e.target.files[0];if(f)onFit(f);e.target.value=''}
   if(e.target.id==='f-import'){const f=e.target.files&&e.target.files[0];if(f)importData(f);e.target.value=''}
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(FD)closeFind();else if(CR)closeCrop();else if(S.sheet)closeSheet();else if(S.dv)closeDay()}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(FD)closeFind();else if(CR)closeCrop();else if(S.arr){S.arr=false;renderArrange();render()}else if(S.vw)closeView();else if(S.sheet)closeSheet();else if(S.dv)closeDay()}});
 
 let scrollT;
 window.addEventListener('scroll',()=>{
