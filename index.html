@@ -405,9 +405,11 @@ const P={
   left:'<path d="M14.5 6 8.5 12l6 6"/>',
   right:'<path d="M9.5 6l6 6-6 6"/>',
   cam:'<rect x="3.5" y="6.5" width="17" height="13" rx="3"/><circle cx="12" cy="13" r="3.4"/><path d="M8.5 6.5l1-2h5l1 2"/>',
+  stats:'<path d="M5 20v-8M12 20V5M19 20v-5"/>',
   gear:'<circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4 18 18M18 6l-1.6 1.6M7.6 16.4 6 18"/>',
   x:'<path d="M6 6l12 12M18 6 6 18"/>'
 };
+const statsBtn=()=>'<button type="button" class="rb" data-act="tab" data-tab="stats" aria-label="Stats">'+ico(P.stats,1.7)+'</button>';
 const gearBtn=()=>'<button type="button" class="rb" data-act="tab" data-tab="settings" aria-label="Settings">'+ico(P.gear,1.7)+'</button>';
 const ico=(p,w)=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="'+(w||1.7)+'" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>';
 const ICONS={}; CATS.forEach(c=>{ICONS[c.id]=ico(P[c.id],1.5)});
@@ -1002,6 +1004,12 @@ function viewCalendar(){
     const lbl=fmt(ds,{weekday:'long',month:'long',day:'numeric'})+(planned?(lockedP?', locked in':', planned'):outs.length>1?', '+outs.length+' outfits logged':ids.length?', '+ids.length+' pieces logged':'');
     cells.push('<button type="button" class="cell'+(([0,6].indexOf(new Date(y,m-1,d).getDay())>=0)?' wk':'')+(ds===t?' today':'')+(planned?' planned':'')+(lockedP?' locked':'')+'" data-act="open-day" data-d="'+ds+'" aria-label="'+lbl+'"><span class="n">'+d+'</span><span class="hero'+(fit?' fit':hero?'':' none')+'">'+(sOnly&&!sOnly.photo?'<span class="sn">'+esc(sOnly.name)+'</span>':fit?'<img src="'+esc(photoSrc(fo.photo))+'" alt="" decoding="async">'+(outs.length>1?'<b>'+outs.length+' fits</b>':''):hero?tileInner(hero)+(sOnly?'':outs.length>1?'<b>'+outs.length+' fits</b>':ids.length>1?'<b>+'+(ids.length-1)+'</b>':''):'')+'</span><span class="bars">'+(bars||'<span class="bar"></span>')+'</span></button>');
   }
+  return '<div class="head"><div><h1 class="h1">Calendar</h1><div class="sub">'+fmt(S.month+'-01',{month:'long',year:'numeric'})+'</div></div><div class="mnav"><button type="button" class="rb" data-act="month" data-v="-1" aria-label="Previous month">'+ico(P.left)+'</button><button type="button" class="rb" data-act="month" data-v="1" aria-label="Next month">'+ico(P.right)+'</button>'+statsBtn()+gearBtn()+'</div></div>'
+   +'<div class="cal" role="group" aria-label="Month">'+(SET.week==='1'?['M','T','W','T','F','S','S']:['S','M','T','W','T','F','S']).map((d,i)=>'<span class="dow'+((SET.week==='1'?i>=5:(i===0||i===6))?' wk':'')+'">'+d+'</span>').join('')+cells.join('')+'</div>'
+   +'<div class="legend">'+TAGS.map(t=>'<span><i class="'+(t.custom?'':'t-'+t.id)+'"'+(t.custom?' style="background:'+t.color+'"':'')+'></i>'+esc(t.label)+'</span>').join('')+'</div>'
+   +footText();
+}
+function viewStats(){
   const st=stats();
   const keys=Object.keys(S.days).filter(k=>k.indexOf(S.month)===0&&outfitsOf(S.days[k]).some(o=>o.items.some(id=>M.has(id))));
   const wm={},tcnt={};
@@ -1020,9 +1028,8 @@ function viewCalendar(){
    if(cp.length)insights+='<div class="panel"><h2>Cost per wear</h2>'+cp.map(r=>row(r.i,money(Math.round(r.c*100)/100)+'/wear')).join('')+'<p class="hint" style="margin-top:10px">Price paid divided by times worn, lowest first. Add a price when you edit a piece.</p></div>'}
   if(top.length)insights+='<div class="panel"><h2>Most worn</h2>'+top.map(r=>row(M.get(r[0]),r[1]+'x')).join('')+'</div>';
   if(rest.length)insights+='<div class="panel"><h2>Resting shoes</h2>'+rest.map(r=>row(r.i,r.d===null?'Never':r.d+'d')).join('')+'<p class="hint" style="margin-top:10px">Shoes not logged in 21 days or more.</p></div>';
-  return '<div class="head"><div><h1 class="h1">Calendar</h1><div class="sub">'+fmt(S.month+'-01',{month:'long',year:'numeric'})+'</div></div><div class="mnav"><button type="button" class="rb" data-act="month" data-v="-1" aria-label="Previous month">'+ico(P.left)+'</button><button type="button" class="rb" data-act="month" data-v="1" aria-label="Next month">'+ico(P.right)+'</button>'+gearBtn()+'</div></div>'
-   +'<div class="cal" role="group" aria-label="Month">'+(SET.week==='1'?['M','T','W','T','F','S','S']:['S','M','T','W','T','F','S']).map((d,i)=>'<span class="dow'+((SET.week==='1'?i>=5:(i===0||i===6))?' wk':'')+'">'+d+'</span>').join('')+cells.join('')+'</div>'
-   +'<div class="legend">'+TAGS.map(t=>'<span><i class="'+(t.custom?'':'t-'+t.id)+'"'+(t.custom?' style="background:'+t.color+'"':'')+'></i>'+esc(t.label)+'</span>').join('')+'</div>'
+  return '<button type="button" class="back" data-act="tab" data-tab="calendar">'+ico(P.left)+'Back</button>'
+   +'<div class="head"><div><h1 class="h1">Stats</h1><div class="sub">'+fmt(S.month+'-01',{month:'long',year:'numeric'})+'</div></div><div class="mnav"><button type="button" class="rb" data-act="month" data-v="-1" aria-label="Previous month">'+ico(P.left)+'</button><button type="button" class="rb" data-act="month" data-v="1" aria-label="Next month">'+ico(P.right)+'</button></div></div>'
    +insights+footText();
 }
 function shiftMonth(n){
@@ -1733,7 +1740,7 @@ function render(){
   document.querySelectorAll('#pill button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===S.tab?'page':'false'));
   $('#b-add').hidden=$('#b-search').hidden=false;
   const v=$('#view');
-  v.innerHTML=S.tab==='closet'?viewCloset():S.tab==='log'?viewLog():S.tab==='settings'?viewSettings():viewCalendar();
+  v.innerHTML=S.tab==='closet'?viewCloset():S.tab==='log'?viewLog():S.tab==='settings'?viewSettings():S.tab==='stats'?viewStats():viewCalendar();
   if(S.tab==='closet'){fillKinds();fillGrid()}
   if(S.tab==='log')afterLogRender();
 }
