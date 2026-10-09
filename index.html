@@ -28,6 +28,7 @@
 .vrow .dots{display:flex;gap:6px}.vrow .dots i{width:20px;height:20px;border-radius:50%;border:1px solid var(--line)}
 .arr-r{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font:600 15px var(--f-body)}.arr-r div{display:flex;gap:8px}.arr-r .rb:disabled{opacity:.3}
 </style>
+<!-- Copyright (c) 2026 Antonio Isaac. All rights reserved. See LICENSE. -->
 <title>Rotation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1023,7 +1024,7 @@ function viewSettings(){
    +'<p class="hint" style="margin:0">One-time setup, about 5 minutes. 1) At programmablesearchengine.google.com create a search engine that searches the entire web and turn on Image search. Copy its ID. 2) At console.cloud.google.com turn on the Custom Search API and create an API key. Free for 100 searches a day.</p></div>'
    +backupRow(true)
    +(S.store==='local'?'<div class="panel"><h2>Data</h2><p>Erase every piece and every logged day from this device. Export a backup first if you might want them back.</p><button type="button" class="btn danger" id="b-wipe" data-act="wipe">Erase everything</button></div>':'')
-   +'<div class="panel"><h2>About</h2><p style="margin:0">Rotation. Your closet, what you wore, and what is next.</p></div>'
+   +'<div class="panel"><h2>About</h2><p style="margin:0">Rotation. Your closet, what you wore, and what is next.</p><p class="sub" style="margin:10px 0 0">&copy; 2026 Antonio Isaac. All rights reserved.</p></div>'
    +footText();
 }
 async function wipeAll(){
