@@ -250,6 +250,7 @@ svg{width:18px;height:18px;flex:none}
 
 .hero.fit{background:var(--bg)}
 .hero.fit img{object-fit:cover;mix-blend-mode:normal}
+.fit-l{display:grid;gap:10px}.fit-t{display:block;width:96px;height:120px;border-radius:14px;overflow:hidden;background:var(--bg);box-shadow:var(--shadow)}.fit-t img{display:block;width:100%;height:100%;object-fit:cover}
 .fit-p{border-radius:20px;overflow:hidden;margin-bottom:16px;background:var(--bg);box-shadow:var(--shadow)}
 .fit-p img{display:block;width:100%;max-height:52vh;object-fit:cover}
 .grid.dv .cam{display:none}
@@ -746,6 +747,11 @@ function outSegHTML(){
   const dd=S.days[S.sel],nOut=dd?1+dd.more.length:1,cur0=target(false);
   return '<div><span class="cap">Outfits today</span><div class="seg" role="group" aria-label="Outfit">'+Array.from({length:nOut},(_,i)=>{const o=i===0?dd:dd.more[i-1],tg=o&&o.tag?TAGS.find(x=>x.id===o.tag):null;return '<button type="button" data-act="out" data-v="'+i+'" aria-pressed="'+(S.out===i)+'">Outfit '+(i+1)+'<i>'+((o&&o.when)?o.when.charAt(0).toUpperCase()+o.when.slice(1):tg?tg.label:(o&&o.items.length)||'')+'</i></button>'}).join('')+(nOut<4&&cur0.items.length?'<button type="button" data-act="add-out" aria-label="Add another outfit for this day">+ Another</button>':'')+'</div></div>';
 }
+function fitRowHTML(){
+  if(S.mode==='plan')return '';
+  const dd=S.days[S.sel],o=dd&&(S.out?dd.more[S.out-1]:dd),ph=o&&o.photo;
+  return '<div><span class="cap">Outfit photo</span><div class="fit-l">'+(ph?'<span class="fit-t"><img src="'+esc(photoSrc(ph))+'" alt="Outfit photo"></span>':'')+'<div class="btn-row"><button type="button" class="btn ghost" data-act="log-photo">'+ico(P.cam)+(ph?'Replace':'Add a photo')+'</button>'+(ph?'<button type="button" class="btn ghost" data-act="log-crop">Crop</button><button type="button" class="btn danger" data-act="log-clear">Remove</button>':'')+'</div></div><input class="vh" id="f-fitl" type="file" accept="image/*"></div>';
+}
 function viewLog(){
   const t=today(),sel=S.sel;
   if(sel>t)S.mode='plan';
@@ -784,6 +790,7 @@ function viewLog(){
    +'<div class="stack">'+modeSeg+optSeg+'<div id="outwrap">'+outSegHTML()+'</div>'
    +'<div><span class="cap">Time of day</span><div class="seg" id="whenseg" role="group" aria-label="Time of day">'+whenSeg()+'</div></div>'
    +'<div><span class="cap">Outfit type</span><div class="seg wrap" id="tagseg" role="group" aria-label="Outfit type">'+tagSeg()+'</div></div>'
+   +fitRowHTML()
    +'<div id="rate">'+rateHTML()+'</div>'
    +'<div class="btn-row"><button type="button" class="btn ghost" data-act="repeat"'+(canRepeat?'':' disabled')+'>'+(sel===t?'Repeat yesterday':'Repeat day before')+'</button><button type="button" class="btn ghost" data-act="clear">Clear</button><button type="button" class="btn ghost" data-act="look-save"'+(tgt.items.length?'':' disabled')+'>Save look</button><button type="button" class="btn ghost" data-act="looks-open">Saved looks'+(S.looks.length?' ('+S.looks.length+')':'')+'</button>'+(S.mode==='log'&&S.out>0?'<button type="button" class="btn ghost" id="rm-out" data-act="rm-out">Remove outfit</button>':'')
    +(S.mode==='plan'?'<button type="button" class="btn primary" id="lock" data-act="lock"'+(tgt.items.length?'':' disabled')+'>'+(sel>t?(tgt.locked?'Locked in. Tap to unlock':'Lock in option '+'ABCD'[S.opt]):'Wear option '+'ABCD'[S.opt])+'</button>':'')
@@ -1116,7 +1123,7 @@ function renderDay(){
   const dlg=host.querySelector('.sheet');if(dlg)dlg.focus();
 }
 async function onFit(file){
-  const d=S.dv;if(!d)return;
+  const d=S.fd||S.dv;if(!d)return;
   try{
     let src;
     try{src=await createImageBitmap(file,{imageOrientation:'from-image'})}catch(e){src=await loadImg(file)}
@@ -1130,7 +1137,7 @@ function openFitCrop(img,d,fo){
   const z=$('#crop-z');if(z)z.value=0;
 }
 function adjustFit(fo){
-  const d=S.dv,dd=d&&S.days[d];if(!dd)return;
+  const d=S.fd||S.dv,dd=d&&S.days[d];if(!dd)return;
   const o=fo?dd.more[fo-1]:dd;if(!o||!o.photo)return;
   const im=new Image();im.onload=()=>openFitCrop(im,d,fo);im.onerror=()=>toast('Could not open that photo');im.src=photoSrc(o.photo);
 }
@@ -1148,6 +1155,7 @@ async function fitDone(){
   if(!o){toast('Could not save that photo');return}
   o.photo=photo;scheduleDay(f.d);closeCrop();
   if(S.dv===f.d)renderDay();
+  if(S.tab==='log'){const y=window.scrollY;render();window.scrollTo(0,y)}
   refreshCal();
 }
 
@@ -1799,8 +1807,11 @@ document.addEventListener('click',e=>{
     case 'day-close':closeDay();break;
     case 'day-bg':if(e.target===el)closeDay();break;
     case 'day-edit':{const d=S.dv;closeDay();S.sel=d;S.mode=defaultMode(d);S.opt=0;S.out=+el.dataset.o||0;S.tab='log';render();toTop();break}
-    case 'fit-adjust':adjustFit(+el.dataset.o||0);break;
-    case 'fit-pick':S.fo=+el.dataset.o||0;{const f=$('#f-fit');if(f)f.click()}break;
+    case 'fit-adjust':S.fd=S.dv;adjustFit(+el.dataset.o||0);break;
+    case 'log-photo':S.fd=S.sel;S.fo=S.out||0;{const f=$('#f-fitl');if(f)f.click()}break;
+    case 'log-crop':S.fd=S.sel;adjustFit(S.out||0);break;
+    case 'log-clear':{const d=S.days[S.sel],o=d&&(S.out?d.more[S.out-1]:d);if(o){o.photo='';scheduleDay(S.sel);render()}break}
+    case 'fit-pick':S.fd=S.dv;S.fo=+el.dataset.o||0;{const f=$('#f-fit');if(f)f.click()}break;
     case 'fit-clear':{const d=S.days[S.dv];const o=d&&(+el.dataset.o?d.more[(+el.dataset.o)-1]:d);if(o){o.photo='';scheduleDay(S.dv);renderDay();refreshCal()}break}
     case 'noop':break;
     case 'out':S.out=+el.dataset.v;render();break;
@@ -1868,7 +1879,7 @@ document.addEventListener('input',e=>{
 document.addEventListener('change',e=>{
   if(e.target.id==='f-file'){const f=e.target.files&&e.target.files[0];if(f)onFile(f,'f');e.target.value=''}
   if(e.target.id==='f-file2'){const f=e.target.files&&e.target.files[0];if(f)onFile(f,'b');e.target.value=''}
-  if(e.target.id==='f-fit'){const f=e.target.files&&e.target.files[0];if(f)onFit(f);e.target.value=''}
+  if(e.target.id==='f-fit'||e.target.id==='f-fitl'){const f=e.target.files&&e.target.files[0];if(f)onFit(f);e.target.value=''}
   if(e.target.id==='f-import'){const f=e.target.files&&e.target.files[0];if(f)importData(f);e.target.value=''}
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(SH)closeShare();else if(FD)closeFind();else if(CR)closeCrop();else if(S.arr){S.arr=false;renderArrange();render()}else if(S.vw)closeView();else if(S.sheet)closeSheet();else if(S.dv)closeDay()}});
