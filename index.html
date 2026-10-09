@@ -228,6 +228,8 @@ svg{width:18px;height:18px;flex:none}
 .set-row i{display:block;font:400 12px/1.35 var(--f-body);font-style:normal;color:var(--ink2);margin-top:2px}
 .set-row .seg{flex:none;min-width:0}
 .set-row .seg button{padding:9px 10px;font-size:12.5px}
+.set-row .seg{flex-wrap:wrap}.set-row .seg button{white-space:nowrap;flex:1 1 auto}
+@media (max-width:700px){.set-row:has(.seg button:nth-child(3)){flex-direction:column;align-items:stretch;gap:10px}.set-row:has(.seg button:nth-child(3)) .seg{width:100%}}
 .panel h2+.set-row{margin-top:14px}
 .sw-t{flex:none;width:50px;height:30px;border-radius:999px;border:0;background:color-mix(in srgb,var(--ink) 18%,transparent);position:relative;cursor:pointer;transition:background .2s}
 .sw-t::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
