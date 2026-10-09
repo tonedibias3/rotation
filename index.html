@@ -271,9 +271,9 @@ svg{width:18px;height:18px;flex:none}
 .hero .sn{display:grid;place-items:center;width:100%;height:100%;padding:3px;font:600 9px/1.1 var(--f-body);text-align:center;word-break:break-word;overflow:hidden;color:var(--on-well)}
 .dv-h{margin:18px 0 10px;font:700 13px var(--f-display);font-stretch:115%;text-transform:uppercase;letter-spacing:.04em;color:var(--ink2)}
 /* accent palettes */
-:root[data-accent="heritage"]{--bg:#F2F0E8;--surface:#FBFAF6;--accent:#0B6B43;--accent-ink:#FFFFFF;--accent2:#C8102E}
-@media (prefers-color-scheme: dark){:root[data-accent="heritage"]:not([data-theme="light"]){--bg:#0B120F;--surface:#131D18;--accent:#3DBE82;--accent-ink:#04140C;--accent2:#FF5A4F}}
-:root[data-accent="heritage"][data-theme="dark"]{--bg:#0B120F;--surface:#131D18;--accent:#3DBE82;--accent-ink:#04140C;--accent2:#FF5A4F}
+:root[data-accent="heritage"]{--bg:#F2F0E8;--surface:#FBFAF6;--accent:#0B6B43;--accent-ink:#FFFFFF;--accent2:#D4001F}
+@media (prefers-color-scheme: dark){:root[data-accent="heritage"]:not([data-theme="light"]){--bg:#0B120F;--surface:#131D18;--accent:#3DBE82;--accent-ink:#04140C;--accent2:#FF3B3B}}
+:root[data-accent="heritage"][data-theme="dark"]{--bg:#0B120F;--surface:#131D18;--accent:#3DBE82;--accent-ink:#04140C;--accent2:#FF3B3B}
 :root[data-accent="graphite"]{--bg:#E9E9EA;--surface:#F8F8F8;--accent:#16181C;--accent-ink:#FFFFFF;--accent2:#16181C}
 @media (prefers-color-scheme: dark){:root[data-accent="graphite"]:not([data-theme="light"]){--bg:#0D0D0E;--surface:#171718;--accent:#EDEDEE;--accent-ink:#0D0D0E;--accent2:#EDEDEE}}
 :root[data-accent="graphite"][data-theme="dark"]{--bg:#0D0D0E;--surface:#171718;--accent:#EDEDEE;--accent-ink:#0D0D0E;--accent2:#EDEDEE}
@@ -331,6 +331,17 @@ svg{width:18px;height:18px;flex:none}
 @keyframes sp-m{0%,34%{opacity:1}56%,100%{opacity:0}}
 @keyframes sp-in{0%,55%{opacity:1}100%{opacity:0}}
 @media (prefers-reduced-motion:reduce){#splash .dl,#splash .dr{animation:none!important;opacity:0}#splash .in{animation:sp-in 1s ease forwards!important}#splash .mark{animation:sp-m 1s ease forwards!important}}
+:root[data-accent="peony"]{--bg:#FBEFF3;--surface:#FFFFFF;--accent:#D9577F;--accent-ink:#FFFFFF;--accent2:#2E9E6B;--well:#FDF6F8}
+@media (prefers-color-scheme: dark){:root[data-accent="peony"]:not([data-theme="light"]){--bg:#160E11;--surface:#211519;--accent:#F29BB5;--accent-ink:#2A0A14;--accent2:#5FD39A}}
+:root[data-accent="peony"][data-theme="dark"]{--bg:#160E11;--surface:#211519;--accent:#F29BB5;--accent-ink:#2A0A14;--accent2:#5FD39A}
+.h1::after{content:"";display:block;width:34px;height:4px;border-radius:2px;background:var(--accent2,var(--accent));margin-top:8px}
+.pill button[aria-current="page"]{position:relative}
+.pill button[aria-current="page"]::after{content:"";position:absolute;left:50%;bottom:4px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--accent2,var(--accent))}
+.stars{color:var(--accent2,var(--accent))}
+.seeall{color:var(--accent2,var(--accent))}
+.day.today .n{text-decoration-color:var(--accent2,var(--accent))}
+.card[aria-pressed="true"] .check{background:var(--accent2,var(--accent))}
+.tile.add{border-color:color-mix(in srgb,var(--accent2,var(--ink)) 45%,transparent)}
 </style>
 
 </head>
@@ -400,7 +411,7 @@ const daysSince=s=>Math.round((parse(today())-parse(s))/864e5);
 const newId=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
 /* ---------- state ---------- */
-const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,gkey:typeof o.gkey==='string'?o.gkey:'',gcx:typeof o.gcx==='string'?o.gcx:'',occ:Array.isArray(o.occ)?o.occ.filter(x=>x&&x.id&&x.label).slice(0,4):[],accent:['cobalt','heritage','graphite','ember'].indexOf(o.accent)>=0?o.accent:'cobalt',start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:'',order:Array.isArray(o.order)?o.order.filter(x=>typeof x==='string'):[],cview:o.cview==='swipe'?'swipe':'grid',subs:(o.subs&&typeof o.subs==='object')?o.subs:{}}})();
+const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,gkey:typeof o.gkey==='string'?o.gkey:'',gcx:typeof o.gcx==='string'?o.gcx:'',occ:Array.isArray(o.occ)?o.occ.filter(x=>x&&x.id&&x.label).slice(0,4):[],accent:['cobalt','heritage','peony','graphite','ember'].indexOf(o.accent)>=0?o.accent:'cobalt',start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:'',order:Array.isArray(o.order)?o.order.filter(x=>typeof x==='string'):[],cview:o.cview==='swipe'?'swipe':'grid',subs:(o.subs&&typeof o.subs==='object')?o.subs:{}}})();
 function applyOrder(){const o=SET.order;CATS.sort((a,b)=>{const ia=o.indexOf(a.id),ib=o.indexOf(b.id);return (ia<0?99:ia)-(ib<0?99:ib)})}
 applyOrder();
 const SUBS={tops:['Short sleeve','Long sleeve','T-shirt','Polo','Dress shirt','Collared','Sweater','Hoodie','Tank'],bottoms:['Jeans','Pants','Slacks','Shorts','Joggers'],shoes:['Sneakers','Boots','Dress','Loafers','Sandals'],outerwear:['Jacket','Coat','Vest','Blazer','Hoodie'],accessories:['Hat','Watch','Belt','Chain','Bag','Sunglasses'],scents:['Fresh','Woody','Sweet','Spicy']};
@@ -983,7 +994,7 @@ function shiftMonth(n){
 }
 
 
-const PALS=[["cobalt", "Cobalt", ["#F7F8FA", "#2744E8", "#E7E9ED"]], ["heritage", "Heritage", ["#FBFAF6", "#0B6B43", "#C8102E"]], ["graphite", "Graphite", ["#F8F8F8", "#16181C", "#9A9EA6"]], ["ember", "Ember", ["#FAF7F4", "#D9480F", "#13161B"]]];
+const PALS=[["cobalt", "Cobalt", ["#F7F8FA", "#2744E8", "#E7E9ED"]], ["heritage", "Heritage", ["#FBFAF6", "#0B6B43", "#D4001F"]], ["peony", "Peony", ["#FFFFFF", "#D9577F", "#2E9E6B"]], ["graphite", "Graphite", ["#F8F8F8", "#16181C", "#9A9EA6"]], ["ember", "Ember", ["#FAF7F4", "#D9480F", "#13161B"]]];
 function viewSettings(){
   const seg=(key,opts)=>'<div class="seg" role="group">'+opts.map(o=>'<button type="button" data-act="set" data-k="'+key+'" data-v="'+o[0]+'" aria-pressed="'+(String(SET[key])===o[0])+'">'+o[1]+'</button>').join('')+'</div>';
   const n=S.items.length,dn=Object.keys(S.days).filter(k=>S.days[k].items&&S.days[k].items.length).length;
@@ -1259,11 +1270,11 @@ function openCrop(img){
   const w=img.width||img.naturalWidth,h=img.height||img.naturalHeight;
   if(!w||!h){toast('Could not read that photo');return}
   const host=$('#crop');
-  host.innerHTML='<div class="crop-s"><div class="crop" role="dialog" aria-modal="true" aria-label="Move and crop photo"><h2>Move and crop</h2><p class="hint">Drag the white corners to crop. Drag inside the box to move it. Drag outside it, pinch, or use the slider to move and zoom the photo.</p><div class="crop-f" id="crop-f"><canvas id="crop-c"></canvas></div><input id="crop-z" type="range" min="0" max="100" value="0" aria-label="Zoom"><div class="crop-t"><button type="button" class="btn ghost" data-act="crop-fit">Center piece</button><button type="button" class="btn ghost" id="crop-cl" data-act="crop-clean" aria-pressed="false">Clean background</button></div><div id="crop-tw" class="crop-tw" hidden><label for="crop-tol">Strength</label><input id="crop-tol" type="range" min="12" max="90" value="40" aria-label="Background cleanup strength"></div><div class="btn-row"><button type="button" class="btn ghost" data-act="crop-reset">Reset</button><button type="button" class="btn ghost" data-act="crop-cancel">Cancel</button><button type="button" class="btn primary" data-act="crop-done">Done</button></div></div></div>';
+  host.innerHTML='<div class="crop-s"><div class="crop" role="dialog" aria-modal="true" aria-label="Move and crop photo"><h2>Move and crop</h2><p class="hint">Drag any corner or edge handle to crop freely. Drag inside the box to move it. Drag outside it, pinch, or use the slider to move and zoom the photo.</p><div class="crop-f" id="crop-f"><canvas id="crop-c"></canvas></div><input id="crop-z" type="range" min="0" max="100" value="0" aria-label="Zoom"><div class="crop-t"><button type="button" class="btn ghost" data-act="crop-fit">Center piece</button><button type="button" class="btn ghost" id="crop-cl" data-act="crop-clean" aria-pressed="false">Clean background</button></div><div id="crop-tw" class="crop-tw" hidden><label for="crop-tol">Strength</label><input id="crop-tol" type="range" min="12" max="90" value="40" aria-label="Background cleanup strength"></div><div class="btn-row"><button type="button" class="btn ghost" data-act="crop-reset">Reset</button><button type="button" class="btn ghost" data-act="crop-cancel">Cancel</button><button type="button" class="btn primary" data-act="crop-done">Done</button></div></div></div>';
   const f=$('#crop-f'),c=$('#crop-c'),box=f.clientWidth||300,dpr=Math.min(2,window.devicePixelRatio||1);
   c.width=c.height=Math.round(box*dpr);
-  CR={orig:img,clean:false,tol:40,img:img,w:w,h:h,box:box,cb:{x:0,y:0,s:box},drag:null,cx:w/2,cy:h/2,min:1,max:1,s:1,ptr:new Map(),pd:0};
-  CR.min=box/Math.max(w,h);CR.max=Math.max(CR.min*6,box/Math.min(w,h)*3);CR.s=CR.min;
+  CR={orig:img,clean:false,tol:40,img:img,w:w,h:h,box:box,cb:{x:0,y:0,w:box,h:box},drag:null,cx:w/2,cy:h/2,min:1,max:1,s:1,ptr:new Map(),pd:0};
+  CR.min=box/Math.max(w,h);CR.max=Math.max(CR.min*6,box/Math.min(w,h)*3);CR.s=CR.min;fitBox();
   const tl=$('#crop-tol');
   tl.oninput=()=>{CR.tol=+tl.value;clearTimeout(CR.tt);CR.tt=setTimeout(applyClean,120)};
   const z=$('#crop-z');
@@ -1272,10 +1283,10 @@ function openCrop(img){
   f.onpointerdown=e=>{
     f.setPointerCapture(e.pointerId);CR.ptr.set(e.pointerId,[e.clientX,e.clientY]);CR.pd=pdist();
     if(CR.ptr.size>1){CR.drag={m:'pinch'};return}
-    const q=fp(e),cb=CR.cb,R=26,cs=[[cb.x,cb.y],[cb.x+cb.s,cb.y],[cb.x,cb.y+cb.s],[cb.x+cb.s,cb.y+cb.s]];
-    let hit=-1,bd=R;cs.forEach((c,i)=>{const d=Math.hypot(q[0]-c[0],q[1]-c[1]);if(d<bd){bd=d;hit=i}});
-    if(hit>=0){const c=cs[hit],a=cs[3-hit];CR.drag={m:'resize',ax:a[0],ay:a[1],sx:c[0]>a[0]?1:-1,sy:c[1]>a[1]?1:-1}}
-    else if(q[0]>=cb.x&&q[0]<=cb.x+cb.s&&q[1]>=cb.y&&q[1]<=cb.y+cb.s&&cb.s<CR.box-2)CR.drag={m:'move',ox:q[0]-cb.x,oy:q[1]-cb.y};
+    const q=fp(e),cb=CR.cb,R=26,hs=handles();
+    let hit=null,bd=R;hs.forEach(h=>{const d=Math.hypot(q[0]-h.x,q[1]-h.y);if(d<bd){bd=d;hit=h}});
+    if(hit)CR.drag={m:'resize',l:hit.fx===0,r:hit.fx===1,t:hit.fy===0,b:hit.fy===1};
+    else if(q[0]>=cb.x&&q[0]<=cb.x+cb.w&&q[1]>=cb.y&&q[1]<=cb.y+cb.h&&(cb.w<CR.box-2||cb.h<CR.box-2))CR.drag={m:'move',ox:q[0]-cb.x,oy:q[1]-cb.y};
     else CR.drag={m:'pan'};
   };
   f.onpointermove=e=>{
@@ -1286,11 +1297,13 @@ function openCrop(img){
     if(!dr)return;
     const q=fp(e);
     if(dr.m==='resize'){
-      const maxS=Math.min(dr.sx>0?F-dr.ax:dr.ax,dr.sy>0?F-dr.ay:dr.ay);
-      const s2=Math.max(56,Math.min(maxS,Math.max((q[0]-dr.ax)*dr.sx,(q[1]-dr.ay)*dr.sy)));
-      cb.s=s2;cb.x=dr.sx>0?dr.ax:dr.ax-s2;cb.y=dr.sy>0?dr.ay:dr.ay-s2;drawCrop();
+      const MIN=40,qx=Math.max(0,Math.min(F,q[0])),qy=Math.max(0,Math.min(F,q[1]));
+      let x0=cb.x,y0=cb.y,x1=cb.x+cb.w,y1=cb.y+cb.h;
+      if(dr.l)x0=Math.min(qx,x1-MIN);if(dr.r)x1=Math.max(qx,x0+MIN);
+      if(dr.t)y0=Math.min(qy,y1-MIN);if(dr.b)y1=Math.max(qy,y0+MIN);
+      cb.x=x0;cb.y=y0;cb.w=x1-x0;cb.h=y1-y0;drawCrop();
     }else if(dr.m==='move'){
-      cb.x=Math.max(0,Math.min(F-cb.s,q[0]-dr.ox));cb.y=Math.max(0,Math.min(F-cb.s,q[1]-dr.oy));drawCrop();
+      cb.x=Math.max(0,Math.min(F-cb.w,q[0]-dr.ox));cb.y=Math.max(0,Math.min(F-cb.h,q[1]-dr.oy));drawCrop();
     }else if(dr.m==='pan'){
       CR.cx-=(e.clientX-o[0])/CR.s;CR.cy-=(e.clientY-o[1])/CR.s;clampC();drawCrop();
     }
@@ -1328,10 +1341,10 @@ function bgMask(c,tol){
 }
 function cleanCanvas(src,tol){
   const c=workCanvas(src),M2=bgMask(c,tol),w=M2.w,h=M2.h,d=M2.id.data,m=M2.m;
-  /* soften the edge: pixels next to the cutout blend halfway to white */
+  /* the backdrop becomes transparent so no white box shows on any theme; edge pixels go semi-transparent */
   const out=new Uint8Array(w*h);
   for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const p=y*w+x;if(!m[p]&&(m[p-1]||m[p+1]||m[p-w]||m[p+w]))out[p]=1}
-  for(let p=0;p<w*h;p++){const i=p*4;if(m[p]){d[i]=d[i+1]=d[i+2]=255}else if(out[p]){d[i]=(d[i]+255)>>1;d[i+1]=(d[i+1]+255)>>1;d[i+2]=(d[i+2]+255)>>1}}
+  for(let p=0;p<w*h;p++){const i=p*4;if(m[p]){d[i+3]=0}else if(out[p]){d[i+3]=140}}
   c.getContext('2d').putImageData(M2.id,0,0);
   /* bounding box of what is left */
   let x0=w,y0=h,x1=0,y1=0;
@@ -1358,8 +1371,8 @@ function centerPiece(){
     b=(x1>x0&&y1>y0)?[x0/r.w,y0/r.h,x1/r.w,y1/r.h]:[0,0,1,1]}
   const bw=(b[2]-b[0])*CR.w,bh=(b[3]-b[1])*CR.h;
   const px=(b[0]+b[2])/2*CR.w,py=(b[1]+b[3])/2*CR.h,cb=CR.cb;
-  CR.s=Math.max(CR.min*.5,Math.min(CR.max,cb.s*.84/Math.max(bw,bh)));
-  CR.cx=px-(cb.x+cb.s/2-CR.box/2)/CR.s;CR.cy=py-(cb.y+cb.s/2-CR.box/2)/CR.s;
+  CR.s=Math.max(CR.min*.5,Math.min(CR.max,Math.min(cb.w*.9/bw,cb.h*.9/bh)));
+  CR.cx=px-(cb.x+cb.w/2-CR.box/2)/CR.s;CR.cy=py-(cb.y+cb.h/2-CR.box/2)/CR.s;
   setScale(CR.s);
 }
 function pdist(){if(!CR||CR.ptr.size<2)return 0;const p=Array.from(CR.ptr.values());return Math.hypot(p[0][0]-p[1][0],p[0][1]-p[1][1])}
@@ -1375,9 +1388,24 @@ function clampC(){
   CR.cx=Math.max(0,Math.min(CR.w,CR.cx));CR.cy=Math.max(0,Math.min(CR.h,CR.cy));
   void half;
 }
-function paintCrop(ctx,size,crop){
-  const F=CR.box,cb=crop?CR.cb:{x:0,y:0,s:F},k=size/cb.s;
-  ctx.fillStyle='#fff';ctx.fillRect(0,0,size,size);
+function handles(){
+  const cb=CR.cb,o=[];
+  [[0,0],[.5,0],[1,0],[0,.5],[1,.5],[0,1],[.5,1],[1,1]].forEach(a=>o.push({fx:a[0],fy:a[1],x:cb.x+cb.w*a[0],y:cb.y+cb.h*a[1]}));
+  /* corners win over edges when the box is tiny */
+  return o.sort((a,b)=>((b.fx%1===0&&b.fy%1===0)?1:0)-((a.fx%1===0&&a.fy%1===0)?1:0));
+}
+/* the photo's own rectangle in frame pixels, clipped to the frame */
+function imgRect(){
+  const F=CR.box,tx=F/2-CR.cx*CR.s,ty=F/2-CR.cy*CR.s;
+  return {x0:tx,y0:ty,x1:tx+CR.w*CR.s,y1:ty+CR.h*CR.s};
+}
+function fitBox(){
+  const F=CR.box,r=imgRect(),x0=Math.max(0,r.x0),y0=Math.max(0,r.y0),x1=Math.min(F,r.x1),y1=Math.min(F,r.y1);
+  CR.cb=(x1-x0>=40&&y1-y0>=40)?{x:x0,y:y0,w:x1-x0,h:y1-y0}:{x:0,y:0,w:F,h:F};
+}
+function paintCrop(ctx,size,crop,sy){
+  const F=CR.box,cb=crop?CR.cb:{x:0,y:0,w:F,h:F},k=size/Math.max(cb.w,cb.h);
+  if(!crop){ctx.fillStyle='#d9dce2';ctx.fillRect(0,0,size,size)}
   ctx.imageSmoothingQuality='high';
   const tx=F/2-CR.cx*CR.s,ty=F/2-CR.cy*CR.s;
   ctx.drawImage(CR.img,(tx-cb.x)*k,(ty-cb.y)*k,CR.w*CR.s*k,CR.h*CR.s*k);
@@ -1386,25 +1414,33 @@ function drawCrop(){
   const c=$('#crop-c');if(!c||!CR)return;
   const ctx=c.getContext('2d'),size=c.width,k=size/CR.box,cb=CR.cb;
   paintCrop(ctx,size,false);
-  const x=cb.x*k,y=cb.y*k,w=cb.s*k;
+  const x=cb.x*k,y=cb.y*k,w=cb.w*k,h=cb.h*k;
   ctx.fillStyle='rgba(8,10,14,.55)';
-  ctx.fillRect(0,0,size,y);ctx.fillRect(0,y+w,size,size-y-w);ctx.fillRect(0,y,x,w);ctx.fillRect(x+w,y,size-x-w,w);
+  ctx.fillRect(0,0,size,y);ctx.fillRect(0,y+h,size,size-y-h);ctx.fillRect(0,y,x,h);ctx.fillRect(x+w,y,size-x-w,h);
   const dpr=size/(c.clientWidth||size);
-  ctx.strokeStyle='#fff';ctx.lineWidth=2*dpr;ctx.strokeRect(x,y,w,w);
+  ctx.strokeStyle='#fff';ctx.lineWidth=2*dpr;ctx.strokeRect(x,y,w,h);
+  ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=1*dpr;
+  ctx.beginPath();[1/3,2/3].forEach(f=>{ctx.moveTo(x+w*f,y);ctx.lineTo(x+w*f,y+h);ctx.moveTo(x,y+h*f);ctx.lineTo(x+w,y+h*f)});ctx.stroke();
   ctx.fillStyle='#fff';ctx.strokeStyle='rgba(8,10,14,.45)';ctx.lineWidth=1*dpr;
-  [[x,y],[x+w,y],[x,y+w],[x+w,y+w]].forEach(p=>{ctx.beginPath();ctx.arc(p[0],p[1],9*dpr,0,6.2832);ctx.fill();ctx.stroke()});
+  handles().forEach(p=>{const corner=p.fx%1===0&&p.fy%1===0;ctx.beginPath();ctx.arc(p.x*k,p.y*k,(corner?9:6)*dpr,0,6.2832);ctx.fill();ctx.stroke()});
 }
-function cropReset(){if(!CR)return;CR.clean=false;applyClean();CR.cb={x:0,y:0,s:CR.box};CR.cx=CR.w/2;CR.cy=CR.h/2;setScale(CR.min)}
+function cropReset(){if(!CR)return;CR.clean=false;applyClean();CR.cx=CR.w/2;CR.cy=CR.h/2;setScale(CR.min);fitBox();drawCrop()}
 function closeCrop(){CR=null;const h=$('#crop');if(h)h.innerHTML=''}
 async function cropDone(){
   if(!CR||!S.sheet)return closeCrop();
   try{
-    const c=document.createElement('canvas');c.width=c.height=CROP_OUT;
-    paintCrop(c.getContext('2d'),CROP_OUT,true);
-    const blob=await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('blob')),'image/jpeg',.85));
+    const cb=CR.cb,k=CROP_OUT/Math.max(cb.w,cb.h),c=document.createElement('canvas');
+    c.width=Math.max(1,Math.round(cb.w*k));c.height=Math.max(1,Math.round(cb.h*k));
+    const ctx=c.getContext('2d');
+    const r=imgRect(),inside=cb.x>=r.x0-1&&cb.y>=r.y0-1&&cb.x+cb.w<=r.x1+1&&cb.y+cb.h<=r.y1+1;
+    const png=CR.clean||!inside;
+    if(!png){ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height)}
+    paintCrop(ctx,CROP_OUT,true);
+    const type=png?'image/png':'image/jpeg';
+    const blob=await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('blob')),type,.85));
     const dr=S.sheet.draft;
     if(dr.previewUrl){try{URL.revokeObjectURL(dr.previewUrl)}catch(e){}}
-    dr.photoBlob=blob;dr.photoData=ASSETS?'':c.toDataURL('image/jpeg',.82);dr.previewUrl=URL.createObjectURL(blob);
+    dr.photoBlob=blob;dr.photoData=ASSETS?'':c.toDataURL(type,.82);dr.previewUrl=URL.createObjectURL(blob);
     closeCrop();syncPhoto();
   }catch(e){toast('Could not crop that photo')}
 }
@@ -1425,7 +1461,7 @@ async function saveItem(){
   try{
     let photo=d.photo||'';
     if(d.photoBlob){
-      if(ASSETS){const r=await ASSETS.upload(d.photoBlob,{type:'image/jpeg'});photo=r.id}
+      if(ASSETS){const r=await ASSETS.upload(d.photoBlob,{type:d.photoBlob.type||'image/jpeg'});photo=r.id}
       else photo=d.photoData;
     }
     const id=sh.id||newId(),ex=sh.id?M.get(sh.id):null;
