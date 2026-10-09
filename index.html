@@ -781,8 +781,8 @@ function viewLog(){
     });
     const n=isSc?(dd&&dd.scent?1:0):list.filter(i=>on.has(i.id)).length;
     return '<section class="grp"><div class="grp-h"><h2>'+(isSc?'Scent of the day':c.label)+'</h2><span class="sub" id="cnt-'+c.id+'">'+(n?n+' selected · ':'')+list.length+'</span></div><div class="rail">'
-      +list.map(i=>isSc?card(i,'data-act="scent" data-id="'+esc(i.id)+'" aria-pressed="'+(!!dd&&dd.scent===i.id)+'"'):card(i,'data-act="pick" data-id="'+esc(i.id)+'" aria-pressed="'+on.has(i.id)+'"')).join('')
       +'<button type="button" class="card" data-act="new-item" data-cat="'+c.id+'" aria-label="Add a new '+c.label.toLowerCase()+' piece"><span class="tile add">'+ico(P.plus,1.6)+'</span><span class="brand">New</span><span class="name">Add to '+c.label.toLowerCase()+'</span></button>'
+      +list.map(i=>isSc?card(i,'data-act="scent" data-id="'+esc(i.id)+'" aria-pressed="'+(!!dd&&dd.scent===i.id)+'"'):card(i,'data-act="pick" data-id="'+esc(i.id)+'" aria-pressed="'+on.has(i.id)+'"')).join('')
       +'</div></section>';
   }).join('');
   return '<div class="head"><div><div class="brand">Rotation</div><h1 class="h1">Log</h1><div class="sub">'+fmt(sel,{weekday:'long',month:'long',day:'numeric'})+'</div></div><div class="hr"><button type="button" class="chip" data-act="today">Today</button>'+gearBtn()+'</div></div>'
