@@ -653,13 +653,14 @@ const catIdx=c=>CATS.findIndex(x=>x.id===c);
 const byCat=(a,b)=>catIdx(a.category)-catIdx(b.category)||(a.brand||'').localeCompare(b.brand||'')||a.name.localeCompare(b.name);
 
 /* ---------- pieces of UI ---------- */
+const dn=i=>i.nickname||i.name;
 function tileInner(it){
   const src=photoSrc(it.photo);
   if(src)return '<img src="'+esc(src)+'" alt="" decoding="async">';
   return '<span class="ph" style="--c:'+(COLORS[it.color]||'#9a9ea6')+'">'+(ICONS[it.category]||ICONS.tops)+'<i class="cam">'+ico(P.cam,1.8)+'</i></span>';
 }
 function card(it,attrs){
-  return '<button type="button" class="card" '+attrs+'><span class="tile">'+tileInner(it)+'<span class="check">'+ico(P.check,2.6)+'</span></span><span class="brand">'+esc(it.brand||'No brand')+'</span><span class="name">'+esc(it.name)+'</span></button>';
+  return '<button type="button" class="card" '+attrs+'><span class="tile">'+tileInner(it)+'<span class="check">'+ico(P.check,2.6)+'</span></span><span class="brand">'+esc(it.brand||'No brand')+'</span><span class="name">'+esc(dn(it))+'</span></button>';
 }
 function footText(){return S.loading?'':'<p class="sub foot"><b class="brand-f">Rotation</b> \u00b7 '+(S.store==='db'?'Stored privately in your account.':'Stored on this device only.')+'</p>'}
 function renderNav(){
@@ -935,7 +936,7 @@ function saveLook(){
   S.looks.unshift({id:newId(),items:ids.slice(),tag:t.tag||'',createdAt:Date.now()});
   persistLocal('looks');toast('Saved to your looks');
 }
-function lookLabel(l){return l.items.map(id=>M.get(id)).filter(Boolean).map(i=>i.name).slice(0,3).join(' · ')}
+function lookLabel(l){return l.items.map(id=>M.get(id)).filter(Boolean).map(dn).slice(0,3).join(' · ')}
 function openLooks(){renderLooks(true)}
 function closeLooks(){const h=$('#looks');if(h)h.innerHTML=''}
 function renderLooks(open){
@@ -1011,7 +1012,7 @@ function viewCalendar(){
     const sOnly=(!ids.length&&!planned&&dd&&dd.scent&&M.get(dd.scent))||null,hero=coverOf(pl||outfitsOf(dd)[0])||picks[0]||sOnly||undefined,fo=(!planned&&dd)?outfitsOf(dd).find(o=>o.photo):null,fit=!!fo;
     const bars=(!planned&&dd&&ids.length)?outfitsOf(dd).map(o=>tagBar(o.tag)).join(''):'';
     const lbl=fmt(ds,{weekday:'long',month:'long',day:'numeric'})+(planned?(lockedP?', locked in':', planned'):outs.length>1?', '+outs.length+' outfits logged':ids.length?', '+ids.length+' pieces logged':'');
-    cells.push('<button type="button" class="cell'+(([0,6].indexOf(new Date(y,m-1,d).getDay())>=0)?' wk':'')+(ds===t?' today':'')+(planned?' planned':'')+(lockedP?' locked':'')+'" data-act="open-day" data-d="'+ds+'" aria-label="'+lbl+'"><span class="n">'+d+'</span><span class="hero'+(fit?' fit':hero?'':' none')+'">'+(sOnly&&!sOnly.photo?'<span class="sn">'+esc(sOnly.name)+'</span>':fit?'<img src="'+esc(photoSrc(fo.photo))+'" alt="" decoding="async">'+(outs.length>1?'<b>'+outs.length+' fits</b>':''):hero?tileInner(hero)+(sOnly?'':outs.length>1?'<b>'+outs.length+' fits</b>':ids.length>1?'<b>+'+(ids.length-1)+'</b>':''):'')+'</span><span class="bars">'+(bars||'<span class="bar"></span>')+'</span></button>');
+    cells.push('<button type="button" class="cell'+(([0,6].indexOf(new Date(y,m-1,d).getDay())>=0)?' wk':'')+(ds===t?' today':'')+(planned?' planned':'')+(lockedP?' locked':'')+'" data-act="open-day" data-d="'+ds+'" aria-label="'+lbl+'"><span class="n">'+d+'</span><span class="hero'+(fit?' fit':hero?'':' none')+'">'+(sOnly&&!sOnly.photo?'<span class="sn">'+esc(dn(sOnly))+'</span>':fit?'<img src="'+esc(photoSrc(fo.photo))+'" alt="" decoding="async">'+(outs.length>1?'<b>'+outs.length+' fits</b>':''):hero?tileInner(hero)+(sOnly?'':outs.length>1?'<b>'+outs.length+' fits</b>':ids.length>1?'<b>+'+(ids.length-1)+'</b>':''):'')+'</span><span class="bars">'+(bars||'<span class="bar"></span>')+'</span></button>');
   }
   return '<div class="head"><div><div class="brand">Rotation</div><h1 class="h1">Calendar</h1><div class="sub">'+fmt(S.month+'-01',{month:'long',year:'numeric'})+'</div></div><div class="mnav"><button type="button" class="rb" data-act="month" data-v="-1" aria-label="Previous month">'+ico(P.left)+'</button><button type="button" class="rb" data-act="month" data-v="1" aria-label="Next month">'+ico(P.right)+'</button>'+statsBtn()+gearBtn()+'</div></div>'
    +'<div class="cal" role="group" aria-label="Month">'+(SET.week==='1'?['M','T','W','T','F','S','S']:['S','M','T','W','T','F','S']).map((d,i)=>'<span class="dow'+((SET.week==='1'?i>=5:(i===0||i===6))?' wk':'')+'">'+d+'</span>').join('')+cells.join('')+'</div>'
@@ -1025,7 +1026,7 @@ function viewStats(){
   keys.forEach(k=>{outfitsOf(S.days[k]).forEach(d=>{if(d.tag)tcnt[d.tag]=(tcnt[d.tag]||0)+1;new Set(d.items).forEach(id=>{if(M.has(id))wm[id]=(wm[id]||0)+1})})});
   const top=Object.keys(wm).map(id=>[id,wm[id]]).sort((a,b)=>b[1]-a[1]).slice(0,3);
   const rest=st.hasLogs?S.items.filter(i=>i.category==='shoes').map(i=>({i:i,d:st.last[i.id]?daysSince(st.last[i.id]):null})).filter(r=>r.d===null||r.d>=21).sort((a,b)=>(a.d===null)-(b.d===null)||(b.d||0)-(a.d||0)).slice(0,4):[];
-  const row=(i,right)=>'<div class="ri"><span class="thumb lg">'+tileInner(i)+'</span><span class="ri-t"><b>'+esc(i.name)+'</b><i>'+esc(i.brand||(CATS[catIdx(i.category)]||CATS[0]).label)+'</i></span><span class="mono">'+right+'</span></div>';
+  const row=(i,right)=>'<div class="ri"><span class="thumb lg">'+tileInner(i)+'</span><span class="ri-t"><b>'+esc(dn(i))+'</b><i>'+esc(i.brand||(CATS[catIdx(i.category)]||CATS[0]).label)+'</i></span><span class="mono">'+right+'</span></div>';
   const rts=[];keys.forEach(k=>outfitsOf(S.days[k]).forEach(o=>{if(o.rating)rts.push(o.rating)}));
   let insights='<div class="panel"><h2>This month</h2>';
   insights+=keys.length?'<div class="nums"><div><b>'+keys.length+'</b><span>Days</span></div>'+TAGS.filter(t=>tcnt[t.id]||['work','casual'].indexOf(t.id)>=0).slice(0,5).map(t=>'<div><b>'+(tcnt[t.id]||0)+'</b><span>'+esc(t.label)+'</span></div>').join('')+'</div>'+(rts.length?'<div class="rate-row" style="margin-top:14px">'+starsHTML(Math.round(rts.reduce((a,b)=>a+b,0)/rts.length*2)/2,false)+'<span class="mono">Avg '+(rts.reduce((a,b)=>a+b,0)/rts.length).toFixed(1)+' · '+rts.length+' rated</span></div>':''):'<p style="margin:0">Log an outfit and this month fills in.</p>';
@@ -1094,7 +1095,7 @@ function renderDay(){
   const multi=shown.length>1;
   const sc=dd.scent&&M.get(dd.scent)||null;
   let body='',total=0;
-  body+='<h3 class="dv-h" style="margin-top:0">Scent of the day</h3>'+(sc?'<div class="sc-row"><span class="thumb lg">'+tileInner(sc)+'</span><span class="ri-t"><b>'+esc(sc.name)+'</b><i>'+esc(sc.brand||'')+'</i></span></div><div class="btn-row" style="margin:8px 0 2px"><button type="button" class="btn ghost" data-act="share-scent-open">Share scent</button><button type="button" class="btn ghost" data-act="scent-pick">Change</button><button type="button" class="btn danger" data-act="scent-clear">Remove</button></div>':'<div class="btn-row" style="margin:0 0 2px"><button type="button" class="btn ghost" data-act="scent-pick">Add a scent</button></div>');
+  body+='<h3 class="dv-h" style="margin-top:0">Scent of the day</h3>'+(sc?'<div class="sc-row"><span class="thumb lg">'+tileInner(sc)+'</span><span class="ri-t"><b>'+esc(dn(sc))+'</b><i>'+esc(sc.brand||'')+'</i></span></div><div class="btn-row" style="margin:8px 0 2px"><button type="button" class="btn ghost" data-act="share-scent-open">Share scent</button><button type="button" class="btn ghost" data-act="scent-pick">Change</button><button type="button" class="btn danger" data-act="scent-clear">Remove</button></div>':'<div class="btn-row" style="margin:0 0 2px"><button type="button" class="btn ghost" data-act="scent-pick">Add a scent</button></div>');
   shown.forEach(x=>{
     total+=x.l.length;
     const tl=(TAGS.find(t=>t.id===x.o.tag)||{}).label||'';
