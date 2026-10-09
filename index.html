@@ -383,7 +383,8 @@ const BASE_TAGS=[{id:'work',label:'Work'},{id:'casual',label:'Casual'},{id:'mixe
 const OCC_COL=['#E0A100','#7A55B8','#1F9D8B','#D9480F'];
 let TAGS=BASE_TAGS.slice();
 function buildTags(){TAGS=BASE_TAGS.concat((SET.occ||[]).slice(0,4).map((o,i)=>({id:o.id,label:o.label,color:OCC_COL[i%4],custom:true})))}
-const tagBar=id=>{const t=TAGS.find(x=>x.id===id);return '<span class="bar '+(t&&!t.custom?'t-'+id:id?'':'t-none')+'"'+(t&&t.custom?' style="background:'+t.color+'"':'')+'></span>'};
+const tagBar=ids=>{const l=tlist(ids);if(l.length>1)return l.map(tagBar1).join('');return tagBar1(l[0]||'')};
+const tagBar1=id=>{const t=TAGS.find(x=>x.id===id);return '<span class="bar '+(t&&!t.custom?'t-'+id:id?'':'t-none')+'"'+(t&&t.custom?' style="background:'+t.color+'"':'')+'></span>'};
 const COLORS={black:'#1d1f24',white:'#f2f2ef',grey:'#9a9ea6',navy:'#232f55',blue:'#3d6fd1',green:'#3f8a5c',olive:'#6e6f31',brown:'#6e4a2e',tan:'#c4a47c',red:'#c23b32',pink:'#e79db5',orange:'#e07a2f',yellow:'#e6c53a',purple:'#7a55b8',multi:'#9a9ea6'};
 const SEED=[
   ['White T-Shirt','','tops','white',''],
@@ -448,14 +449,23 @@ const enqueue=(key,fn)=>{const p=(chains[key]||Promise.resolve()).then(fn);chain
 function normDay(r){
   r=r||{};
   const pl=Array.isArray(r.plans)?r.plans:[];
-  const mk=p=>({cover:(p&&typeof p.cover==='string')?p.cover:'',items:Array.isArray(p&&p.items)?p.items.slice():[],tag:(p&&p.tag)||'',when:(p&&['morning','afternoon','evening'].indexOf(p.when)>=0)?p.when:'',locked:!!(p&&p.locked),photo:(p&&typeof p.photo==='string')?p.photo:'',rating:(p&&typeof p.rating==='number'&&p.rating>0&&p.rating<=5)?Math.round(p.rating*2)/2:0});
+  const mk=p=>({cover:(p&&typeof p.cover==='string')?p.cover:'',items:Array.isArray(p&&p.items)?p.items.slice():[],tag:(p&&p.tag)||'',when:nw(p&&p.when),locked:!!(p&&p.locked),photo:(p&&typeof p.photo==='string')?p.photo:'',rating:(p&&typeof p.rating==='number'&&p.rating>0&&p.rating<=5)?Math.round(p.rating*2)/2:0});
   const mo=Array.isArray(r.more)?r.more.map(mk).filter(o=>o.items.length||o.photo):[];
-  return {cover:typeof r.cover==='string'?r.cover:'',items:Array.isArray(r.items)?r.items.slice():[],tag:r.tag||'',rating:(typeof r.rating==='number'&&r.rating>0&&r.rating<=5)?Math.round(r.rating*2)/2:0,photo:typeof r.photo==='string'?r.photo:'',scent:typeof r.scent==='string'?r.scent:'',when:['morning','afternoon','evening'].indexOf(r.when)>=0?r.when:'',plans:[mk(pl[0]),mk(pl[1]),mk(pl[2]),mk(pl[3])],more:mo};
+  return {cover:typeof r.cover==='string'?r.cover:'',items:Array.isArray(r.items)?r.items.slice():[],tag:r.tag||'',rating:(typeof r.rating==='number'&&r.rating>0&&r.rating<=5)?Math.round(r.rating*2)/2:0,photo:typeof r.photo==='string'?r.photo:'',scent:typeof r.scent==='string'?r.scent:'',when:nw(r.when),plans:[mk(pl[0]),mk(pl[1]),mk(pl[2]),mk(pl[3])],more:mo};
 }
 const outDoc=p=>({cover:p.cover||'',items:p.items.slice(),tag:p.tag||'',when:p.when||'',photo:p.photo||'',rating:p.rating||0,locked:!!p.locked});
 const dayDoc=d=>({cover:d.cover||'',items:d.items.slice(),tag:d.tag||'',photo:d.photo||'',scent:d.scent||'',rating:d.rating||0,when:d.when||'',plans:d.plans.map(outDoc),more:d.more.filter(p=>p.items.length||p.photo).map(outDoc)});
 const dayEmpty=d=>!d||(!d.items.length&&!d.photo&&!d.scent&&!d.plans.some(p=>p.items.length)&&!d.more.some(p=>p.items.length));
-const WR={morning:0,afternoon:1,evening:2},wr=o=>o&&WR[o.when]!==undefined?WR[o.when]:3;
+const nw=v=>tlist(v).filter(w=>WR[w]!==undefined).sort((x,y)=>WR[x]-WR[y]).join(',');
+const WR={morning:0,afternoon:1,evening:2};
+const tlist=v=>v?String(v).split(',').filter(Boolean):[];
+const thas=(v,x)=>tlist(v).indexOf(x)>=0;
+const ttog=(v,x)=>{const l=tlist(v),i=l.indexOf(x);if(i>=0)l.splice(i,1);else l.push(x);return l.join(',')};
+const wov=(a,b)=>{const x=tlist(a),y=tlist(b);return(!x.length&&!y.length)||x.some(v=>y.indexOf(v)>=0)};
+const wr=o=>{const r=tlist(o&&o.when).map(w=>WR[w]).filter(n=>n!==undefined);return r.length?Math.min.apply(null,r):3};
+const cap1=w=>w.charAt(0).toUpperCase()+w.slice(1);
+const whenLbl=v=>tlist(v).map(cap1).join(' + ');
+const tagLbl=v=>tlist(v).map(id=>{const t=TAGS.find(x=>x.id===id);return t?t.label:''}).filter(Boolean).join(' + ');
 const outfitsOf=d=>{const o=[];if(d&&d.items.length)o.push(d);if(d)d.more.forEach(m=>{if(m.items.length)o.push(m)});return o.map((x,i)=>[x,i]).sort((a,b)=>wr(a[0])-wr(b[0])||a[1]-b[1]).map(a=>a[0])};
 function coverOf(o){
   if(!o)return null;
@@ -732,7 +742,7 @@ function defaultMode(d){
 }
 function tagSeg(){
   const t=target(false);
-  return TAGS.map(x=>'<button type="button" data-act="tag" data-v="'+x.id+'" aria-pressed="'+(t.tag===x.id)+'">'+x.label+'</button>').join('');
+  return TAGS.map(x=>'<button type="button" data-act="tag" data-v="'+x.id+'" aria-pressed="'+thas(t.tag,x.id)+'">'+x.label+'</button>').join('');
 }
 function stripDates(){
   const t=today();
@@ -746,7 +756,7 @@ function stripDates(){
 function outSegHTML(){
   if(S.mode==='plan')return '';
   const dd=S.days[S.sel],nOut=dd?1+dd.more.length:1,cur0=target(false);
-  return '<div><span class="cap">Outfits today</span><div class="seg" role="group" aria-label="Outfit">'+Array.from({length:nOut},(_,i)=>{const o=i===0?dd:dd.more[i-1],tg=o&&o.tag?TAGS.find(x=>x.id===o.tag):null;return '<button type="button" data-act="out" data-v="'+i+'" aria-pressed="'+(S.out===i)+'">Outfit '+(i+1)+'<i>'+((o&&o.when)?o.when.charAt(0).toUpperCase()+o.when.slice(1):tg?tg.label:(o&&o.items.length)||'')+'</i></button>'}).join('')+(nOut<4&&cur0.items.length?'<button type="button" data-act="add-out" aria-label="Add another outfit for this day">+ Another</button>':'')+'</div></div>';
+  return '<div><span class="cap">Outfits today</span><div class="seg" role="group" aria-label="Outfit">'+Array.from({length:nOut},(_,i)=>{const o=i===0?dd:dd.more[i-1],tg={label:tagLbl(o&&o.tag)};return '<button type="button" data-act="out" data-v="'+i+'" aria-pressed="'+(S.out===i)+'">Outfit '+(i+1)+'<i>'+((o&&o.when)?whenLbl(o.when):tg.label?tg.label:(o&&o.items.length)||'')+'</i></button>'}).join('')+(nOut<4&&cur0.items.length?'<button type="button" data-act="add-out" aria-label="Add another outfit for this day">+ Another</button>':'')+'</div></div>';
 }
 function fitRowHTML(){
   if(S.mode==='plan')return '';
@@ -844,9 +854,9 @@ function pickScent(id){
   scheduleDay(S.sel);refreshPicker();
 }
 const WHENS=[['','Any'],['morning','Morning'],['afternoon','Afternoon'],['evening','Evening']];
-function whenSeg(){const t=target(false);return WHENS.map(w=>'<button type="button" data-act="when" data-v="'+w[0]+'" aria-pressed="'+((t.when||'')===w[0])+'">'+w[1]+'</button>').join('')}
-function setWhen(v){const t=target(true);t.when=v;scheduleDay(S.sel);const e=$('#whenseg');if(e)e.innerHTML=whenSeg();const ow=$('#outwrap');if(ow)ow.innerHTML=outSegHTML()}
-function setTag(v){const t=target(true);t.tag=t.tag===v?'':v;scheduleDay(S.sel);const ts=$('#tagseg');if(ts)ts.innerHTML=tagSeg();const ow=$('#outwrap');if(ow)ow.innerHTML=outSegHTML()}
+function whenSeg(){const t=target(false);return WHENS.map(w=>'<button type="button" data-act="when" data-v="'+w[0]+'" aria-pressed="'+(w[0]===''?!t.when:thas(t.when,w[0]))+'">'+w[1]+'</button>').join('')}
+function setWhen(v){const t=target(true);t.when=v===''?'':nw(ttog(t.when,v));scheduleDay(S.sel);const e=$('#whenseg');if(e)e.innerHTML=whenSeg();const ow=$('#outwrap');if(ow)ow.innerHTML=outSegHTML()}
+function setTag(v){const t=target(true);t.tag=ttog(t.tag,v);scheduleDay(S.sel);const ts=$('#tagseg');if(ts)ts.innerHTML=tagSeg();const ow=$('#outwrap');if(ow)ow.innerHTML=outSegHTML()}
 function repeatPrev(){
   const y=S.days[addDays(S.sel,-1)];
   if(!y||!y.items.some(id=>M.has(id))){toast('Nothing logged the day before');return}
@@ -866,7 +876,7 @@ function lockPlan(){
   if(!p.items.length)return;
   if(S.sel>today()){
     p.locked=!p.locked;
-    if(p.locked){const w=p.when||'';d.plans.forEach((q,i)=>{if(i!==idx&&(q.when||'')===w)q.locked=false})}
+    if(p.locked){const w=p.when||'';d.plans.forEach((q,i)=>{if(i!==idx&&wov(q.when,w))q.locked=false})}
     scheduleDay(S.sel);render();
     toast(p.locked?'Locked in. It will count as worn on the day.':'Unlocked');
     return;
@@ -874,7 +884,7 @@ function lockPlan(){
   const w=p.when||'';
   if(!d.items.length){d.items=p.items.slice();d.tag=p.tag;d.when=w;S.out=0}
   else{d.more.push({items:p.items.slice(),tag:p.tag,when:w,photo:'',rating:0});S.out=d.more.length}
-  d.plans=d.plans.map((q,i)=>(i===idx||(q.when||'')===w)?{items:[],tag:'',when:''}:q);
+  d.plans=d.plans.map((q,i)=>(i===idx||wov(q.when,w))?{items:[],tag:'',when:''}:q);
   S.mode='log';S.opt=0;
   scheduleDay(S.sel);render();
   toast('Option '+'ABCD'[idx]+' is your outfit');
@@ -988,7 +998,7 @@ function settleDays(){
           const w=x.p.when||'';
           if(!d.items.length){d.items=x.p.items.slice();d.tag=x.p.tag||'';d.when=w}
           else d.more.push({items:x.p.items.slice(),tag:x.p.tag||'',when:w,photo:'',rating:0});
-          d.plans=d.plans.map((q,i)=>(i===x.i||(q.when||'')===w)?{items:[],tag:'',when:'',locked:false}:q);
+          d.plans=d.plans.map((q,i)=>(i===x.i||wov(q.when,w))?{items:[],tag:'',when:'',locked:false}:q);
         });
         ch=true;
       }
@@ -1023,7 +1033,7 @@ function viewStats(){
   const st=stats();
   const keys=Object.keys(S.days).filter(k=>k.indexOf(S.month)===0&&outfitsOf(S.days[k]).some(o=>o.items.some(id=>M.has(id))));
   const wm={},tcnt={};
-  keys.forEach(k=>{outfitsOf(S.days[k]).forEach(d=>{if(d.tag)tcnt[d.tag]=(tcnt[d.tag]||0)+1;new Set(d.items).forEach(id=>{if(M.has(id))wm[id]=(wm[id]||0)+1})})});
+  keys.forEach(k=>{outfitsOf(S.days[k]).forEach(d=>{tlist(d.tag).forEach(tg=>{tcnt[tg]=(tcnt[tg]||0)+1});new Set(d.items).forEach(id=>{if(M.has(id))wm[id]=(wm[id]||0)+1})})});
   const top=Object.keys(wm).map(id=>[id,wm[id]]).sort((a,b)=>b[1]-a[1]).slice(0,3);
   const rest=st.hasLogs?S.items.filter(i=>i.category==='shoes').map(i=>({i:i,d:st.last[i.id]?daysSince(st.last[i.id]):null})).filter(r=>r.d===null||r.d>=21).sort((a,b)=>(a.d===null)-(b.d===null)||(b.d||0)-(a.d||0)).slice(0,4):[];
   const row=(i,right)=>'<div class="ri"><span class="thumb lg">'+tileInner(i)+'</span><span class="ri-t"><b>'+esc(dn(i))+'</b><i>'+esc(i.brand||(CATS[catIdx(i.category)]||CATS[0]).label)+'</i></span><span class="mono">'+right+'</span></div>';
@@ -1098,8 +1108,8 @@ function renderDay(){
   body+='<h3 class="dv-h" style="margin-top:0">Scent of the day</h3>'+(sc?'<div class="sc-row"><span class="thumb lg">'+tileInner(sc)+'</span><span class="ri-t"><b>'+esc(dn(sc))+'</b><i>'+esc(sc.brand||'')+'</i></span></div><div class="btn-row" style="margin:8px 0 2px"><button type="button" class="btn ghost" data-act="share-scent-open">Share scent</button><button type="button" class="btn ghost" data-act="scent-pick">Change</button><button type="button" class="btn danger" data-act="scent-clear">Remove</button></div>':'<div class="btn-row" style="margin:0 0 2px"><button type="button" class="btn ghost" data-act="scent-pick">Add a scent</button></div>');
   shown.forEach((x,xi)=>{
     total+=x.l.length;
-    const tl=(TAGS.find(t=>t.id===x.o.tag)||{}).label||'';
-    body+='<h3 class="dv-h">'+(multi?'Outfit '+(xi+1):'Outfit')+(x.o.when?' · '+x.o.when.charAt(0).toUpperCase()+x.o.when.slice(1):'')+(tl?' · '+tl:'')+'</h3>';
+    const tl=tagLbl(x.o.tag);
+    body+='<h3 class="dv-h">'+(multi?'Outfit '+(xi+1):'Outfit')+(x.o.when?' · '+whenLbl(x.o.when):'')+(tl?' · '+tl:'')+'</h3>';
     if(x.o.rating)body+='<div class="rate-row" style="margin-bottom:10px">'+starsHTML(x.o.rating,false)+'<span class="mono">'+x.o.rating.toFixed(1)+'</span></div>';
     if(x.o.photo)body+='<div class="fit-p"><img src="'+esc(photoSrc(x.o.photo))+'" alt="Outfit photo"></div>';
     if(x.l.length){
@@ -1111,9 +1121,9 @@ function renderDay(){
   if(!shown.length&&!dd.plans.some(p=>p.items.length))body+='<p class="hint" style="margin:0 0 4px">Nothing logged for this day.</p>';
   dd.plans.map((p,k)=>({p:p,k:k})).sort((a,b)=>wr(a.p)-wr(b.p)||a.k-b.k).forEach(z=>{
     const p=z.p,k=z.k,l=sorted(p.items);
-    if(l.length)body+='<h3 class="dv-h">'+(p.locked?'Locked in':'Planned')+', option '+'ABCD'[k]+(p.when?' · '+p.when:'')+((TAGS.find(t=>t.id===p.tag)||{}).label?' · '+TAGS.find(t=>t.id===p.tag).label:'')+'</h3>'+grid(l);
+    if(l.length)body+='<h3 class="dv-h">'+(p.locked?'Locked in':'Planned')+', option '+'ABCD'[k]+(p.when?' · '+whenLbl(p.when):'')+(tagLbl(p.tag)?' · '+tagLbl(p.tag):'')+'</h3>'+grid(l);
   });
-  const tag0=(!multi&&shown[0]&&(TAGS.find(t=>t.id===shown[0].o.tag)||{}).label)||'';
+  const tag0=(!multi&&shown[0]&&tagLbl(shown[0].o.tag))||'';
   host.innerHTML='<div class="scrim" data-act="day-bg"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="dv-t" tabindex="-1">'
    +'<div class="sheet-h"><div><h2 id="dv-t">'+esc(fmt(d,{weekday:'long',month:'short',day:'numeric'}))+'</h2><div class="sub" style="margin-top:4px">'+(total?total+' piece'+(total===1?'':'s'):(sc?'Scent only':''))+(multi?' · '+shown.length+' outfits':'')+(tag0?(total?' · ':'')+tag0:'')+'</div></div><button type="button" class="x" data-act="day-close" aria-label="Close">'+ico(P.x)+'</button></div>'
    +body
@@ -1243,8 +1253,8 @@ async function drawShare(){
   /* header: the date is always top left */
   x.textBaseline='alphabetic';x.textAlign='left';x.fillStyle=INK;x.font=F(700,40);
   x.fillText(fmt(SH.d,{weekday:'long',month:'long',day:'numeric'}).toUpperCase(),pad,pad+40);
-  const tg=TAGS.find(t=>t.id===o.tag);
-  const meta=scentMode?'Scent of the day':[tg&&tg.label,o.when&&(o.when.charAt(0).toUpperCase()+o.when.slice(1)),o.rating?'\u2605 '+o.rating.toFixed(1):''].filter(Boolean).join('  \u00b7  ');
+  const tg={label:tagLbl(o.tag)};
+  const meta=scentMode?'Scent of the day':[tg&&tg.label,o.when&&whenLbl(o.when),o.rating?'\u2605 '+o.rating.toFixed(1):''].filter(Boolean).join('  \u00b7  ');
   if(meta){x.fillStyle=INK2;x.font=F(500,30);x.fillText(meta,pad,pad+88)}
   x.fillStyle=ACCENT;rr(x,pad,pad+(meta?118:70),72,8,4);x.fill();
   /* the Rotation watermark: top right, bottom left or bottom right */
