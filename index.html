@@ -13,21 +13,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <script>try{var _s=JSON.parse(localStorage.getItem('rotation.settings')||'{}');if(_s.accent&&_s.accent!=='cobalt')document.documentElement.setAttribute('data-accent',_s.accent);if(_s.theme==='light'||_s.theme==='dark')document.documentElement.setAttribute('data-theme',_s.theme);if(_s.splash===false)document.documentElement.setAttribute('data-splash','off')}catch(e){}</script>
-<style>html,body{margin:0}img{max-width:100%}[hidden]{display:none!important}.ctl{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-4px 0 10px}
-.seg.mini{padding:3px;border-radius:11px;flex:none}.seg.mini button{padding:7px 14px;font-size:12.5px;border-radius:8px}
-.chips i{font-style:normal;font:500 11px var(--f-mono);opacity:.6;margin-left:6px}
-.chips.wrapc{flex-wrap:wrap;overflow:visible;margin-inline:0;padding:2px 0 8px}
-.addk{display:flex;gap:8px}.addk input{flex:1;min-width:0;font:400 16px var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
-.lbln{font:400 11px var(--f-body);text-transform:none;letter-spacing:0;color:var(--ink2);font-style:normal;margin-left:6px}
-.grid.hz{grid-template-columns:none;grid-auto-flow:column;grid-template-rows:auto;grid-auto-columns:clamp(150px,44vw,280px);overflow-x:auto;margin-inline:-16px;padding:6px 16px 22px;scroll-snap-type:x proximity;scroll-padding-inline:16px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.grid.hz::-webkit-scrollbar{display:none}.grid.hz .card{scroll-snap-align:start}
-.vbig{aspect-ratio:1;border-radius:22px;overflow:hidden;background:var(--well);margin-bottom:14px;display:grid;place-items:center}
-.vbig img{width:100%;height:100%;object-fit:contain}.vbig .ph svg{width:40%;height:40%}
-.vkinds{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}.vkinds span{font:600 12px var(--f-body);padding:6px 12px;border-radius:999px;background:color-mix(in srgb,var(--ink) 8%,transparent)}
-.vrow{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-top:1px solid var(--line);font-size:14.5px}.vrow span{color:var(--ink2);font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;align-self:center}.vrow b{font-weight:600;text-align:right}
-.vrow .dots{display:flex;gap:6px}.vrow .dots i{width:20px;height:20px;border-radius:50%;border:1px solid var(--line)}
-.arr-r{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font:600 15px var(--f-body)}.arr-r div{display:flex;gap:8px}.arr-r .rb:disabled{opacity:.3}
-</style>
+<style>html,body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <!-- Copyright (c) 2026 Antonio Isaac. All rights reserved. See LICENSE. -->
 <title>Rotation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -349,6 +335,20 @@ details.det summary i{font:400 12px var(--f-body);font-style:normal;color:var(--
 details.det[open] summary{border-bottom:1px solid var(--line);margin-bottom:14px}
 .photo-row.bk{margin-top:-4px}.ph.bk{font:500 12px var(--f-mono);letter-spacing:.06em;text-transform:uppercase}
 .field input[type=date]{min-height:46px}
+.ctl{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-4px 0 10px}
+.seg.mini{padding:3px;border-radius:11px;flex:none}.seg.mini button{padding:7px 14px;font-size:12.5px;border-radius:8px}
+.chips i{font-style:normal;font:500 11px var(--f-mono);opacity:.6;margin-left:6px}
+.chips.wrapc{flex-wrap:wrap;overflow:visible;margin-inline:0;padding:2px 0 8px}
+.addk{display:flex;gap:8px}.addk input{flex:1;min-width:0;font:400 16px var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.lbln{font:400 11px var(--f-body);text-transform:none;letter-spacing:0;color:var(--ink2);font-style:normal;margin-left:6px}
+.grid.hz{grid-template-columns:none;grid-auto-flow:column;grid-template-rows:auto;grid-auto-columns:clamp(150px,44vw,280px);overflow-x:auto;margin-inline:-16px;padding:6px 16px 22px;scroll-snap-type:x proximity;scroll-padding-inline:16px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.grid.hz::-webkit-scrollbar{display:none}.grid.hz .card{scroll-snap-align:start}
+.vbig{aspect-ratio:1;border-radius:22px;overflow:hidden;background:var(--well);margin-bottom:14px;display:grid;place-items:center}
+.vbig img{width:100%;height:100%;object-fit:contain}.vbig .ph svg{width:40%;height:40%}
+.vkinds{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}.vkinds span{font:600 12px var(--f-body);padding:6px 12px;border-radius:999px;background:color-mix(in srgb,var(--ink) 8%,transparent)}
+.vrow{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-top:1px solid var(--line);font-size:14.5px}.vrow span{color:var(--ink2);font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;align-self:center}.vrow b{font-weight:600;text-align:right}
+.vrow .dots{display:flex;gap:6px}.vrow .dots i{width:20px;height:20px;border-radius:50%;border:1px solid var(--line)}
+.arr-r{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font:600 15px var(--f-body)}.arr-r div{display:flex;gap:8px}.arr-r .rb:disabled{opacity:.3}
 </style>
 
 </head>
@@ -440,20 +440,26 @@ function normDay(r){
   const mo=Array.isArray(r.more)?r.more.map(mk).filter(o=>o.items.length||o.photo):[];
   return {items:Array.isArray(r.items)?r.items.slice():[],tag:r.tag||'',photo:typeof r.photo==='string'?r.photo:'',scent:typeof r.scent==='string'?r.scent:'',when:['morning','afternoon','evening'].indexOf(r.when)>=0?r.when:'',plans:[mk(pl[0]),mk(pl[1]),mk(pl[2]),mk(pl[3])],more:mo};
 }
+const outDoc=p=>({items:p.items.slice(),tag:p.tag||'',when:p.when||'',photo:p.photo||'',rating:p.rating||0,locked:!!p.locked});
+const dayDoc=d=>({items:d.items.slice(),tag:d.tag||'',photo:d.photo||'',scent:d.scent||'',rating:d.rating||0,when:d.when||'',plans:d.plans.map(outDoc),more:d.more.filter(p=>p.items.length||p.photo).map(outDoc)});
 const dayEmpty=d=>!d||(!d.items.length&&!d.photo&&!d.scent&&!d.plans.some(p=>p.items.length)&&!d.more.some(p=>p.items.length));
 const outfitsOf=d=>{const o=[];if(d&&d.items.length)o.push(d);if(d)d.more.forEach(m=>{if(m.items.length)o.push(m)});return o};
 function outCount(){const d=S.days[S.sel];return d?Math.max(1,1+d.more.length):1}
 const photoSrc=p=>!p?'':(p.indexOf('data:')===0||p.indexOf('blob:')===0)?p:'/_blob/'+p;
 
 /* ---------- storage ---------- */
+let dbP=null;
 function idb(){
-  return new Promise((res,rej)=>{
+  if(dbP)return dbP;
+  dbP=new Promise((res,rej)=>{
     if(!window.indexedDB){rej(new Error('no idb'));return}
     const r=indexedDB.open('rotation',1);
     r.onupgradeneeded=()=>r.result.createObjectStore('kv');
-    r.onsuccess=()=>res(r.result);
+    r.onsuccess=()=>{r.result.onversionchange=()=>{r.result.close();dbP=null};res(r.result)};
     r.onerror=()=>rej(r.error);
   });
+  dbP.catch(()=>{dbP=null});
+  return dbP;
 }
 async function idbGet(k){
   const db=await idb();
@@ -469,7 +475,7 @@ function persistLocal(part){
   if(!part||part==='items')jobs.push(idbSet('items',S.items));
   if(!part||part==='days')jobs.push(idbSet('days',S.days));
   if(!part||part==='looks')jobs.push(idbSet('looks',S.looks));
-  Promise.all(jobs).catch(()=>{if(!warned){warned=true;toast('Could not save on this device')}});
+  Promise.all(jobs).catch(()=>{if(!warned){warned=true;toast('Could not save on this device. Export a backup.');setTimeout(()=>{warned=false},15000)}});
 }
 async function loadLocal(){
   try{
@@ -485,7 +491,7 @@ async function loadLocal(){
   rebuild();
 }
 function exportData(){
-  const blob=new Blob([JSON.stringify({app:'rotation',v:1,items:S.items,days:S.days,looks:S.looks})],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({app:'rotation',v:2,items:S.items,days:S.days,looks:S.looks,settings:Object.assign({},SET,{gkey:'',gcx:''})})],{type:'application/json'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download='rotation-backup-'+today()+'.json';
   document.body.appendChild(a);a.click();a.remove();
@@ -501,6 +507,15 @@ async function importData(file){
     S.items.sort((a,b)=>a.id<b.id?-1:1);
     Object.keys(j.days||{}).forEach(k=>{S.days[k]=normDay(j.days[k])});
     (Array.isArray(j.looks)?j.looks:[]).forEach(l=>{if(l&&l.id&&Array.isArray(l.items)&&!S.looks.some(x=>x.id===l.id))S.looks.push(l)});
+    if(j.settings&&typeof j.settings==='object'){
+      const o=j.settings;
+      if(Array.isArray(o.order))SET.order=o.order.filter(x=>typeof x==='string');
+      if(o.subs&&typeof o.subs==='object')SET.subs=o.subs;
+      if(Array.isArray(o.occ))SET.occ=o.occ.filter(x=>x&&x.id&&x.label).slice(0,4);
+      if(['cobalt','heritage','peony','graphite','ember'].indexOf(o.accent)>=0)SET.accent=o.accent;
+      if(o.cview==='swipe'||o.cview==='grid')SET.cview=o.cview;
+      saveSet();applyOrder();buildTags();applyTheme();
+    }
     rebuild();persistLocal();render();
     toast('Restored '+j.items.length+' pieces');
   }catch(e){toast('That file is not a Rotation backup')}
@@ -511,7 +526,7 @@ function backupRow(inSettings){
 }
 function sigOf(){
   return JSON.stringify([
-    S.items.map(i=>[i.id,i.name,i.brand,i.nickname,i.category,i.color,i.photo]),
+    S.items,
     Object.keys(S.days).sort().map(k=>[k,S.days[k].items,S.days[k].tag,S.days[k].plans,S.days[k].more]),
     S.loading
   ]);
@@ -519,6 +534,7 @@ function sigOf(){
 function afterData(){
   S.loading=!(S.gotItems&&S.gotDays);
   rebuild();
+  if(!S.loading&&!S.settled){S.settled=true;settleDays()}
   const s=sigOf();
   if(s!==lastSig){lastSig=s;render()}
 }
@@ -583,7 +599,7 @@ async function flushDay(date){
   if(empty)delete S.days[date];
   if(daysCol){
     try{
-      await enqueue('d:'+date,()=>empty?daysCol.doc(date).delete():daysCol.doc(date).set({items:d.items.slice(),tag:d.tag||'',photo:d.photo||'',scent:d.scent||'',rating:d.rating||0,when:d.when||'',plans:d.plans.map(p=>({items:p.items.slice(),tag:p.tag||'',when:p.when||''})),more:d.more.filter(p=>p.items.length).map(p=>({items:p.items.slice(),tag:p.tag||'',when:p.when||'',photo:p.photo||'',rating:p.rating||0}))}));
+      await enqueue('d:'+date,()=>empty?daysCol.doc(date).delete():daysCol.doc(date).set(dayDoc(d)));
     }catch(e){toast('Could not sync that day')}
   }else persistLocal('days');
   if(vers[date]===v){dirty.delete(date);if(!dirty.size)setSave('Saved')}
@@ -754,7 +770,7 @@ function viewLog(){
    +'<div class="btn-row"><button type="button" class="btn ghost" data-act="repeat"'+(canRepeat?'':' disabled')+'>'+(sel===t?'Repeat yesterday':'Repeat day before')+'</button><button type="button" class="btn ghost" data-act="clear">Clear</button><button type="button" class="btn ghost" data-act="look-save"'+(tgt.items.length?'':' disabled')+'>Save look</button><button type="button" class="btn ghost" data-act="looks-open">Saved looks'+(S.looks.length?' ('+S.looks.length+')':'')+'</button>'+(S.mode==='log'&&S.out>0?'<button type="button" class="btn ghost" id="rm-out" data-act="rm-out">Remove outfit</button>':'')
    +(S.mode==='plan'?'<button type="button" class="btn primary" id="lock" data-act="lock"'+(tgt.items.length?'':' disabled')+'>'+(sel>t?(tgt.locked?'Locked in. Tap to unlock':'Lock in option '+'ABCD'[S.opt]):'Wear option '+'ABCD'[S.opt])+'</button>':'')
    +'</div></div>'
-   +'<p class="hint" style="margin-top:18px">Tap to select. Hold a piece to edit it or add a photo.</p>'
+   +'<p class="hint" style="margin-top:18px">Tap to select. Press and hold a piece to view it.</p>'
    +(S.loading?'<div class="grid">'+'<div class="skel"></div>'.repeat(6)+'</div>':groups)
    +'<div class="tray" id="tray"></div>'+footText();
 }
@@ -974,7 +990,7 @@ function viewCalendar(){
   }
   const st=stats();
   const keys=Object.keys(S.days).filter(k=>k.indexOf(S.month)===0&&outfitsOf(S.days[k]).some(o=>o.items.some(id=>M.has(id))));
-  const tc={work:0,casual:0,mixed:0},wm={},tcnt={};
+  const wm={},tcnt={};
   keys.forEach(k=>{outfitsOf(S.days[k]).forEach(d=>{if(d.tag)tcnt[d.tag]=(tcnt[d.tag]||0)+1;new Set(d.items).forEach(id=>{if(M.has(id))wm[id]=(wm[id]||0)+1})})});
   const top=Object.keys(wm).map(id=>[id,wm[id]]).sort((a,b)=>b[1]-a[1]).slice(0,3);
   const rest=st.hasLogs?S.items.filter(i=>i.category==='shoes').map(i=>({i:i,d:st.last[i.id]?daysSince(st.last[i.id]):null})).filter(r=>r.d===null||r.d>=21).sort((a,b)=>(a.d===null)-(b.d===null)||(b.d||0)-(a.d||0)).slice(0,4):[];
@@ -1030,7 +1046,7 @@ function viewSettings(){
 async function wipeAll(){
   const b=$('#b-wipe');
   if(!S.wipeArm){S.wipeArm=true;if(b)b.textContent='Tap again to erase everything';setTimeout(()=>{S.wipeArm=false;const b2=$('#b-wipe');if(b2)b2.textContent='Erase everything'},4000);return}
-  S.wipeArm=false;S.items=[];S.days={};rebuild();persistLocal();render();toast('Erased');
+  S.wipeArm=false;S.items=[];S.days={};S.looks=[];rebuild();persistLocal();render();toast('Erased');
 }
 
 /* ---------- day view (calendar) ---------- */
@@ -1266,16 +1282,6 @@ function loadImg(file){
     im.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('img'))};
     im.src=u;
   });
-}
-async function processPhoto(file){
-  let src;
-  try{src=await createImageBitmap(file,{imageOrientation:'from-image'})}catch(e){src=await loadImg(file)}
-  const w0=src.width||src.naturalWidth,h0=src.height||src.naturalHeight;
-  const k=Math.min(1,720/Math.max(w0,h0)),w=Math.round(w0*k),h=Math.round(h0*k);
-  const c=document.createElement('canvas');c.width=w;c.height=h;
-  const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(src,0,0,w,h);
-  const blob=await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('blob')),'image/jpeg',.82));
-  return {blob:blob,data:ASSETS?'':c.toDataURL('image/jpeg',.8)};
 }
 async function onFile(file,sl){
   S.slot=sl||'f';
