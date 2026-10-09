@@ -349,7 +349,7 @@ details.det[open] summary{border-bottom:1px solid var(--line);margin-bottom:14px
 .vrow{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-top:1px solid var(--line);font-size:14.5px}.vrow span{color:var(--ink2);font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;align-self:center}.vrow b{font-weight:600;text-align:right}
 .vrow .dots{display:flex;gap:6px}.vrow .dots i{width:20px;height:20px;border-radius:50%;border:1px solid var(--line)}
 .arr-r{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font:600 15px var(--f-body)}.arr-r div{display:flex;gap:8px}.arr-r .rb:disabled{opacity:.3}
-.sh-prev{display:grid;place-items:center;background:var(--well);border-radius:16px;padding:10px;margin-bottom:12px;min-height:180px}
+.sh-prev{display:grid;place-items:center;background:rgba(127,127,127,.16);border-radius:16px;padding:10px;margin-bottom:12px;min-height:180px}
 .sh-opts{display:grid;gap:8px;margin-bottom:8px}.sh-opt .cap{margin-bottom:4px}.sh-actions{position:sticky;bottom:-1px;background:var(--surface);padding:12px 0 4px;margin-top:8px}.sh-prev img{max-width:100%;max-height:30vh;border-radius:8px;box-shadow:var(--shadow)}
 .cell.wk{background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
 .cell.wk .n{color:var(--accent2,var(--accent))}
@@ -1173,7 +1173,7 @@ function renderShare(){
    +'<div class="sh-opts">'
    +shOpt('size','Size',[['sq','Square'],['st','Story']])
    +shOpt('theme','Look',[['light','Light'],['dark','Dark']])
-   +shOpt('logo','Rotation name',[['tr','Top right'],['bl','Bottom left'],['br','Bottom right']])
+   +shOpt('logo','Rotation watermark',[['tr','Top right'],['bl','Bottom left'],['br','Bottom right']])
    +shOpt('side','Outfit photo',[['l','Left'],['r','Right']],!(SH.size==='sq'&&SH.hasPhoto))
    +'</div>'
    +(SH.mode==='fit'?'<div class="sh-opt" style="margin-bottom:8px"><span class="cap">Pieces to show</span><div class="chips wrapc" id="sh-pcs">'+Array.from(S.days[SH.d]&&(SH.k?S.days[SH.d].more[SH.k-1]:S.days[SH.d]).items||[]).filter(id=>M.has(id)).map(id=>'<button type="button" class="chip" data-act="share-piece" data-id="'+esc(id)+'" aria-pressed="'+SH.sel.has(id)+'">'+esc(M.get(id).name)+'</button>').join('')+'</div></div>':'')
@@ -1212,7 +1212,7 @@ async function drawShare(){
   const meta=scentMode?'Scent of the day':[tg&&tg.label,o.when&&(o.when.charAt(0).toUpperCase()+o.when.slice(1)),o.rating?'\u2605 '+o.rating.toFixed(1):''].filter(Boolean).join('  \u00b7  ');
   if(meta){x.fillStyle=INK2;x.font=F(500,30);x.fillText(meta,pad,pad+88)}
   x.fillStyle=ACCENT;rr(x,pad,pad+(meta?118:70),72,8,4);x.fill();
-  /* the Rotation name: top right, bottom left or bottom right */
+  /* the Rotation watermark: top right, bottom left or bottom right */
   x.fillStyle=INK;x.font=F(800,44,DISP);
   if(SH.logo==='tr'){x.textAlign='right';x.fillText('ROTATION',W-pad,pad+40);x.textAlign='left'}
   else if(SH.logo==='br'){x.textAlign='right';x.fillText('ROTATION',W-pad,H-pad+4);x.textAlign='left'}
@@ -1220,7 +1220,7 @@ async function drawShare(){
   const top=pad+(meta?118:70)+60,bottom=SH.logo==='tr'?H-pad:H-pad-76,cw=W-pad*2,ch=bottom-top;
   /* tile grid */
   const tiles=(ax,ay,aw,ah,cols)=>{
-    const n=its.length,rows=Math.ceil(n/cols),gap=30,lab=brands?96:60;
+    const n=its.length,rows=Math.ceil(n/cols),gap=30,lab=(brands?96:60)+(its.length===1?30:0);
     let t=Math.min((aw-(cols-1)*gap)/cols,(ah-rows*lab-(rows-1)*gap)/rows);t=Math.floor(Math.max(60,t));
     const gw=cols*t+(cols-1)*gap,gh=rows*(t+lab)+(rows-1)*gap;
     const ox=ax+(aw-gw)/2,oy=ay+Math.max(0,(ah-gh)/2);
@@ -1229,12 +1229,13 @@ async function drawShare(){
       const tx=(r===rows-1?rowOx:ox)+cc*(t+gap),ty=oy+r*(t+lab+gap);
       x.save();rr(x,tx,ty,t,t,Math.round(t*.14));x.clip();
       x.fillStyle=WELL;x.fillRect(tx,ty,t,t);
-      if(imgs[i]){const im=imgs[i],p=t*.07,k=Math.min((t-2*p)/im.width,(t-2*p)/im.height),w=im.width*k,h=im.height*k;x.globalCompositeOperation='multiply';x.drawImage(im,tx+(t-w)/2,ty+(t-h)/2,w,h);x.globalCompositeOperation='source-over'}
+      if(imgs[i]&&scentMode){const im=imgs[i],k=Math.max(t/im.width,t/im.height),w=im.width*k,h=im.height*k;x.drawImage(im,tx+(t-w)/2,ty+(t-h)/2,w,h)}
+      else if(imgs[i]){const im=imgs[i],p=t*.07,k=Math.min((t-2*p)/im.width,(t-2*p)/im.height),w=im.width*k,h=im.height*k;x.globalCompositeOperation='multiply';x.drawImage(im,tx+(t-w)/2,ty+(t-h)/2,w,h);x.globalCompositeOperation='source-over'}
       else{x.fillStyle=T.ph;x.font=F(700,Math.round(t*.4),DISP);x.textAlign='center';x.fillText((it.name||'?').charAt(0).toUpperCase(),tx+t/2,ty+t/2+t*.14);x.textAlign='left'}
       x.restore();
-      x.textAlign='center';let ly=ty+t+34;
+      x.textAlign='center';const fs=Math.max(22,Math.round(t*.1));let ly=ty+t+22+(brands&&it.brand?Math.max(18,Math.round(t*.085)):fs);
       if(brands&&it.brand){x.fillStyle=INK2;x.font=F(600,Math.max(18,Math.round(t*.085)));x.fillText(fitText(x,it.brand.toUpperCase(),t+gap),tx+t/2,ly);ly+=Math.max(26,Math.round(t*.115))}
-      x.fillStyle=INK;x.font=F(700,Math.max(22,Math.round(t*.1)));x.fillText(fitText(x,it.name,t+gap),tx+t/2,brands&&it.brand?ly:ly+4);
+      x.fillStyle=INK;x.font=F(700,fs);x.fillText(fitText(x,it.name,t+gap),tx+t/2,ly);
       x.textAlign='left';
     });
   };
