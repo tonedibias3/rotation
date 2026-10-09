@@ -70,6 +70,8 @@ svg{width:18px;height:18px;flex:none}
 
 /* headings */
 .head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:16px}
+.brand-f{font:800 11px var(--f-display);font-stretch:118%;text-transform:uppercase;letter-spacing:.2em}
+.brand{font:800 10.5px/1 var(--f-display);font-stretch:118%;text-transform:uppercase;letter-spacing:.24em;color:var(--ink2);margin:0 0 8px}
 .h1{font:800 26px/1 var(--f-display);font-stretch:118%;text-transform:uppercase;letter-spacing:.005em;margin:0 0 6px}
 .sub{font:400 12px/1.3 var(--f-mono);color:var(--ink2);letter-spacing:.02em}
 .grp{margin-top:26px}
@@ -658,7 +660,7 @@ function tileInner(it){
 function card(it,attrs){
   return '<button type="button" class="card" '+attrs+'><span class="tile">'+tileInner(it)+'<span class="check">'+ico(P.check,2.6)+'</span></span><span class="brand">'+esc(it.brand||'No brand')+'</span><span class="name">'+esc(it.name)+'</span></button>';
 }
-function footText(){return S.loading?'':'<p class="sub foot">'+(S.store==='db'?'Stored privately in your account.':'Stored on this device only.')+'</p>'}
+function footText(){return S.loading?'':'<p class="sub foot"><b class="brand-f">Rotation</b> \u00b7 '+(S.store==='db'?'Stored privately in your account.':'Stored on this device only.')+'</p>'}
 function renderNav(){
   $('#pill').innerHTML=[['closet','Closet'],['log','Log'],['calendar','Calendar']].map(t=>'<button type="button" data-act="tab" data-tab="'+t[0]+'">'+t[1]+'</button>').join('');
   $('#b-search').innerHTML=ico(P.search,1.8);
@@ -669,7 +671,7 @@ function renderNav(){
 function viewCloset(){
   const n=S.items.length;
   const chip=(id,label,c)=>'<button type="button" class="chip" data-act="filter" data-v="'+id+'" aria-pressed="'+(S.filter===id)+'">'+label+'<i>'+c+'</i></button>';
-  return '<div class="head"><div><h1 class="h1">Closet</h1><div class="sub">'+(S.loading?'Loading':n+' piece'+(n===1?'':'s'))+'</div></div>'+gearBtn()+'</div>'
+  return '<div class="head"><div><div class="brand">Rotation</div><h1 class="h1">Closet</h1><div class="sub">'+(S.loading?'Loading':n+' piece'+(n===1?'':'s'))+'</div></div>'+gearBtn()+'</div>'
    +'<label class="search">'+ico(P.search)+'<input id="q" type="search" placeholder="Search name, brand or nickname" value="'+esc(S.q)+'" autocomplete="off" aria-label="Search closet"></label>'
    +'<div class="chips" role="group" aria-label="Filter by type">'+chip('all','All',n)+CATS.map(c=>chip(c.id,c.label,count(c.id))).join('')+'</div>'
    +'<div class="ctl">'+(S.filter!=='all'?'<div class="seg mini" role="group" aria-label="Layout"><button type="button" data-act="cview" data-v="grid" aria-pressed="'+(SET.cview==='grid')+'">Grid</button><button type="button" data-act="cview" data-v="swipe" aria-pressed="'+(SET.cview==='swipe')+'">Swipe</button></div>':'')+'<button type="button" class="link" data-act="arrange">Arrange sections</button></div>'
@@ -777,7 +779,7 @@ function viewLog(){
       +'<button type="button" class="card" data-act="new-item" data-cat="'+c.id+'" aria-label="Add a new '+c.label.toLowerCase()+' piece"><span class="tile add">'+ico(P.plus,1.6)+'</span><span class="brand">New</span><span class="name">Add to '+c.label.toLowerCase()+'</span></button>'
       +'</div></section>';
   }).join('');
-  return '<div class="head"><div><h1 class="h1">Log</h1><div class="sub">'+fmt(sel,{weekday:'long',month:'long',day:'numeric'})+'</div></div><div class="hr"><button type="button" class="chip" data-act="today">Today</button>'+gearBtn()+'</div></div>'
+  return '<div class="head"><div><div class="brand">Rotation</div><h1 class="h1">Log</h1><div class="sub">'+fmt(sel,{weekday:'long',month:'long',day:'numeric'})+'</div></div><div class="hr"><button type="button" class="chip" data-act="today">Today</button>'+gearBtn()+'</div></div>'
    +'<div class="days" id="days">'+strip+'</div>'
    +'<div class="stack">'+modeSeg+optSeg+'<div id="outwrap">'+outSegHTML()+'</div>'
    +'<div><span class="cap">Time of day</span><div class="seg" id="whenseg" role="group" aria-label="Time of day">'+whenSeg()+'</div></div>'
@@ -1004,7 +1006,7 @@ function viewCalendar(){
     const lbl=fmt(ds,{weekday:'long',month:'long',day:'numeric'})+(planned?(lockedP?', locked in':', planned'):outs.length>1?', '+outs.length+' outfits logged':ids.length?', '+ids.length+' pieces logged':'');
     cells.push('<button type="button" class="cell'+(([0,6].indexOf(new Date(y,m-1,d).getDay())>=0)?' wk':'')+(ds===t?' today':'')+(planned?' planned':'')+(lockedP?' locked':'')+'" data-act="open-day" data-d="'+ds+'" aria-label="'+lbl+'"><span class="n">'+d+'</span><span class="hero'+(fit?' fit':hero?'':' none')+'">'+(sOnly&&!sOnly.photo?'<span class="sn">'+esc(sOnly.name)+'</span>':fit?'<img src="'+esc(photoSrc(fo.photo))+'" alt="" decoding="async">'+(outs.length>1?'<b>'+outs.length+' fits</b>':''):hero?tileInner(hero)+(sOnly?'':outs.length>1?'<b>'+outs.length+' fits</b>':ids.length>1?'<b>+'+(ids.length-1)+'</b>':''):'')+'</span><span class="bars">'+(bars||'<span class="bar"></span>')+'</span></button>');
   }
-  return '<div class="head"><div><h1 class="h1">Calendar</h1><div class="sub">'+fmt(S.month+'-01',{month:'long',year:'numeric'})+'</div></div><div class="mnav"><button type="button" class="rb" data-act="month" data-v="-1" aria-label="Previous month">'+ico(P.left)+'</button><button type="button" class="rb" data-act="month" data-v="1" aria-label="Next month">'+ico(P.right)+'</button>'+statsBtn()+gearBtn()+'</div></div>'
+  return '<div class="head"><div><div class="brand">Rotation</div><h1 class="h1">Calendar</h1><div class="sub">'+fmt(S.month+'-01',{month:'long',year:'numeric'})+'</div></div><div class="mnav"><button type="button" class="rb" data-act="month" data-v="-1" aria-label="Previous month">'+ico(P.left)+'</button><button type="button" class="rb" data-act="month" data-v="1" aria-label="Next month">'+ico(P.right)+'</button>'+statsBtn()+gearBtn()+'</div></div>'
    +'<div class="cal" role="group" aria-label="Month">'+(SET.week==='1'?['M','T','W','T','F','S','S']:['S','M','T','W','T','F','S']).map((d,i)=>'<span class="dow'+((SET.week==='1'?i>=5:(i===0||i===6))?' wk':'')+'">'+d+'</span>').join('')+cells.join('')+'</div>'
    +'<div class="legend">'+TAGS.map(t=>'<span><i class="'+(t.custom?'':'t-'+t.id)+'"'+(t.custom?' style="background:'+t.color+'"':'')+'></i>'+esc(t.label)+'</span>').join('')+'</div>'
    +footText();
@@ -1029,7 +1031,7 @@ function viewStats(){
   if(top.length)insights+='<div class="panel"><h2>Most worn</h2>'+top.map(r=>row(M.get(r[0]),r[1]+'x')).join('')+'</div>';
   if(rest.length)insights+='<div class="panel"><h2>Resting shoes</h2>'+rest.map(r=>row(r.i,r.d===null?'Never':r.d+'d')).join('')+'<p class="hint" style="margin-top:10px">Shoes not logged in 21 days or more.</p></div>';
   return '<button type="button" class="back" data-act="tab" data-tab="calendar">'+ico(P.left)+'Back</button>'
-   +'<div class="head"><div><h1 class="h1">Stats</h1><div class="sub">'+fmt(S.month+'-01',{month:'long',year:'numeric'})+'</div></div><div class="mnav"><button type="button" class="rb" data-act="month" data-v="-1" aria-label="Previous month">'+ico(P.left)+'</button><button type="button" class="rb" data-act="month" data-v="1" aria-label="Next month">'+ico(P.right)+'</button></div></div>'
+   +'<div class="head"><div><div class="brand">Rotation</div><h1 class="h1">Stats</h1><div class="sub">'+fmt(S.month+'-01',{month:'long',year:'numeric'})+'</div></div><div class="mnav"><button type="button" class="rb" data-act="month" data-v="-1" aria-label="Previous month">'+ico(P.left)+'</button><button type="button" class="rb" data-act="month" data-v="1" aria-label="Next month">'+ico(P.right)+'</button></div></div>'
    +insights+footText();
 }
 function shiftMonth(n){
@@ -1043,7 +1045,7 @@ function viewSettings(){
   const seg=(key,opts)=>'<div class="seg" role="group">'+opts.map(o=>'<button type="button" data-act="set" data-k="'+key+'" data-v="'+o[0]+'" aria-pressed="'+(String(SET[key])===o[0])+'">'+o[1]+'</button>').join('')+'</div>';
   const n=S.items.length,dn=Object.keys(S.days).filter(k=>S.days[k].items&&S.days[k].items.length).length;
   return '<button type="button" class="back" data-act="tab" data-tab="'+SET.start+'">'+ico(P.left)+'Back</button>'
-   +'<div class="head"><div><h1 class="h1">Settings</h1><div class="sub">'+n+' pieces · '+dn+' days logged</div></div></div>'
+   +'<div class="head"><div><div class="brand">Rotation</div><h1 class="h1">Settings</h1><div class="sub">'+n+' pieces · '+dn+' days logged</div></div></div>'
    +'<div class="panel"><h2>Appearance</h2>'
    +'<div class="set-row"><span><b>Theme</b><i>Auto follows your device.</i></span>'+seg('theme',[['auto','Auto'],['light','Light'],['dark','Dark']])+'</div>'
    +'<div class="set-row" style="display:block"><b style="margin-bottom:10px">Color</b><div class="pal">'+PALS.map(x=>'<button type="button" data-act="set" data-k="accent" data-v="'+x[0]+'" aria-pressed="'+(SET.accent===x[0])+'"><i>'+x[2].map(c=>'<b style="background:'+c+'"></b>').join('')+'</i>'+x[1]+'</button>').join('')+'</div></div>'
