@@ -349,6 +349,8 @@ details.det[open] summary{border-bottom:1px solid var(--line);margin-bottom:14px
 .vrow{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-top:1px solid var(--line);font-size:14.5px}.vrow span{color:var(--ink2);font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;align-self:center}.vrow b{font-weight:600;text-align:right}
 .vrow .dots{display:flex;gap:6px}.vrow .dots i{width:20px;height:20px;border-radius:50%;border:1px solid var(--line)}
 .arr-r{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font:600 15px var(--f-body)}.arr-r div{display:flex;gap:8px}.arr-r .rb:disabled{opacity:.3}
+.sh-prev{display:grid;place-items:center;background:var(--well);border-radius:16px;padding:10px;margin-bottom:12px;min-height:180px}
+.sh-prev img{max-width:100%;max-height:44vh;border-radius:8px;box-shadow:var(--shadow)}
 </style>
 
 </head>
@@ -360,6 +362,7 @@ details.det[open] summary{border-bottom:1px solid var(--line);margin-bottom:14px
 <div id="crop"></div>
 <div id="find"></div>
 <div id="looks"></div>
+<div id="share"></div>
 <div id="splash" aria-hidden="true"><div class="in"></div><div class="door dl"></div><div class="door dr"></div><div class="mark"><b>Rotation</b><span>Your closet</span></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
@@ -418,7 +421,7 @@ const daysSince=s=>Math.round((parse(today())-parse(s))/864e5);
 const newId=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
 /* ---------- state ---------- */
-const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,gkey:typeof o.gkey==='string'?o.gkey:'',gcx:typeof o.gcx==='string'?o.gcx:'',occ:Array.isArray(o.occ)?o.occ.filter(x=>x&&x.id&&x.label).slice(0,4):[],accent:['cobalt','heritage','peony','graphite','ember'].indexOf(o.accent)>=0?o.accent:'cobalt',start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:'',order:Array.isArray(o.order)?o.order.filter(x=>typeof x==='string'):[],cview:o.cview==='swipe'?'swipe':'grid',subs:(o.subs&&typeof o.subs==='object')?o.subs:{}}})();
+const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,gkey:typeof o.gkey==='string'?o.gkey:'',gcx:typeof o.gcx==='string'?o.gcx:'',occ:Array.isArray(o.occ)?o.occ.filter(x=>x&&x.id&&x.label).slice(0,4):[],accent:['cobalt','heritage','peony','graphite','ember'].indexOf(o.accent)>=0?o.accent:'cobalt',start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:'',order:Array.isArray(o.order)?o.order.filter(x=>typeof x==='string'):[],cview:o.cview==='swipe'?'swipe':'grid',subs:(o.subs&&typeof o.subs==='object')?o.subs:{},shsize:o.shsize==='st'?'st':'sq',shbrand:o.shbrand!==false}})();
 function applyOrder(){const o=SET.order;CATS.sort((a,b)=>{const ia=o.indexOf(a.id),ib=o.indexOf(b.id);return (ia<0?99:ia)-(ib<0?99:ib)})}
 applyOrder();
 const SUBS={tops:['Short sleeve','Long sleeve','T-shirt','Polo','Dress shirt','Collared','Sweater','Hoodie','Tank'],bottoms:['Jeans','Pants','Slacks','Shorts','Joggers'],shoes:['Sneakers','Boots','Dress','Loafers','Sandals'],outerwear:['Jacket','Coat','Vest','Blazer','Hoodie'],accessories:['Hat','Watch','Belt','Chain','Bag','Sunglasses'],scents:['Fresh','Woody','Sweet','Spicy']};
@@ -438,7 +441,7 @@ function normDay(r){
   const pl=Array.isArray(r.plans)?r.plans:[];
   const mk=p=>({items:Array.isArray(p&&p.items)?p.items.slice():[],tag:(p&&p.tag)||'',when:(p&&['morning','afternoon','evening'].indexOf(p.when)>=0)?p.when:'',locked:!!(p&&p.locked),photo:(p&&typeof p.photo==='string')?p.photo:'',rating:(p&&typeof p.rating==='number'&&p.rating>0&&p.rating<=5)?Math.round(p.rating*2)/2:0});
   const mo=Array.isArray(r.more)?r.more.map(mk).filter(o=>o.items.length||o.photo):[];
-  return {items:Array.isArray(r.items)?r.items.slice():[],tag:r.tag||'',photo:typeof r.photo==='string'?r.photo:'',scent:typeof r.scent==='string'?r.scent:'',when:['morning','afternoon','evening'].indexOf(r.when)>=0?r.when:'',plans:[mk(pl[0]),mk(pl[1]),mk(pl[2]),mk(pl[3])],more:mo};
+  return {items:Array.isArray(r.items)?r.items.slice():[],tag:r.tag||'',rating:(typeof r.rating==='number'&&r.rating>0&&r.rating<=5)?Math.round(r.rating*2)/2:0,photo:typeof r.photo==='string'?r.photo:'',scent:typeof r.scent==='string'?r.scent:'',when:['morning','afternoon','evening'].indexOf(r.when)>=0?r.when:'',plans:[mk(pl[0]),mk(pl[1]),mk(pl[2]),mk(pl[3])],more:mo};
 }
 const outDoc=p=>({items:p.items.slice(),tag:p.tag||'',when:p.when||'',photo:p.photo||'',rating:p.rating||0,locked:!!p.locked});
 const dayDoc=d=>({items:d.items.slice(),tag:d.tag||'',photo:d.photo||'',scent:d.scent||'',rating:d.rating||0,when:d.when||'',plans:d.plans.map(outDoc),more:d.more.filter(p=>p.items.length||p.photo).map(outDoc)});
@@ -1072,7 +1075,7 @@ function renderDay(){
     if(x.o.rating)body+='<div class="rate-row" style="margin-bottom:10px">'+starsHTML(x.o.rating,false)+'<span class="mono">'+x.o.rating.toFixed(1)+'</span></div>';
     if(x.o.photo)body+='<div class="fit-p"><img src="'+esc(photoSrc(x.o.photo))+'" alt="Outfit photo"></div>';
     if(x.l.length)body+=grid(x.l);
-    body+='<div class="btn-row" style="margin:12px 0 4px"><button type="button" class="btn ghost" data-act="fit-pick" data-o="'+x.k+'">'+ico(P.cam)+(x.o.photo?'Replace photo':'Add outfit photo')+'</button>'+(x.o.photo?'<button type="button" class="btn danger" data-act="fit-clear" data-o="'+x.k+'">Remove photo</button>':'')+'</div>';
+    body+='<div class="btn-row" style="margin:12px 0 4px">'+(x.l.length?'<button type="button" class="btn primary" data-act="share-open" data-o="'+x.k+'">Share</button>':'')+'<button type="button" class="btn ghost" data-act="fit-pick" data-o="'+x.k+'">'+ico(P.cam)+(x.o.photo?'Replace photo':'Add outfit photo')+'</button>'+(x.o.photo?'<button type="button" class="btn danger" data-act="fit-clear" data-o="'+x.k+'">Remove photo</button>':'')+'</div>';
   });
   if(!shown.length&&!sc&&!dd.plans.some(p=>p.items.length))body+='<p class="hint" style="margin:0 0 4px">Nothing logged for this day.</p>';
   dd.plans.forEach((p,k)=>{
@@ -1109,6 +1112,124 @@ async function onFit(file){
   }catch(e){toast('Could not save that photo')}
 }
 
+
+
+/* ---------- share an outfit as an image ---------- */
+let SH=null;
+const SIZES={sq:[1080,1080],st:[1080,1920]};
+const ACC={cobalt:'#2744E8',heritage:'#D4001F',peony:'#2E9E6B',graphite:'#16181C',ember:'#D9480F'};
+function openShare(d,k){
+  const dd=S.days[d];if(!dd)return;
+  const o=k?dd.more[k-1]:dd;if(!o||!o.items.length)return;
+  SH={d:d,k:k,size:SET.shsize,brands:SET.shbrand,url:'',blob:null,seq:0};
+  renderShare();buildShare();
+}
+function closeShare(){
+  if(SH&&SH.url){try{URL.revokeObjectURL(SH.url)}catch(e){}}
+  SH=null;const h=$('#share');if(h)h.innerHTML='';
+}
+function renderShare(){
+  const h=$('#share');if(!SH){if(h)h.innerHTML='';return}
+  h.innerHTML='<div class="crop-s"><div class="crop find" role="dialog" aria-modal="true" aria-label="Share outfit">'
+   +'<div class="sheet-h" style="margin-bottom:10px"><h2 style="margin:0">Share</h2><button type="button" class="x" data-act="share-close" aria-label="Close">'+ico(P.x)+'</button></div>'
+   +'<div class="sh-prev"><img id="sh-img" alt="Preview of the image you will share" hidden><span id="sh-wait" class="hint">Building your image</span></div>'
+   +'<div class="seg" id="sh-size" role="group" aria-label="Image size" style="margin-bottom:6px"><button type="button" data-act="share-size" data-v="sq" aria-pressed="'+(SH.size==='sq')+'">Square</button><button type="button" data-act="share-size" data-v="st" aria-pressed="'+(SH.size==='st')+'">Story</button></div>'
+   +'<div class="set-row"><span><b>Show brands</b><i>Prices and where you bought it are never shown.</i></span><button type="button" class="sw-t" id="sh-br" data-act="share-brands" aria-pressed="'+SH.brands+'" aria-label="Show brands"></button></div>'
+   +'<div class="btn-row"><button type="button" class="btn primary" id="sh-go" data-act="share-go" disabled>Share</button><button type="button" class="btn ghost" id="sh-save" data-act="share-save" disabled>Save image</button></div>'
+   +'</div></div>';
+}
+const loadSrc=src=>new Promise(res=>{if(!src)return res(null);const im=new Image();im.onload=()=>res(im);im.onerror=()=>res(null);im.src=src});
+function rr(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath()}
+function fitText(x,t,w){t=String(t||'');if(x.measureText(t).width<=w)return t;while(t.length>1&&x.measureText(t+'…').width>w)t=t.slice(0,-1);return t+'…'}
+async function drawShare(sz,brands){
+  const dd=S.days[SH.d],o=SH.k?dd.more[SH.k-1]:dd;
+  const W=SIZES[sz][0],H=SIZES[sz][1],c=document.createElement('canvas');c.width=W;c.height=H;
+  const x=c.getContext('2d');
+  try{await document.fonts.ready}catch(e){}
+  const INK='#14171C',INK2='#6A717C',WELL='#E7E9ED',BG='#F4F3EF',ACCENT=ACC[SET.accent]||ACC.cobalt;
+  const F=(w,px,fam)=>w+' '+px+'px '+(fam||'"Instrument Sans",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif');
+  const DISP='"Archivo","Helvetica Neue",Arial,sans-serif';
+  const its=o.items.map(id=>M.get(id)).filter(Boolean).sort((a,b)=>catIdx(a.category)-catIdx(b.category));
+  const sc=dd.scent&&M.get(dd.scent);
+  if(sc&&!SH.k)its.push(sc);
+  const imgs=await Promise.all(its.map(i=>loadSrc(photoSrc(i.photo))));
+  const fit=await loadSrc(o.photo?photoSrc(o.photo):'');
+  x.fillStyle=BG;x.fillRect(0,0,W,H);
+  const pad=72;
+  /* header */
+  x.textBaseline='alphabetic';x.textAlign='left';x.fillStyle=INK;x.font=F(700,40);
+  x.fillText(fmt(SH.d,{weekday:'long',month:'long',day:'numeric'}).toUpperCase(),pad,pad+40);
+  const tg=TAGS.find(t=>t.id===o.tag),meta=[tg&&tg.label,o.when&&(o.when.charAt(0).toUpperCase()+o.when.slice(1))].filter(Boolean).join('  ·  ');
+  if(meta){x.fillStyle=INK2;x.font=F(500,30);x.fillText(meta,pad,pad+88)}
+  if(o.rating){x.textAlign='right';x.fillStyle=ACCENT;x.font=F(700,40);x.fillText('★ '+o.rating.toFixed(1),W-pad,pad+40);x.textAlign='left'}
+  x.fillStyle=ACCENT;rr(x,pad,pad+(meta?118:70),72,8,4);x.fill();
+  /* footer wordmark */
+  x.fillStyle=INK;x.font=F(800,44,DISP);x.fillText('ROTATION',pad,H-pad+4);
+  x.fillStyle=ACCENT;rr(x,W-pad-56,H-pad-26,56,8,4);x.fill();
+  const top=pad+(meta?118:70)+60,bottom=H-pad-76,cw=W-pad*2,ch=bottom-top;
+  /* tile grid */
+  const tiles=(ax,ay,aw,ah,cols)=>{
+    const n=its.length,rows=Math.ceil(n/cols),gap=30,lab=brands?96:60;
+    let t=Math.min((aw-(cols-1)*gap)/cols,(ah-rows*lab-(rows-1)*gap)/rows);t=Math.floor(Math.max(60,t));
+    const gw=cols*t+(cols-1)*gap,gh=rows*(t+lab)+(rows-1)*gap;
+    const ox=ax+(aw-gw)/2,oy=ay+Math.max(0,(ah-gh)/2);
+    its.forEach((it,i)=>{
+      const r=Math.floor(i/cols),cc=i%cols,inRow=Math.min(cols,n-r*cols),rowOx=ax+(aw-(inRow*t+(inRow-1)*gap))/2;
+      const tx=(r===rows-1?rowOx:ox)+cc*(t+gap),ty=oy+r*(t+lab+gap);
+      x.save();rr(x,tx,ty,t,t,Math.round(t*.14));x.clip();
+      x.fillStyle=WELL;x.fillRect(tx,ty,t,t);
+      if(imgs[i]){const im=imgs[i],p=t*.07,k=Math.min((t-2*p)/im.width,(t-2*p)/im.height),w=im.width*k,h=im.height*k;x.globalCompositeOperation='multiply';x.drawImage(im,tx+(t-w)/2,ty+(t-h)/2,w,h);x.globalCompositeOperation='source-over'}
+      else{x.fillStyle=INK2;x.font=F(700,Math.round(t*.4),DISP);x.textAlign='center';x.fillText((it.name||'?').charAt(0).toUpperCase(),tx+t/2,ty+t/2+t*.14);x.textAlign='left'}
+      x.restore();
+      x.textAlign='center';let ly=ty+t+34;
+      if(brands&&it.brand){x.fillStyle=INK2;x.font=F(600,Math.max(18,Math.round(t*.085)));x.fillText(fitText(x,it.brand.toUpperCase(),t+gap),tx+t/2,ly);ly+=Math.max(26,Math.round(t*.115))}
+      x.fillStyle=INK;x.font=F(700,Math.max(22,Math.round(t*.1)));x.fillText(fitText(x,it.name,t+gap),tx+t/2,brands&&it.brand?ly:ly+4);
+      x.textAlign='left';
+    });
+  };
+  if(!fit){tiles(pad,top,cw,ch,its.length<=1?1:its.length<=4?2:its.length<=9?3:4)}
+  else if(sz==='st'){
+    const ph=Math.min(860,Math.round(ch*.56));
+    x.save();rr(x,pad,top,cw,ph,36);x.clip();
+    const k=Math.max(cw/fit.width,ph/fit.height),w=fit.width*k,h=fit.height*k;x.drawImage(fit,pad+(cw-w)/2,top+(ph-h)/2,w,h);x.restore();
+    const n=its.length;tiles(pad,top+ph+40,cw,ch-ph-40,n<=3?n:Math.ceil(n/2));
+  }else{
+    const pw=Math.round(cw*.46);
+    x.save();rr(x,pad,top,pw,ch,36);x.clip();
+    const k=Math.max(pw/fit.width,ch/fit.height),w=fit.width*k,h=fit.height*k;x.drawImage(fit,pad+(pw-w)/2,top+(ch-h)/2,w,h);x.restore();
+    tiles(pad+pw+40,top,cw-pw-40,ch,its.length>6?3:2);
+  }
+  return c;
+}
+async function buildShare(){
+  if(!SH)return;
+  const my=++SH.seq,go=$('#sh-go'),sv=$('#sh-save');
+  if(go)go.disabled=true;if(sv)sv.disabled=true;
+  try{
+    const c=await drawShare(SH.size,SH.brands);
+    const blob=await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('blob')),'image/png'));
+    if(!SH||my!==SH.seq)return;
+    if(SH.url){try{URL.revokeObjectURL(SH.url)}catch(e){}}
+    SH.blob=blob;SH.url=URL.createObjectURL(blob);
+    const im=$('#sh-img'),w=$('#sh-wait');
+    if(im){im.src=SH.url;im.hidden=false}if(w)w.hidden=true;
+    if(go)go.disabled=false;if(sv)sv.disabled=false;
+  }catch(e){const w=$('#sh-wait');if(w){w.hidden=false;w.textContent='Could not build the image. Try again.'}}
+}
+const shareName=()=>'rotation-fit-'+SH.d+(SH.k?'-'+(SH.k+1):'')+'.png';
+async function doShare(){
+  if(!SH||!SH.blob)return;
+  const file=new File([SH.blob],shareName(),{type:'image/png'});
+  try{
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'My fit on Rotation'});return}
+  }catch(e){if(e&&e.name==='AbortError')return}
+  saveShare();toast('Sharing is not available here. Image saved instead.');
+}
+function saveShare(){
+  if(!SH||!SH.blob)return;
+  const a=document.createElement('a');a.href=SH.url;a.download=shareName();
+  document.body.appendChild(a);a.click();a.remove();
+}
 
 /* ---------- find photo online ---------- */
 let FD=null;
@@ -1620,6 +1741,12 @@ document.addEventListener('click',e=>{
     case 'arr-mv':{const i=catIdx(el.dataset.v),j=i+(+el.dataset.d);if(j>=0&&j<CATS.length){const t=CATS[i];CATS[i]=CATS[j];CATS[j]=t;SET.order=CATS.map(c=>c.id);saveSet();renderArrange()}break}
     case 'arr-reset':SET.order=['tops','bottoms','shoes','outerwear','accessories','scents'];applyOrder();saveSet();renderArrange();break;
     case 'view-side':{const b2=el.dataset.v==='b',fr=$('#vfront'),bk=$('#vback');if(fr)fr.hidden=b2;if(bk)bk.hidden=!b2;document.querySelectorAll('#vside button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===el.dataset.v?'true':'false'));break}
+    case 'share-open':openShare(S.dv,+el.dataset.o||0);break;
+    case 'share-close':closeShare();break;
+    case 'share-size':if(SH&&SH.size!==el.dataset.v){SH.size=SET.shsize=el.dataset.v;saveSet();document.querySelectorAll('#sh-size button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===SH.size?'true':'false'));buildShare()}break;
+    case 'share-brands':if(SH){SH.brands=SET.shbrand=!SH.brands;saveSet();el.setAttribute('aria-pressed',SH.brands?'true':'false');buildShare()}break;
+    case 'share-go':doShare();break;
+    case 'share-save':saveShare();break;
     case 'view-close':closeView();break;
     case 'view-bg':if(e.target===el)closeView();break;
     case 'view-edit':{const id2=S.vw;closeView();openItem(id2);break}
@@ -1655,7 +1782,7 @@ document.addEventListener('change',e=>{
   if(e.target.id==='f-fit'){const f=e.target.files&&e.target.files[0];if(f)onFit(f);e.target.value=''}
   if(e.target.id==='f-import'){const f=e.target.files&&e.target.files[0];if(f)importData(f);e.target.value=''}
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(FD)closeFind();else if(CR)closeCrop();else if(S.arr){S.arr=false;renderArrange();render()}else if(S.vw)closeView();else if(S.sheet)closeSheet();else if(S.dv)closeDay()}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(SH)closeShare();else if(FD)closeFind();else if(CR)closeCrop();else if(S.arr){S.arr=false;renderArrange();render()}else if(S.vw)closeView();else if(S.sheet)closeSheet();else if(S.dv)closeDay()}});
 
 let scrollT;
 window.addEventListener('scroll',()=>{
