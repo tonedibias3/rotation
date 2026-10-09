@@ -455,7 +455,8 @@ function normDay(r){
 const outDoc=p=>({cover:p.cover||'',items:p.items.slice(),tag:p.tag||'',when:p.when||'',photo:p.photo||'',rating:p.rating||0,locked:!!p.locked});
 const dayDoc=d=>({cover:d.cover||'',items:d.items.slice(),tag:d.tag||'',photo:d.photo||'',scent:d.scent||'',rating:d.rating||0,when:d.when||'',plans:d.plans.map(outDoc),more:d.more.filter(p=>p.items.length||p.photo).map(outDoc)});
 const dayEmpty=d=>!d||(!d.items.length&&!d.photo&&!d.scent&&!d.plans.some(p=>p.items.length)&&!d.more.some(p=>p.items.length));
-const outfitsOf=d=>{const o=[];if(d&&d.items.length)o.push(d);if(d)d.more.forEach(m=>{if(m.items.length)o.push(m)});return o};
+const WR={morning:0,afternoon:1,evening:2},wr=o=>o&&WR[o.when]!==undefined?WR[o.when]:3;
+const outfitsOf=d=>{const o=[];if(d&&d.items.length)o.push(d);if(d)d.more.forEach(m=>{if(m.items.length)o.push(m)});return o.map((x,i)=>[x,i]).sort((a,b)=>wr(a[0])-wr(b[0])||a[1]-b[1]).map(a=>a[0])};
 function coverOf(o){
   if(!o)return null;
   const l=o.items.map(id=>M.get(id)).filter(Boolean);if(!l.length)return null;
@@ -1005,7 +1006,7 @@ function viewCalendar(){
   for(let d=1;d<=dim;d++){
     const ds=y+'-'+pad(m)+'-'+pad(d),dd=S.days[ds];
     let ids=((outfitsOf(dd)[0]||{items:[]}).items).filter(id=>M.has(id)),planned=false,lockedP=false,pl=null;
-    if(!ids.length&&dd&&!outfitsOf(dd).length){const p=dd.plans.find(p=>p.locked&&p.items.some(id=>M.has(id)))||dd.plans.find(p=>p.items.some(id=>M.has(id)));if(p){planned=true;pl=p;lockedP=!!p.locked;ids=p.items.filter(id=>M.has(id))}}
+    if(!ids.length&&dd&&!outfitsOf(dd).length){const sp=dd.plans.map((x,i)=>[x,i]).sort((a,b)=>wr(a[0])-wr(b[0])||a[1]-b[1]).map(a=>a[0]),p=sp.find(p=>p.locked&&p.items.some(id=>M.has(id)))||sp.find(p=>p.items.some(id=>M.has(id)));if(p){planned=true;pl=p;lockedP=!!p.locked;ids=p.items.filter(id=>M.has(id))}}
     const outs=planned?[]:outfitsOf(dd).map(o=>o.items.filter(id=>M.has(id))).filter(a=>a.length);
     const picks=ids.map(id=>M.get(id)).sort((a,b)=>(a.category==='shoes'?0:1)-(b.category==='shoes'?0:1));
     const sOnly=(!ids.length&&!planned&&dd&&dd.scent&&M.get(dd.scent))||null,hero=coverOf(pl||outfitsOf(dd)[0])||picks[0]||sOnly||undefined,fo=(!planned&&dd)?outfitsOf(dd).find(o=>o.photo):null,fit=!!fo;
@@ -1090,15 +1091,15 @@ function renderDay(){
   const all=[dd].concat(dd.more||[]);
   const sorted=ids=>ids.filter(id=>M.has(id)).map(id=>M.get(id)).sort((a,b)=>catIdx(a.category)-catIdx(b.category));
   const grid=l=>'<div class="grid dv">'+l.map(i=>card(i,'data-act="noop"')).join('')+'</div>';
-  const shown=all.map((o,k)=>({o:o,k:k,l:sorted(o.items)})).filter(x=>x.l.length||x.o.photo);
+  const shown=all.map((o,k)=>({o:o,k:k,l:sorted(o.items)})).filter(x=>x.l.length||x.o.photo).sort((a,b)=>wr(a.o)-wr(b.o)||a.k-b.k);
   const multi=shown.length>1;
   const sc=dd.scent&&M.get(dd.scent)||null;
   let body='',total=0;
   body+='<h3 class="dv-h" style="margin-top:0">Scent of the day</h3>'+(sc?'<div class="sc-row"><span class="thumb lg">'+tileInner(sc)+'</span><span class="ri-t"><b>'+esc(dn(sc))+'</b><i>'+esc(sc.brand||'')+'</i></span></div><div class="btn-row" style="margin:8px 0 2px"><button type="button" class="btn ghost" data-act="share-scent-open">Share scent</button><button type="button" class="btn ghost" data-act="scent-pick">Change</button><button type="button" class="btn danger" data-act="scent-clear">Remove</button></div>':'<div class="btn-row" style="margin:0 0 2px"><button type="button" class="btn ghost" data-act="scent-pick">Add a scent</button></div>');
-  shown.forEach(x=>{
+  shown.forEach((x,xi)=>{
     total+=x.l.length;
     const tl=(TAGS.find(t=>t.id===x.o.tag)||{}).label||'';
-    body+='<h3 class="dv-h">'+(multi?'Outfit '+(x.k+1):'Outfit')+(tl?' · '+tl:'')+'</h3>';
+    body+='<h3 class="dv-h">'+(multi?'Outfit '+(xi+1):'Outfit')+(x.o.when?' · '+x.o.when.charAt(0).toUpperCase()+x.o.when.slice(1):'')+(tl?' · '+tl:'')+'</h3>';
     if(x.o.rating)body+='<div class="rate-row" style="margin-bottom:10px">'+starsHTML(x.o.rating,false)+'<span class="mono">'+x.o.rating.toFixed(1)+'</span></div>';
     if(x.o.photo)body+='<div class="fit-p"><img src="'+esc(photoSrc(x.o.photo))+'" alt="Outfit photo"></div>';
     if(x.l.length){
@@ -1108,8 +1109,8 @@ function renderDay(){
     body+='<div class="btn-row" style="margin:14px 0 8px"><button type="button" class="btn ghost" data-act="fit-pick" data-o="'+x.k+'">'+ico(P.cam)+(x.o.photo?'Replace photo':'Add outfit photo')+'</button>'+(x.l.length?'<button type="button" class="btn primary" data-act="share-open" data-o="'+x.k+'">Share</button>':'')+'</div>'+(x.o.photo?'<div class="btn-row" style="margin:0 0 6px"><button type="button" class="btn ghost" data-act="fit-adjust" data-o="'+x.k+'">Crop</button><button type="button" class="btn danger" data-act="fit-clear" data-o="'+x.k+'">Remove photo</button></div>':'');
   });
   if(!shown.length&&!dd.plans.some(p=>p.items.length))body+='<p class="hint" style="margin:0 0 4px">Nothing logged for this day.</p>';
-  dd.plans.forEach((p,k)=>{
-    const l=sorted(p.items);
+  dd.plans.map((p,k)=>({p:p,k:k})).sort((a,b)=>wr(a.p)-wr(b.p)||a.k-b.k).forEach(z=>{
+    const p=z.p,k=z.k,l=sorted(p.items);
     if(l.length)body+='<h3 class="dv-h">'+(p.locked?'Locked in':'Planned')+', option '+'ABCD'[k]+(p.when?' · '+p.when:'')+((TAGS.find(t=>t.id===p.tag)||{}).label?' · '+TAGS.find(t=>t.id===p.tag).label:'')+'</h3>'+grid(l);
   });
   const tag0=(!multi&&shown[0]&&(TAGS.find(t=>t.id===shown[0].o.tag)||{}).label)||'';
