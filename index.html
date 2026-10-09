@@ -268,6 +268,7 @@ svg{width:18px;height:18px;flex:none}
 :root[data-accent="ember"][data-theme="dark"]{--bg:#110E0C;--surface:#1B1613;--accent:#FF8A4C;--accent-ink:#1A0A02;--accent2:#EDEFF3}
 .cell.today .n{color:var(--accent2,var(--accent))}
 .cell.planned{outline-color:var(--accent2,var(--accent))}
+.cell.planned.locked{outline-style:solid}
 .pal{display:flex;gap:10px;flex-wrap:wrap}
 .pal button{flex:1 1 calc(50% - 10px);display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:var(--bg);font:600 13px var(--f-body);cursor:pointer;color:var(--ink)}
 .pal button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--accent)}
@@ -399,7 +400,7 @@ const enqueue=(key,fn)=>{const p=(chains[key]||Promise.resolve()).then(fn);chain
 function normDay(r){
   r=r||{};
   const pl=Array.isArray(r.plans)?r.plans:[];
-  const mk=p=>({items:Array.isArray(p&&p.items)?p.items.slice():[],tag:(p&&p.tag)||'',when:(p&&['morning','afternoon','evening'].indexOf(p.when)>=0)?p.when:'',photo:(p&&typeof p.photo==='string')?p.photo:'',rating:(p&&typeof p.rating==='number'&&p.rating>0&&p.rating<=5)?Math.round(p.rating*2)/2:0});
+  const mk=p=>({items:Array.isArray(p&&p.items)?p.items.slice():[],tag:(p&&p.tag)||'',when:(p&&['morning','afternoon','evening'].indexOf(p.when)>=0)?p.when:'',locked:!!(p&&p.locked),photo:(p&&typeof p.photo==='string')?p.photo:'',rating:(p&&typeof p.rating==='number'&&p.rating>0&&p.rating<=5)?Math.round(p.rating*2)/2:0});
   const mo=Array.isArray(r.more)?r.more.map(mk).filter(o=>o.items.length||o.photo):[];
   return {items:Array.isArray(r.items)?r.items.slice():[],tag:r.tag||'',photo:typeof r.photo==='string'?r.photo:'',scent:typeof r.scent==='string'?r.scent:'',when:['morning','afternoon','evening'].indexOf(r.when)>=0?r.when:'',plans:[mk(pl[0]),mk(pl[1]),mk(pl[2]),mk(pl[3])],more:mo};
 }
@@ -517,7 +518,7 @@ async function init(){
   }catch(e){}
   if(!ok){
     try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
-    await loadLocal();S.loading=false;S.store='local';lastSig='';render();
+    await loadLocal();settleDays();S.loading=false;S.store='local';lastSig='';render();
   }
 }
 
@@ -665,7 +666,9 @@ function outSegHTML(){
   return '<div><span class="cap">Outfits today</span><div class="seg" role="group" aria-label="Outfit">'+Array.from({length:nOut},(_,i)=>{const o=i===0?dd:dd.more[i-1],tg=o&&o.tag?TAGS.find(x=>x.id===o.tag):null;return '<button type="button" data-act="out" data-v="'+i+'" aria-pressed="'+(S.out===i)+'">Outfit '+(i+1)+'<i>'+((o&&o.when)?o.when.charAt(0).toUpperCase()+o.when.slice(1):tg?tg.label:(o&&o.items.length)||'')+'</i></button>'}).join('')+(nOut<4&&cur0.items.length?'<button type="button" data-act="add-out" aria-label="Add another outfit for this day">+ Another</button>':'')+'</div></div>';
 }
 function viewLog(){
-  const t=today(),sel=S.sel,isPlan=S.mode==='plan';
+  const t=today(),sel=S.sel;
+  if(sel>t)S.mode='plan';
+  const isPlan=S.mode==='plan';
   {const dp=S.days[sel];if(dp&&dp.more.length){const keep=(!isPlan&&S.out>0)?dp.more[S.out-1]:null;pruneMore(sel,keep)}}
   if(sel<t&&isPlan)S.mode='log';
   {const dd0=S.days[sel],nOut=dd0?1+dd0.more.length:1;if(S.out>=nOut)S.out=nOut-1;if(S.out<0||isPlan)S.out=0}
@@ -679,8 +682,8 @@ function viewLog(){
     const planned=x&&!outfitsOf(x).length&&x.plans.some(p=>p.items.length);
     return '<button type="button" class="day'+(has?' has':'')+(planned?' planned':'')+(d===t?' today':'')+'" data-act="day" data-d="'+d+'" aria-pressed="'+(d===sel)+'" aria-label="'+fmt(d,{weekday:'long',month:'long',day:'numeric'})+'"><span class="w">'+fmt(d,{weekday:'short'})+'</span><span class="n">'+parse(d).getDate()+'</span><span class="dot"></span></button>';
   }).join('');
-  const modeSeg=sel>=t?'<div class="seg" role="group" aria-label="Mode"><button type="button" data-act="mode" data-v="log" aria-pressed="'+(S.mode==='log')+'">Log</button><button type="button" data-act="mode" data-v="plan" aria-pressed="'+(S.mode==='plan')+'">Plan options</button></div>':'';
-  const optSeg=S.mode==='plan'?'<div><div class="seg" role="group" aria-label="Option">'+['A','B','C','D'].map((l,i)=>'<button type="button" data-act="opt" data-v="'+i+'" aria-pressed="'+(S.opt===i)+'">Option '+l+'<i>'+((dd&&dd.plans[i].items.length)||'')+'</i></button>').join('')+'</div><p class="hint" style="margin-top:8px">Plan up to four options. When you wear one, the other options for the same time of day clear.</p></div>':'';
+  const modeSeg=sel===t?'<div class="seg" role="group" aria-label="Mode"><button type="button" data-act="mode" data-v="log" aria-pressed="'+(S.mode==='log')+'">Log</button><button type="button" data-act="mode" data-v="plan" aria-pressed="'+(S.mode==='plan')+'">Plan options</button></div>':'';
+  const optSeg=S.mode==='plan'?'<div><div class="seg" role="group" aria-label="Option">'+['A','B','C','D'].map((l,i)=>'<button type="button" data-act="opt" data-v="'+i+'" aria-pressed="'+(S.opt===i)+'">Option '+l+'<i>'+((dd&&dd.plans[i].locked&&dd.plans[i].items.length)?'Locked':(dd&&dd.plans[i].items.length)||'')+'</i></button>').join('')+'</div><p class="hint" style="margin-top:8px">'+(sel>t?'Plan up to four options, then lock in the one you will wear. It stays queued and becomes part of your log on the day.':'Plan up to four options. When you wear one, the other options for the same time of day clear.')+'</p></div>':'';
   const y=S.days[addDays(sel,-1)];
   const canRepeat=!!(y&&y.items.some(id=>M.has(id)));
   const groups=CATS.map(c=>{
@@ -703,7 +706,7 @@ function viewLog(){
    +'<div><span class="cap">Outfit type</span><div class="seg wrap" id="tagseg" role="group" aria-label="Outfit type">'+tagSeg()+'</div></div>'
    +'<div id="rate">'+rateHTML()+'</div>'
    +'<div class="btn-row"><button type="button" class="btn ghost" data-act="repeat"'+(canRepeat?'':' disabled')+'>'+(sel===t?'Repeat yesterday':'Repeat day before')+'</button><button type="button" class="btn ghost" data-act="clear">Clear</button><button type="button" class="btn ghost" data-act="look-save"'+(tgt.items.length?'':' disabled')+'>Save look</button><button type="button" class="btn ghost" data-act="looks-open">Saved looks'+(S.looks.length?' ('+S.looks.length+')':'')+'</button>'+(S.mode==='log'&&S.out>0?'<button type="button" class="btn ghost" id="rm-out" data-act="rm-out">Remove outfit</button>':'')
-   +(S.mode==='plan'?'<button type="button" class="btn primary" id="lock" data-act="lock"'+(tgt.items.length?'':' disabled')+'>Wear option '+'ABCD'[S.opt]+'</button>':'')
+   +(S.mode==='plan'?'<button type="button" class="btn primary" id="lock" data-act="lock"'+(tgt.items.length?'':' disabled')+'>'+(sel>t?(tgt.locked?'Locked in. Tap to unlock':'Lock in option '+'ABCD'[S.opt]):'Wear option '+'ABCD'[S.opt])+'</button>':'')
    +'</div></div>'
    +'<p class="hint" style="margin-top:18px">Tap to select. Hold a piece to edit it or add a photo.</p>'
    +(S.loading?'<div class="grid">'+'<div class="skel"></div>'.repeat(6)+'</div>':groups)
@@ -766,13 +769,20 @@ function repeatPrev(){
 function clearOutfit(){
   const t=target(true);
   if(!t.items.length&&!t.tag&&!t.rating)return;
-  t.items=[];t.tag='';t.rating=0;t.when='';
+  t.items=[];t.tag='';t.rating=0;t.when='';t.locked=false;
   scheduleDay(S.sel);refreshPicker();const rr=$('#rate');if(rr)rr.innerHTML=rateHTML();
 }
 function lockPlan(){
   const d=S.days[S.sel];if(!d)return;
   const idx=S.opt,p=d.plans[idx];
   if(!p.items.length)return;
+  if(S.sel>today()){
+    p.locked=!p.locked;
+    if(p.locked){const w=p.when||'';d.plans.forEach((q,i)=>{if(i!==idx&&(q.when||'')===w)q.locked=false})}
+    scheduleDay(S.sel);render();
+    toast(p.locked?'Locked in. It will count as worn on the day.':'Unlocked');
+    return;
+  }
   const w=p.when||'';
   if(!d.items.length){d.items=p.items.slice();d.tag=p.tag;d.when=w;S.out=0}
   else{d.more.push({items:p.items.slice(),tag:p.tag,when:w,photo:'',rating:0});S.out=d.more.length}
@@ -865,6 +875,40 @@ function finishDay(){
   const d=S.sel;
   S.tab='calendar';S.month=d.slice(0,7);render();toTop();openDay(d);
 }
+
+/* ---------- queued outfits: future outfits wait, locked plans become worn on the day ---------- */
+function settleDays(){
+  const t=today();let n=0;
+  Object.keys(S.days).forEach(k=>{
+    const d=S.days[k];if(!d)return;
+    let ch=false;
+    if(k>t){
+      const moves=[];
+      if(d.items.length)moves.push({items:d.items,tag:d.tag,when:d.when});
+      d.more.forEach(o=>{if(o.items.length)moves.push({items:o.items,tag:o.tag,when:o.when})});
+      if(moves.length){
+        const free=d.plans.map((p,i)=>p.items.length?-1:i).filter(i=>i>=0);
+        if(free.length>=moves.length){
+          moves.forEach((m,j)=>{d.plans[free[j]]={items:m.items.slice(),tag:m.tag||'',when:m.when||'',locked:true}});
+          d.items=[];d.tag='';d.when='';d.photo='';d.rating=0;d.more=[];ch=true;
+        }
+      }
+    }else{
+      const lk=d.plans.map((p,i)=>({p:p,i:i})).filter(x=>x.p.locked&&x.p.items.length);
+      if(lk.length){
+        lk.forEach(x=>{
+          const w=x.p.when||'';
+          if(!d.items.length){d.items=x.p.items.slice();d.tag=x.p.tag||'';d.when=w}
+          else d.more.push({items:x.p.items.slice(),tag:x.p.tag||'',when:w,photo:'',rating:0});
+          d.plans=d.plans.map((q,i)=>(i===x.i||(q.when||'')===w)?{items:[],tag:'',when:'',locked:false}:q);
+        });
+        ch=true;
+      }
+    }
+    if(ch){n++;scheduleDay(k)}
+  });
+  return n;
+}
 /* ---------- calendar ---------- */
 function viewCalendar(){
   const ym=S.month.split('-').map(Number),y=ym[0],m=ym[1];
@@ -873,14 +917,14 @@ function viewCalendar(){
   for(let i=0;i<lead;i++)cells.push('<span class="cell out" aria-hidden="true"></span>');
   for(let d=1;d<=dim;d++){
     const ds=y+'-'+pad(m)+'-'+pad(d),dd=S.days[ds];
-    let ids=((outfitsOf(dd)[0]||{items:[]}).items).filter(id=>M.has(id)),planned=false;
-    if(!ids.length&&dd&&!outfitsOf(dd).length){const p=dd.plans.find(p=>p.items.some(id=>M.has(id)));if(p){planned=true;ids=p.items.filter(id=>M.has(id))}}
+    let ids=((outfitsOf(dd)[0]||{items:[]}).items).filter(id=>M.has(id)),planned=false,lockedP=false;
+    if(!ids.length&&dd&&!outfitsOf(dd).length){const p=dd.plans.find(p=>p.locked&&p.items.some(id=>M.has(id)))||dd.plans.find(p=>p.items.some(id=>M.has(id)));if(p){planned=true;lockedP=!!p.locked;ids=p.items.filter(id=>M.has(id))}}
     const outs=planned?[]:outfitsOf(dd).map(o=>o.items.filter(id=>M.has(id))).filter(a=>a.length);
     const picks=ids.map(id=>M.get(id)).sort((a,b)=>(a.category==='shoes'?0:1)-(b.category==='shoes'?0:1));
     const sOnly=(!ids.length&&!planned&&dd&&dd.scent&&M.get(dd.scent))||null,hero=picks[0]||sOnly||undefined,fo=(!planned&&dd)?outfitsOf(dd).find(o=>o.photo):null,fit=!!fo;
     const bars=(!planned&&dd&&ids.length)?outfitsOf(dd).map(o=>tagBar(o.tag)).join(''):'';
-    const lbl=fmt(ds,{weekday:'long',month:'long',day:'numeric'})+(planned?', planned':outs.length>1?', '+outs.length+' outfits logged':ids.length?', '+ids.length+' pieces logged':'');
-    cells.push('<button type="button" class="cell'+(ds===t?' today':'')+(planned?' planned':'')+'" data-act="open-day" data-d="'+ds+'" aria-label="'+lbl+'"><span class="n">'+d+'</span><span class="hero'+(fit?' fit':hero?'':' none')+'">'+(sOnly&&!sOnly.photo?'<span class="sn">'+esc(sOnly.name)+'</span>':fit?'<img src="'+esc(photoSrc(fo.photo))+'" alt="" decoding="async">'+(outs.length>1?'<b>'+outs.length+' fits</b>':''):hero?tileInner(hero)+(sOnly?'':outs.length>1?'<b>'+outs.length+' fits</b>':ids.length>1?'<b>+'+(ids.length-1)+'</b>':''):'')+'</span><span class="bars">'+(bars||'<span class="bar"></span>')+'</span></button>');
+    const lbl=fmt(ds,{weekday:'long',month:'long',day:'numeric'})+(planned?(lockedP?', locked in':', planned'):outs.length>1?', '+outs.length+' outfits logged':ids.length?', '+ids.length+' pieces logged':'');
+    cells.push('<button type="button" class="cell'+(ds===t?' today':'')+(planned?' planned':'')+(lockedP?' locked':'')+'" data-act="open-day" data-d="'+ds+'" aria-label="'+lbl+'"><span class="n">'+d+'</span><span class="hero'+(fit?' fit':hero?'':' none')+'">'+(sOnly&&!sOnly.photo?'<span class="sn">'+esc(sOnly.name)+'</span>':fit?'<img src="'+esc(photoSrc(fo.photo))+'" alt="" decoding="async">'+(outs.length>1?'<b>'+outs.length+' fits</b>':''):hero?tileInner(hero)+(sOnly?'':outs.length>1?'<b>'+outs.length+' fits</b>':ids.length>1?'<b>+'+(ids.length-1)+'</b>':''):'')+'</span><span class="bars">'+(bars||'<span class="bar"></span>')+'</span></button>');
   }
   const st=stats();
   const keys=Object.keys(S.days).filter(k=>k.indexOf(S.month)===0&&outfitsOf(S.days[k]).some(o=>o.items.some(id=>M.has(id))));
@@ -969,7 +1013,7 @@ function renderDay(){
   if(!shown.length&&!sc&&!dd.plans.some(p=>p.items.length))body+='<p class="hint" style="margin:0 0 4px">Nothing logged for this day.</p>';
   dd.plans.forEach((p,k)=>{
     const l=sorted(p.items);
-    if(l.length)body+='<h3 class="dv-h">Planned, option '+'ABCD'[k]+(p.when?' · '+p.when:'')+((TAGS.find(t=>t.id===p.tag)||{}).label?' · '+TAGS.find(t=>t.id===p.tag).label:'')+'</h3>'+grid(l);
+    if(l.length)body+='<h3 class="dv-h">'+(p.locked?'Locked in':'Planned')+', option '+'ABCD'[k]+(p.when?' · '+p.when:'')+((TAGS.find(t=>t.id===p.tag)||{}).label?' · '+TAGS.find(t=>t.id===p.tag).label:'')+'</h3>'+grid(l);
   });
   const tag0=(!multi&&shown[0]&&(TAGS.find(t=>t.id===shown[0].o.tag)||{}).label)||'';
   host.innerHTML='<div class="scrim" data-act="day-bg"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="dv-t" tabindex="-1">'
@@ -1427,6 +1471,7 @@ window.addEventListener('scroll',()=>{
 applyTheme();
 try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(SET.theme==='auto')applyTheme()})}catch(e){}
 (function(){const sp=document.getElementById('splash');if(!sp)return;if(SET.splash){setTimeout(()=>sp.remove(),1950)}else sp.remove()})();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.store==='local'&&!S.loading&&settleDays())render()});
 init();
 })();
 </script>
