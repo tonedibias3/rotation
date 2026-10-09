@@ -342,6 +342,12 @@ svg{width:18px;height:18px;flex:none}
 .day.today .n{text-decoration-color:var(--accent2,var(--accent))}
 .card[aria-pressed="true"] .check{background:var(--accent2,var(--accent))}
 .tile.add{border-color:color-mix(in srgb,var(--accent2,var(--ink)) 45%,transparent)}
+details.det{margin:0 0 16px;border:1px solid var(--line);border-radius:14px;padding:0 14px}
+details.det summary{cursor:pointer;padding:13px 0;font:600 14px var(--f-body);list-style:none}details.det summary::-webkit-details-marker{display:none}
+details.det summary i{font:400 12px var(--f-body);font-style:normal;color:var(--ink2);margin-left:6px}
+details.det[open] summary{border-bottom:1px solid var(--line);margin-bottom:14px}
+.photo-row.bk{margin-top:-4px}.ph.bk{font:500 12px var(--f-mono);letter-spacing:.06em;text-transform:uppercase}
+.field input[type=date]{min-height:46px}
 </style>
 
 </head>
@@ -1090,6 +1096,7 @@ async function onFit(file){
 /* ---------- find photo online ---------- */
 let FD=null;
 function openFind(){
+  S.slot='f';
   const sh=S.sheet;if(!sh)return;
   const d=sh.draft,q=((d.brand||'')+' '+(d.name||'')).trim();
   FD={q:q,res:[],busy:false,msg:'',did:false};
@@ -1150,13 +1157,14 @@ function viewItem(id){
   const host=$('#sheet');
   host.innerHTML='<div class="scrim" data-act="view-bg"><div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(it.name)+'" tabindex="-1">'
    +'<div class="sheet-h"><h2>'+esc(it.name)+'</h2><button type="button" class="x" data-act="view-close" aria-label="Close">'+ico(P.x)+'</button></div>'
-   +'<div class="vbig">'+(src?'<img src="'+esc(src)+'" alt="">':'<span class="ph" style="--c:'+(COLORS[it.color]||'#9a9ea6')+'">'+(ICONS[it.category]||ICONS.tops)+'</span>')+'</div>'
+   +(it.photo2?'<div class="seg mini" id="vside" role="group" aria-label="Side" style="margin-bottom:10px;width:max-content"><button type="button" data-act="view-side" data-v="f" aria-pressed="true">Front</button><button type="button" data-act="view-side" data-v="b" aria-pressed="false">Back</button></div>':'')
+   +'<div class="vbig">'+(it.photo2?'<img id="vback" src="'+esc(photoSrc(it.photo2))+'" alt="" hidden>':'')+(src?'<img id="vfront" src="'+esc(src)+'" alt="">':'<span class="ph" style="--c:'+(COLORS[it.color]||'#9a9ea6')+'">'+(ICONS[it.category]||ICONS.tops)+'</span>')+'</div>'
    +(Array.isArray(it.kinds)&&it.kinds.length?'<div class="vkinds">'+it.kinds.map(k=>'<span>'+esc(k)+'</span>').join('')+'</div>':'')
    +row('Brand',it.brand)+row('Nickname',it.nickname)+row('Type',(CATS[catIdx(it.category)]||{}).label)
    +(cols.length?'<div class="vrow"><span>Colors</span><b class="dots">'+cols.map(c=>'<i style="background:'+(COLORS[c]||'#9a9ea6')+'" title="'+esc(c)+'"></i>').join('')+'</b></div>':'')
    +row('Worn',w?w+' time'+(w===1?'':'s')+' · last '+fmt(st.last[id],{month:'short',day:'numeric'}):'Not logged yet')
    +(typeof it.price==='number'?row('Paid',money(it.price))+(w?row('Cost per wear',money(Math.round(it.price/w*100)/100)):''):'')
-   +row('Bought at',it.source)
+   +row('Bought at',it.source)+row('Date bought',it.bought?fmt(it.bought,{year:'numeric',month:'short',day:'numeric'}):'')+row('Released',it.released)
    +'<div class="btn-row" style="margin-top:18px"><button type="button" class="btn primary" data-act="view-edit">Edit</button><button type="button" class="btn ghost" data-act="view-close">Close</button></div>'
    +'</div></div>';
   document.body.style.overflow='hidden';
@@ -1177,10 +1185,10 @@ function renderArrange(){
 function openItem(id,preset){
   const it=id?M.get(id):null;
   if(id&&!it)return;
-  S.sheet={id:id||null,confirm:false,busy:false,addToLog:!!(preset&&preset.log),draft:{
+  S.slot='';S.sheet={id:id||null,confirm:false,busy:false,addToLog:!!(preset&&preset.log),draft:{
     name:it?it.name:'',brand:it?it.brand||'':'',nickname:it?it.nickname||'':'',
     category:it?it.category:(preset&&preset.cat)||(S.tab==='closet'&&S.filter!=='all'?S.filter:'shoes'),
-    color:it?it.color||'':'',colors:it?(Array.isArray(it.colors)&&it.colors.length?it.colors.slice():(it.color?[it.color]:[])):[],kinds:it&&Array.isArray(it.kinds)?it.kinds.slice():[],price:(it&&typeof it.price==='number')?String(it.price):'',source:it?it.source||'':'',photo:it?it.photo||'':'',photoBlob:null,photoData:'',previewUrl:''
+    color:it?it.color||'':'',colors:it?(Array.isArray(it.colors)&&it.colors.length?it.colors.slice():(it.color?[it.color]:[])):[],kinds:it&&Array.isArray(it.kinds)?it.kinds.slice():[],price:(it&&typeof it.price==='number')?String(it.price):'',source:it?it.source||'':'',photo:it?it.photo||'':'',photoBlob:null,photoData:'',previewUrl:'',photo2:it?it.photo2||'':'',photoBlob2:null,photoData2:'',previewUrl2:'',bought:it?it.bought||'':'',released:it?it.released||'':''
   }};
   renderSheet();
 }
@@ -1193,10 +1201,13 @@ function renderSheet(){
   if(it){const w=st.wears[it.id]||0;line=w?'Worn '+w+' time'+(w===1?'':'s')+' · last '+fmt(st.last[it.id],{month:'short',day:'numeric'}):'Not logged yet';if(typeof it.price==='number'){line+=' · '+money(it.price)+(w?' · '+money(Math.round(it.price/w*100)/100)+' per wear':'')}}
   host.innerHTML='<div class="scrim" data-act="sheet-bg"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t" tabindex="-1">'
    +'<div class="sheet-h"><h2 id="sh-t">'+(it?'Edit piece':'New piece')+'</h2><button type="button" class="x" data-act="sheet-close" aria-label="Close">'+ico(P.x)+'</button></div>'
-   +'<div class="photo-row"><div class="tile" id="pv" data-act="pv-tap"></div><div class="photo-side"><label class="btn ghost" for="f-file">'+ico(P.cam)+'<span id="pv-l">Add photo</span></label><input class="vh" id="f-file" type="file" accept="image/*"><button type="button" class="btn ghost" data-act="find-open">'+ico(P.search)+'Find photo online</button><button type="button" class="btn ghost" id="pv-a" data-act="photo-adjust" hidden>Move and crop</button><button type="button" class="link" id="pv-c" data-act="photo-clear" hidden>Remove photo</button><p class="hint">A side view on a plain background looks best. Tap the photo to move or crop it.</p></div></div>'
+   +'<div class="photo-row"><div class="tile" id="pv" data-act="pv-tap"></div><div class="photo-side"><label class="btn ghost" for="f-file">'+ico(P.cam)+'<span id="pv-l">Add photo</span></label><input class="vh" id="f-file" type="file" accept="image/*"><button type="button" class="btn ghost" data-act="find-open">'+ico(P.search)+'Find photo online</button><button type="button" class="btn ghost" id="pv-a" data-act="photo-adjust" hidden>Move and crop</button><button type="button" class="btn ghost danger" id="pv-c" data-act="photo-clear" data-slot="f" hidden>Remove photo</button></div></div>'
+   +'<div class="photo-row bk"><div class="tile" id="pv2" data-act="pv-tap2"></div><div class="photo-side"><label class="btn ghost" for="f-file2">'+ico(P.cam)+'<span id="pv-l2">Add back photo</span></label><input class="vh" id="f-file2" type="file" accept="image/*"><button type="button" class="btn ghost" id="pv-a2" data-act="photo-adjust" data-slot="b" hidden>Move and crop</button><button type="button" class="btn ghost danger" id="pv-c2" data-act="photo-clear" data-slot="b" hidden>Remove back photo</button><p class="hint">Optional. Shown when you view the piece.</p></div></div>'
    +'<div class="field"><label for="f-name">Name</label><input id="f-name" data-f="name" value="'+esc(d.name)+'" placeholder="Union Jordan 4" autocomplete="off"></div>'
    +'<div class="two"><div class="field"><label for="f-brand">Brand</label><input id="f-brand" data-f="brand" list="brands" value="'+esc(d.brand)+'" placeholder="Jordan" autocomplete="off"></div><div class="field"><label for="f-nick">Nickname</label><input id="f-nick" data-f="nickname" value="'+esc(d.nickname)+'" placeholder="Optional" autocomplete="off"></div></div>'
+   +'<details class="det"'+((d.price||d.source||d.bought||d.released)?' open':'')+'><summary>Details <i>all optional</i></summary>'
    +'<div class="two"><div class="field"><label for="f-price">Price paid</label><input id="f-price" data-f="price" inputmode="decimal" value="'+esc(d.price)+'" placeholder="Optional" autocomplete="off"></div><div class="field"><label for="f-src">Bought at</label><input id="f-src" data-f="source" list="sources" value="'+esc(d.source)+'" placeholder="Optional" autocomplete="off"></div></div>'
+   +'<div class="two"><div class="field"><label for="f-bought">Date bought</label><input id="f-bought" type="date" data-f="bought" value="'+esc(d.bought)+'"></div><div class="field"><label for="f-rel">Released / season</label><input id="f-rel" data-f="released" value="'+esc(d.released)+'" placeholder="2015, SS16, vintage" autocomplete="off"></div></div></details>'
    +'<datalist id="sources">'+Array.from(new Set(S.items.map(i=>i.source).filter(Boolean))).sort().map(b=>'<option value="'+esc(b)+'">').join('')+'</datalist>'
    +'<datalist id="brands">'+brands.map(b=>'<option value="'+esc(b)+'">').join('')+'</datalist>'
    +'<div class="field"><span class="lbl">Type</span><div class="seg wrap" id="s-cat" role="group" aria-label="Type">'+CATS.map(c=>'<button type="button" data-act="s-cat" data-v="'+c.id+'" aria-pressed="'+(d.category===c.id)+'">'+c.label+'</button>').join('')+'</div></div>'
@@ -1209,14 +1220,25 @@ function renderSheet(){
   syncPhoto();syncKinds();
   const dlg=host.querySelector('.sheet');if(dlg)dlg.focus();
 }
+const PK=sl=>sl==='b'?{ph:'photo2',bl:'photoBlob2',da:'photoData2',pu:'previewUrl2',px:'2'}:{ph:'photo',bl:'photoBlob',da:'photoData',pu:'previewUrl',px:''};
+function clearPhoto(sl){
+  const sh=S.sheet;if(!sh)return;
+  const k=PK(sl),dr=sh.draft;
+  if(dr[k.pu]){try{URL.revokeObjectURL(dr[k.pu])}catch(x){}}
+  dr[k.ph]='';dr[k.bl]=null;dr[k.da]='';dr[k.pu]='';
+  syncPhoto();
+}
 function syncPhoto(){
   const sh=S.sheet;if(!sh)return;
-  const d=sh.draft,src=d.previewUrl||photoSrc(d.photo),pv=$('#pv');
-  if(!pv)return;
-  pv.innerHTML=src?'<img src="'+esc(src)+'" alt="Photo preview">':'<span class="ph" style="--c:'+(COLORS[d.color]||'#9a9ea6')+'">'+ICONS[d.category]+'</span>';
-  $('#pv-l').textContent=src?'Replace photo':'Add photo';
-  $('#pv-c').hidden=!src;
-  $('#pv-a').hidden=!src;
+  const d=sh.draft;
+  ['f','b'].forEach(sl=>{
+    const k=PK(sl),x=k.px,src=d[k.pu]||photoSrc(d[k.ph]),pv=$('#pv'+x);
+    if(!pv)return;
+    pv.innerHTML=src?'<img src="'+esc(src)+'" alt="Photo preview">':(sl==='f'?'<span class="ph" style="--c:'+(COLORS[d.color]||'#9a9ea6')+'">'+ICONS[d.category]+'</span>':'<span class="ph bk">Back</span>');
+    $('#pv-l'+x).textContent=src?(sl==='b'?'Replace back photo':'Replace photo'):(sl==='b'?'Add back photo':'Add photo');
+    $('#pv-c'+x).hidden=!src;
+    $('#pv-a'+x).hidden=!src;
+  });
 }
 function syncKinds(){
   const sh=S.sheet,h=$('#s-kind');if(!sh||!h)return;
@@ -1233,7 +1255,7 @@ function syncChoices(){
 }
 function closeSheet(){
   const sh=S.sheet;
-  if(sh&&sh.draft.previewUrl){try{URL.revokeObjectURL(sh.draft.previewUrl)}catch(e){}}
+  if(sh){['previewUrl','previewUrl2'].forEach(k=>{if(sh.draft[k]){try{URL.revokeObjectURL(sh.draft[k])}catch(e){}}})}
   S.sheet=null;renderSheet();
 }
 function loadImg(file){
@@ -1254,7 +1276,8 @@ async function processPhoto(file){
   const blob=await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('blob')),'image/jpeg',.82));
   return {blob:blob,data:ASSETS?'':c.toDataURL('image/jpeg',.8)};
 }
-async function onFile(file){
+async function onFile(file,sl){
+  S.slot=sl||'f';
   try{
     let src;
     try{src=await createImageBitmap(file,{imageOrientation:'from-image'})}catch(e){src=await loadImg(file)}
@@ -1270,7 +1293,7 @@ function openCrop(img){
   const w=img.width||img.naturalWidth,h=img.height||img.naturalHeight;
   if(!w||!h){toast('Could not read that photo');return}
   const host=$('#crop');
-  host.innerHTML='<div class="crop-s"><div class="crop" role="dialog" aria-modal="true" aria-label="Move and crop photo"><h2>Move and crop</h2><p class="hint">Drag any corner or edge handle to crop freely. Drag inside the box to move it. Drag outside it, pinch, or use the slider to move and zoom the photo.</p><div class="crop-f" id="crop-f"><canvas id="crop-c"></canvas></div><input id="crop-z" type="range" min="0" max="100" value="0" aria-label="Zoom"><div class="crop-t"><button type="button" class="btn ghost" data-act="crop-fit">Center piece</button><button type="button" class="btn ghost" id="crop-cl" data-act="crop-clean" aria-pressed="false">Clean background</button></div><div id="crop-tw" class="crop-tw" hidden><label for="crop-tol">Strength</label><input id="crop-tol" type="range" min="12" max="90" value="40" aria-label="Background cleanup strength"></div><div class="btn-row"><button type="button" class="btn ghost" data-act="crop-reset">Reset</button><button type="button" class="btn ghost" data-act="crop-cancel">Cancel</button><button type="button" class="btn primary" data-act="crop-done">Done</button></div></div></div>';
+  host.innerHTML='<div class="crop-s"><div class="crop" role="dialog" aria-modal="true" aria-label="Move and crop photo"><h2>Move and crop</h2><p class="hint">Drag any corner or edge handle to crop freely. Drag inside the box to move it. Drag outside it, pinch, or use the slider to move and zoom the photo.</p><div class="crop-f" id="crop-f"><canvas id="crop-c"></canvas></div><input id="crop-z" type="range" min="0" max="100" value="0" aria-label="Zoom"><div class="crop-t"><button type="button" class="btn ghost" data-act="crop-fit">Center piece</button><button type="button" class="btn ghost" id="crop-cl" data-act="crop-clean" aria-pressed="false">Clean background</button></div><div id="crop-tw" class="crop-tw" hidden><label for="crop-tol">Strength</label><input id="crop-tol" type="range" min="12" max="90" value="40" aria-label="Background cleanup strength"></div><div class="btn-row"><button type="button" class="btn ghost" data-act="crop-reset">Reset</button><button type="button" class="btn ghost danger" data-act="crop-remove">Remove photo</button><button type="button" class="btn ghost" data-act="crop-cancel">Cancel</button><button type="button" class="btn primary" data-act="crop-done">Done</button></div></div></div>';
   const f=$('#crop-f'),c=$('#crop-c'),box=f.clientWidth||300,dpr=Math.min(2,window.devicePixelRatio||1);
   c.width=c.height=Math.round(box*dpr);
   CR={orig:img,clean:false,tol:40,img:img,w:w,h:h,box:box,cb:{x:0,y:0,w:box,h:box},drag:null,cx:w/2,cy:h/2,min:1,max:1,s:1,ptr:new Map(),pd:0};
@@ -1438,15 +1461,16 @@ async function cropDone(){
     paintCrop(ctx,CROP_OUT,true);
     const type=png?'image/png':'image/jpeg';
     const blob=await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('blob')),type,.85));
-    const dr=S.sheet.draft;
-    if(dr.previewUrl){try{URL.revokeObjectURL(dr.previewUrl)}catch(e){}}
-    dr.photoBlob=blob;dr.photoData=ASSETS?'':c.toDataURL(type,.82);dr.previewUrl=URL.createObjectURL(blob);
+    const dr=S.sheet.draft,pk=PK(S.slot);
+    if(dr[pk.pu]){try{URL.revokeObjectURL(dr[pk.pu])}catch(e){}}
+    dr[pk.bl]=blob;dr[pk.da]=ASSETS?'':c.toDataURL(type,.82);dr[pk.pu]=URL.createObjectURL(blob);
     closeCrop();syncPhoto();
   }catch(e){toast('Could not crop that photo')}
 }
-function adjustPhoto(){
+function adjustPhoto(sl){
   const sh=S.sheet;if(!sh)return;
-  const src=sh.draft.previewUrl||photoSrc(sh.draft.photo);if(!src)return;
+  S.slot=sl||'f';const k=PK(S.slot);
+  const src=sh.draft[k.pu]||photoSrc(sh.draft[k.ph]);if(!src)return;
   const im=new Image();
   im.onload=()=>openCrop(im);
   im.onerror=()=>toast('Could not open that photo');
@@ -1464,8 +1488,13 @@ async function saveItem(){
       if(ASSETS){const r=await ASSETS.upload(d.photoBlob,{type:d.photoBlob.type||'image/jpeg'});photo=r.id}
       else photo=d.photoData;
     }
+    let photo2=d.photo2||'';
+    if(d.photoBlob2){
+      if(ASSETS){const r2=await ASSETS.upload(d.photoBlob2,{type:d.photoBlob2.type||'image/jpeg'});photo2=r2.id}
+      else photo2=d.photoData2;
+    }
     const id=sh.id||newId(),ex=sh.id?M.get(sh.id):null;
-    await putItem(id,{name:d.name.trim(),brand:d.brand.trim(),nickname:d.nickname.trim(),category:d.category,color:(d.colors[0]||''),colors:d.colors.slice(),kinds:d.kinds.filter(k=>subsFor(d.category).indexOf(k)>=0),price:parsePrice(d.price),source:(d.source||'').trim(),photo:photo,createdAt:ex&&ex.createdAt||Date.now()});
+    await putItem(id,{name:d.name.trim(),brand:d.brand.trim(),nickname:d.nickname.trim(),category:d.category,color:(d.colors[0]||''),colors:d.colors.slice(),kinds:d.kinds.filter(k=>subsFor(d.category).indexOf(k)>=0),price:parsePrice(d.price),source:(d.source||'').trim(),bought:d.bought||'',released:(d.released||'').trim(),photo:photo,photo2:photo2,createdAt:ex&&ex.createdAt||Date.now()});
     const wasNew=!sh.id,log=sh.addToLog;
     closeSheet();
     render();
@@ -1583,6 +1612,7 @@ document.addEventListener('click',e=>{
     case 'arr-bg':if(e.target===el){S.arr=false;renderArrange();render()}break;
     case 'arr-mv':{const i=catIdx(el.dataset.v),j=i+(+el.dataset.d);if(j>=0&&j<CATS.length){const t=CATS[i];CATS[i]=CATS[j];CATS[j]=t;SET.order=CATS.map(c=>c.id);saveSet();renderArrange()}break}
     case 'arr-reset':SET.order=['tops','bottoms','shoes','outerwear','accessories','scents'];applyOrder();saveSet();renderArrange();break;
+    case 'view-side':{const b2=el.dataset.v==='b',fr=$('#vfront'),bk=$('#vback');if(fr)fr.hidden=b2;if(bk)bk.hidden=!b2;document.querySelectorAll('#vside button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===el.dataset.v?'true':'false'));break}
     case 'view-close':closeView();break;
     case 'view-bg':if(e.target===el)closeView();break;
     case 'view-edit':{const id2=S.vw;closeView();openItem(id2);break}
@@ -1592,14 +1622,16 @@ document.addEventListener('click',e=>{
     case 'find-go':runFind();break;
     case 'find-close':closeFind();break;
     case 'find-pick':pickFind(+el.dataset.i);break;
-    case 'photo-adjust':adjustPhoto();break;
-    case 'pv-tap':adjustPhoto();break;
+    case 'photo-adjust':adjustPhoto(el.dataset.slot||'f');break;
+    case 'crop-remove':{const sl=S.slot||'f';closeCrop();clearPhoto(sl);toast('Photo removed. Tap Save to keep the change.');break}
+    case 'pv-tap':adjustPhoto('f');break;
+    case 'pv-tap2':if(S.sheet&&(S.sheet.draft.previewUrl2||S.sheet.draft.photo2))adjustPhoto('b');else{const f2=$('#f-file2');if(f2)f2.click()}break;
     case 'crop-reset':cropReset();break;
     case 'crop-fit':centerPiece();break;
     case 'crop-clean':toggleClean();break;
     case 'crop-cancel':closeCrop();break;
     case 'crop-done':cropDone();break;
-    case 'photo-clear':if(S.sheet){const dr=S.sheet.draft;if(dr.previewUrl){try{URL.revokeObjectURL(dr.previewUrl)}catch(x){}}dr.photo='';dr.photoBlob=null;dr.photoData='';dr.previewUrl='';syncPhoto()}break;
+    case 'photo-clear':clearPhoto(el.dataset.slot||'f');toast('Photo removed. Tap Save to keep the change.');break;
     case 's-save':saveItem();break;
     case 's-del':delClick();break;
   }
@@ -1611,7 +1643,8 @@ document.addEventListener('input',e=>{
   if(t.id==='q'){S.q=t.value;fillGrid()}
 });
 document.addEventListener('change',e=>{
-  if(e.target.id==='f-file'){const f=e.target.files&&e.target.files[0];if(f)onFile(f);e.target.value=''}
+  if(e.target.id==='f-file'){const f=e.target.files&&e.target.files[0];if(f)onFile(f,'f');e.target.value=''}
+  if(e.target.id==='f-file2'){const f=e.target.files&&e.target.files[0];if(f)onFile(f,'b');e.target.value=''}
   if(e.target.id==='f-fit'){const f=e.target.files&&e.target.files[0];if(f)onFit(f);e.target.value=''}
   if(e.target.id==='f-import'){const f=e.target.files&&e.target.files[0];if(f)importData(f);e.target.value=''}
 });
