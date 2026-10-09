@@ -337,7 +337,7 @@ details.det summary{cursor:pointer;padding:13px 0;font:600 14px var(--f-body);li
 details.det summary i{font:400 12px var(--f-body);font-style:normal;color:var(--ink2);margin-left:6px}
 details.det[open] summary{border-bottom:1px solid var(--line);margin-bottom:14px}
 .photo-row.bk{margin-top:-4px}.ph.bk{font:500 12px var(--f-mono);letter-spacing:.06em;text-transform:uppercase}
-.field input[type=date]{min-height:46px}
+.field{min-width:0}.field input[type=date]{min-height:46px;display:block;width:100%;min-width:0;max-width:100%;-webkit-appearance:none;appearance:none;text-align:left}.field input[type=date]::-webkit-date-and-time-value{text-align:left;min-width:0}.two{align-items:end}
 .ctl{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-4px 0 10px}
 .seg.mini{padding:3px;border-radius:11px;flex:none}.seg.mini button{padding:7px 14px;font-size:12.5px;border-radius:8px}
 .chips i{font-style:normal;font:500 11px var(--f-mono);opacity:.6;margin-left:6px}
@@ -1431,7 +1431,7 @@ function renderSheet(){
    +'<div class="two"><div class="field"><label for="f-brand">Brand</label><input id="f-brand" data-f="brand" list="brands" value="'+esc(d.brand)+'" placeholder="Jordan" autocomplete="off"></div><div class="field"><label for="f-nick">Nickname</label><input id="f-nick" data-f="nickname" value="'+esc(d.nickname)+'" placeholder="Optional" autocomplete="off"></div></div>'
    +'<details class="det"'+((d.price||d.source||d.bought||d.released)?' open':'')+'><summary>Details <i>all optional</i></summary>'
    +'<div class="two"><div class="field"><label for="f-price">Price paid</label><input id="f-price" data-f="price" inputmode="decimal" value="'+esc(d.price)+'" placeholder="Optional" autocomplete="off"></div><div class="field"><label for="f-src">Bought at</label><input id="f-src" data-f="source" list="sources" value="'+esc(d.source)+'" placeholder="Optional" autocomplete="off"></div></div>'
-   +'<div class="two"><div class="field"><label for="f-bought">Date bought</label><input id="f-bought" type="date" data-f="bought" value="'+esc(d.bought)+'"></div><div class="field"><label for="f-rel">Released / season</label><input id="f-rel" data-f="released" value="'+esc(d.released)+'" placeholder="2015, SS16, vintage" autocomplete="off"></div></div></details>'
+   +'<div class="two"><div class="field"><label for="f-bought">Date bought</label><input id="f-bought" type="date" data-f="bought" value="'+esc(d.bought)+'"></div><div class="field"><label for="f-rel">Season / year</label><input id="f-rel" data-f="released" value="'+esc(d.released)+'" placeholder="2015, SS16, vintage" autocomplete="off"></div></div></details>'
    +'<datalist id="sources">'+Array.from(new Set(S.items.map(i=>i.source).filter(Boolean))).sort().map(b=>'<option value="'+esc(b)+'">').join('')+'</datalist>'
    +'<datalist id="brands">'+brands.map(b=>'<option value="'+esc(b)+'">').join('')+'</datalist>'
    +'<div class="field"><span class="lbl">Type</span><div class="seg wrap" id="s-cat" role="group" aria-label="Type">'+CATS.map(c=>'<button type="button" data-act="s-cat" data-v="'+c.id+'" aria-pressed="'+(d.category===c.id)+'">'+c.label+'</button>').join('')+'</div></div>'
