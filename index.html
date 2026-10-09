@@ -940,6 +940,8 @@ function viewCalendar(){
   {const sc={};Object.keys(S.days).forEach(k=>{if(k.indexOf(S.month)===0){const id=S.days[k].scent;if(id&&M.has(id))sc[id]=(sc[id]||0)+1}});
    const ts=Object.keys(sc).map(id=>[id,sc[id]]).sort((a,b)=>b[1]-a[1]).slice(0,3);
    if(ts.length)insights+='<div class="panel"><h2>Scents this month</h2>'+ts.map(r=>row(M.get(r[0]),r[1]+'x')).join('')+'</div>'}
+  {const cp=S.items.filter(i=>typeof i.price==='number'&&i.price>0&&st.wears[i.id]>0).map(i=>({i:i,c:i.price/st.wears[i.id]})).sort((a,b)=>a.c-b.c).slice(0,4);
+   if(cp.length)insights+='<div class="panel"><h2>Cost per wear</h2>'+cp.map(r=>row(r.i,money(Math.round(r.c*100)/100)+'/wear')).join('')+'<p class="hint" style="margin-top:10px">Price paid divided by times worn, lowest first. Add a price when you edit a piece.</p></div>'}
   if(top.length)insights+='<div class="panel"><h2>Most worn</h2>'+top.map(r=>row(M.get(r[0]),r[1]+'x')).join('')+'</div>';
   if(rest.length)insights+='<div class="panel"><h2>Resting shoes</h2>'+rest.map(r=>row(r.i,r.d===null?'Never':r.d+'d')).join('')+'<p class="hint" style="margin-top:10px">Shoes not logged in 21 days or more.</p></div>';
   return '<div class="head"><div><h1 class="h1">Calendar</h1><div class="sub">'+fmt(S.month+'-01',{month:'long',year:'numeric'})+'</div></div><div class="mnav"><button type="button" class="rb" data-act="month" data-v="-1" aria-label="Previous month">'+ico(P.left)+'</button><button type="button" class="rb" data-act="month" data-v="1" aria-label="Next month">'+ico(P.right)+'</button>'+gearBtn()+'</div></div>'
@@ -1098,13 +1100,15 @@ async function pickFind(i){
   closeFind();openCrop(im);
 }
 /* ---------- sheet: add / edit piece ---------- */
+const parsePrice=v=>{const n=parseFloat(String(v==null?'':v).replace(/[^0-9.]/g,''));return isFinite(n)&&n>=0&&String(v).trim()!==''?Math.round(n*100)/100:''};
+const money=n=>'$'+(n%1?n.toFixed(2):String(n));
 function openItem(id,preset){
   const it=id?M.get(id):null;
   if(id&&!it)return;
   S.sheet={id:id||null,confirm:false,busy:false,addToLog:!!(preset&&preset.log),draft:{
     name:it?it.name:'',brand:it?it.brand||'':'',nickname:it?it.nickname||'':'',
     category:it?it.category:(preset&&preset.cat)||(S.tab==='closet'&&S.filter!=='all'?S.filter:'shoes'),
-    color:it?it.color||'':'',photo:it?it.photo||'':'',photoBlob:null,photoData:'',previewUrl:''
+    color:it?it.color||'':'',price:(it&&typeof it.price==='number')?String(it.price):'',source:it?it.source||'':'',photo:it?it.photo||'':'',photoBlob:null,photoData:'',previewUrl:''
   }};
   renderSheet();
 }
@@ -1114,12 +1118,14 @@ function renderSheet(){
   const d=sh.draft,it=sh.id?M.get(sh.id):null,st=stats();
   const brands=Array.from(new Set(S.items.map(i=>i.brand).filter(Boolean))).sort();
   let line='';
-  if(it){const w=st.wears[it.id]||0;line=w?'Worn '+w+' time'+(w===1?'':'s')+' · last '+fmt(st.last[it.id],{month:'short',day:'numeric'}):'Not logged yet'}
+  if(it){const w=st.wears[it.id]||0;line=w?'Worn '+w+' time'+(w===1?'':'s')+' · last '+fmt(st.last[it.id],{month:'short',day:'numeric'}):'Not logged yet';if(typeof it.price==='number'){line+=' · '+money(it.price)+(w?' · '+money(Math.round(it.price/w*100)/100)+' per wear':'')}}
   host.innerHTML='<div class="scrim" data-act="sheet-bg"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t" tabindex="-1">'
    +'<div class="sheet-h"><h2 id="sh-t">'+(it?'Edit piece':'New piece')+'</h2><button type="button" class="x" data-act="sheet-close" aria-label="Close">'+ico(P.x)+'</button></div>'
    +'<div class="photo-row"><div class="tile" id="pv" data-act="pv-tap"></div><div class="photo-side"><label class="btn ghost" for="f-file">'+ico(P.cam)+'<span id="pv-l">Add photo</span></label><input class="vh" id="f-file" type="file" accept="image/*"><button type="button" class="btn ghost" data-act="find-open">'+ico(P.search)+'Find photo online</button><button type="button" class="btn ghost" id="pv-a" data-act="photo-adjust" hidden>Move and crop</button><button type="button" class="link" id="pv-c" data-act="photo-clear" hidden>Remove photo</button><p class="hint">A side view on a plain background looks best. Tap the photo to move or crop it.</p></div></div>'
    +'<div class="field"><label for="f-name">Name</label><input id="f-name" data-f="name" value="'+esc(d.name)+'" placeholder="Union Jordan 4" autocomplete="off"></div>'
    +'<div class="two"><div class="field"><label for="f-brand">Brand</label><input id="f-brand" data-f="brand" list="brands" value="'+esc(d.brand)+'" placeholder="Jordan" autocomplete="off"></div><div class="field"><label for="f-nick">Nickname</label><input id="f-nick" data-f="nickname" value="'+esc(d.nickname)+'" placeholder="Optional" autocomplete="off"></div></div>'
+   +'<div class="two"><div class="field"><label for="f-price">Price paid</label><input id="f-price" data-f="price" inputmode="decimal" value="'+esc(d.price)+'" placeholder="Optional" autocomplete="off"></div><div class="field"><label for="f-src">Bought at</label><input id="f-src" data-f="source" list="sources" value="'+esc(d.source)+'" placeholder="Optional" autocomplete="off"></div></div>'
+   +'<datalist id="sources">'+Array.from(new Set(S.items.map(i=>i.source).filter(Boolean))).sort().map(b=>'<option value="'+esc(b)+'">').join('')+'</datalist>'
    +'<datalist id="brands">'+brands.map(b=>'<option value="'+esc(b)+'">').join('')+'</datalist>'
    +'<div class="field"><span class="lbl">Type</span><div class="seg wrap" id="s-cat" role="group" aria-label="Type">'+CATS.map(c=>'<button type="button" data-act="s-cat" data-v="'+c.id+'" aria-pressed="'+(d.category===c.id)+'">'+c.label+'</button>').join('')+'</div></div>'
    +'<div class="field"><span class="lbl">Main color</span><div class="swatches" id="s-col" role="group" aria-label="Main color">'+Object.keys(COLORS).map(k=>'<button type="button" class="sw" data-act="s-col" data-v="'+k+'" aria-label="'+k+'" aria-pressed="'+(d.color===k)+'" style="--c:'+COLORS[k]+'"></button>').join('')+'</div></div>'
@@ -1184,23 +1190,43 @@ function openCrop(img){
   const w=img.width||img.naturalWidth,h=img.height||img.naturalHeight;
   if(!w||!h){toast('Could not read that photo');return}
   const host=$('#crop');
-  host.innerHTML='<div class="crop-s"><div class="crop" role="dialog" aria-modal="true" aria-label="Move and crop photo"><h2>Move and crop</h2><p class="hint">Drag to move. Pinch or use the slider to zoom.</p><div class="crop-f" id="crop-f"><canvas id="crop-c"></canvas></div><input id="crop-z" type="range" min="0" max="100" value="0" aria-label="Zoom"><div class="crop-t"><button type="button" class="btn ghost" data-act="crop-fit">Center piece</button><button type="button" class="btn ghost" id="crop-cl" data-act="crop-clean" aria-pressed="false">Clean background</button></div><div id="crop-tw" class="crop-tw" hidden><label for="crop-tol">Strength</label><input id="crop-tol" type="range" min="12" max="90" value="40" aria-label="Background cleanup strength"></div><div class="btn-row"><button type="button" class="btn ghost" data-act="crop-reset">Reset</button><button type="button" class="btn ghost" data-act="crop-cancel">Cancel</button><button type="button" class="btn primary" data-act="crop-done">Done</button></div></div></div>';
+  host.innerHTML='<div class="crop-s"><div class="crop" role="dialog" aria-modal="true" aria-label="Move and crop photo"><h2>Move and crop</h2><p class="hint">Drag the white corners to crop. Drag inside the box to move it. Drag outside it, pinch, or use the slider to move and zoom the photo.</p><div class="crop-f" id="crop-f"><canvas id="crop-c"></canvas></div><input id="crop-z" type="range" min="0" max="100" value="0" aria-label="Zoom"><div class="crop-t"><button type="button" class="btn ghost" data-act="crop-fit">Center piece</button><button type="button" class="btn ghost" id="crop-cl" data-act="crop-clean" aria-pressed="false">Clean background</button></div><div id="crop-tw" class="crop-tw" hidden><label for="crop-tol">Strength</label><input id="crop-tol" type="range" min="12" max="90" value="40" aria-label="Background cleanup strength"></div><div class="btn-row"><button type="button" class="btn ghost" data-act="crop-reset">Reset</button><button type="button" class="btn ghost" data-act="crop-cancel">Cancel</button><button type="button" class="btn primary" data-act="crop-done">Done</button></div></div></div>';
   const f=$('#crop-f'),c=$('#crop-c'),box=f.clientWidth||300,dpr=Math.min(2,window.devicePixelRatio||1);
   c.width=c.height=Math.round(box*dpr);
-  CR={orig:img,clean:false,tol:40,img:img,w:w,h:h,box:box,cx:w/2,cy:h/2,min:1,max:1,s:1,ptr:new Map(),pd:0};
+  CR={orig:img,clean:false,tol:40,img:img,w:w,h:h,box:box,cb:{x:0,y:0,s:box},drag:null,cx:w/2,cy:h/2,min:1,max:1,s:1,ptr:new Map(),pd:0};
   CR.min=box/Math.max(w,h);CR.max=Math.max(CR.min*6,box/Math.min(w,h)*3);CR.s=CR.min;
   const tl=$('#crop-tol');
   tl.oninput=()=>{CR.tol=+tl.value;clearTimeout(CR.tt);CR.tt=setTimeout(applyClean,120)};
   const z=$('#crop-z');
   z.oninput=()=>{setScale(CR.min*Math.pow(CR.max/CR.min,z.value/100))};
-  f.onpointerdown=e=>{f.setPointerCapture(e.pointerId);CR.ptr.set(e.pointerId,[e.clientX,e.clientY]);CR.pd=pdist()};
+  const fp=e=>{const r=f.getBoundingClientRect(),k=CR.box/r.width;return [(e.clientX-r.left)*k,(e.clientY-r.top)*k]};
+  f.onpointerdown=e=>{
+    f.setPointerCapture(e.pointerId);CR.ptr.set(e.pointerId,[e.clientX,e.clientY]);CR.pd=pdist();
+    if(CR.ptr.size>1){CR.drag={m:'pinch'};return}
+    const q=fp(e),cb=CR.cb,R=26,cs=[[cb.x,cb.y],[cb.x+cb.s,cb.y],[cb.x,cb.y+cb.s],[cb.x+cb.s,cb.y+cb.s]];
+    let hit=-1,bd=R;cs.forEach((c,i)=>{const d=Math.hypot(q[0]-c[0],q[1]-c[1]);if(d<bd){bd=d;hit=i}});
+    if(hit>=0){const c=cs[hit],a=cs[3-hit];CR.drag={m:'resize',ax:a[0],ay:a[1],sx:c[0]>a[0]?1:-1,sy:c[1]>a[1]?1:-1}}
+    else if(q[0]>=cb.x&&q[0]<=cb.x+cb.s&&q[1]>=cb.y&&q[1]<=cb.y+cb.s&&cb.s<CR.box-2)CR.drag={m:'move',ox:q[0]-cb.x,oy:q[1]-cb.y};
+    else CR.drag={m:'pan'};
+  };
   f.onpointermove=e=>{
     if(!CR||!CR.ptr.has(e.pointerId))return;
     const o=CR.ptr.get(e.pointerId);CR.ptr.set(e.pointerId,[e.clientX,e.clientY]);
-    if(CR.ptr.size===1){CR.cx-=(e.clientX-o[0])/CR.s;CR.cy-=(e.clientY-o[1])/CR.s;clampC();drawCrop()}
-    else if(CR.ptr.size===2){const d=pdist();if(CR.pd)setScale(CR.s*d/CR.pd);CR.pd=d}
+    const dr=CR.drag,F=CR.box,cb=CR.cb;
+    if(CR.ptr.size>=2){const d=pdist();if(CR.pd)setScale(CR.s*d/CR.pd);CR.pd=d;return}
+    if(!dr)return;
+    const q=fp(e);
+    if(dr.m==='resize'){
+      const maxS=Math.min(dr.sx>0?F-dr.ax:dr.ax,dr.sy>0?F-dr.ay:dr.ay);
+      const s2=Math.max(56,Math.min(maxS,Math.max((q[0]-dr.ax)*dr.sx,(q[1]-dr.ay)*dr.sy)));
+      cb.s=s2;cb.x=dr.sx>0?dr.ax:dr.ax-s2;cb.y=dr.sy>0?dr.ay:dr.ay-s2;drawCrop();
+    }else if(dr.m==='move'){
+      cb.x=Math.max(0,Math.min(F-cb.s,q[0]-dr.ox));cb.y=Math.max(0,Math.min(F-cb.s,q[1]-dr.oy));drawCrop();
+    }else if(dr.m==='pan'){
+      CR.cx-=(e.clientX-o[0])/CR.s;CR.cy-=(e.clientY-o[1])/CR.s;clampC();drawCrop();
+    }
   };
-  const up=e=>{if(CR){CR.ptr.delete(e.pointerId);CR.pd=pdist()}};
+  const up=e=>{if(CR){CR.ptr.delete(e.pointerId);CR.pd=pdist();if(!CR.ptr.size)CR.drag=null}};
   f.onpointerup=up;f.onpointercancel=up;
   f.onwheel=e=>{e.preventDefault();setScale(CR.s*(e.deltaY<0?1.08:.93))};
   drawCrop();
@@ -1262,8 +1288,10 @@ function centerPiece(){
     for(let y=0;y<r.h;y++)for(let x=0;x<r.w;x++)if(!r.m[y*r.w+x]){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
     b=(x1>x0&&y1>y0)?[x0/r.w,y0/r.h,x1/r.w,y1/r.h]:[0,0,1,1]}
   const bw=(b[2]-b[0])*CR.w,bh=(b[3]-b[1])*CR.h;
-  CR.cx=(b[0]+b[2])/2*CR.w;CR.cy=(b[1]+b[3])/2*CR.h;
-  setScale(CR.box*.84/Math.max(bw,bh));
+  const px=(b[0]+b[2])/2*CR.w,py=(b[1]+b[3])/2*CR.h,cb=CR.cb;
+  CR.s=Math.max(CR.min*.5,Math.min(CR.max,cb.s*.84/Math.max(bw,bh)));
+  CR.cx=px-(cb.x+cb.s/2-CR.box/2)/CR.s;CR.cy=py-(cb.y+cb.s/2-CR.box/2)/CR.s;
+  setScale(CR.s);
 }
 function pdist(){if(!CR||CR.ptr.size<2)return 0;const p=Array.from(CR.ptr.values());return Math.hypot(p[0][0]-p[1][0],p[0][1]-p[1][1])}
 function setScale(v){
@@ -1276,24 +1304,34 @@ function clampC(){
   const half=CR.box/2/CR.s;
   /* keep at least a sliver of the photo in frame */
   CR.cx=Math.max(0,Math.min(CR.w,CR.cx));CR.cy=Math.max(0,Math.min(CR.h,CR.cy));
-  if(CR.w*CR.s<=CR.box)CR.cx=CR.w/2;
-  if(CR.h*CR.s<=CR.box)CR.cy=CR.h/2;
   void half;
 }
-function paintCrop(ctx,size){
-  const k=size/CR.box;
+function paintCrop(ctx,size,crop){
+  const F=CR.box,cb=crop?CR.cb:{x:0,y:0,s:F},k=size/cb.s;
   ctx.fillStyle='#fff';ctx.fillRect(0,0,size,size);
   ctx.imageSmoothingQuality='high';
-  ctx.drawImage(CR.img,size/2-CR.cx*CR.s*k,size/2-CR.cy*CR.s*k,CR.w*CR.s*k,CR.h*CR.s*k);
+  const tx=F/2-CR.cx*CR.s,ty=F/2-CR.cy*CR.s;
+  ctx.drawImage(CR.img,(tx-cb.x)*k,(ty-cb.y)*k,CR.w*CR.s*k,CR.h*CR.s*k);
 }
-function drawCrop(){const c=$('#crop-c');if(c&&CR)paintCrop(c.getContext('2d'),c.width)}
-function cropReset(){if(!CR)return;CR.clean=false;applyClean();CR.cx=CR.w/2;CR.cy=CR.h/2;setScale(CR.min)}
+function drawCrop(){
+  const c=$('#crop-c');if(!c||!CR)return;
+  const ctx=c.getContext('2d'),size=c.width,k=size/CR.box,cb=CR.cb;
+  paintCrop(ctx,size,false);
+  const x=cb.x*k,y=cb.y*k,w=cb.s*k;
+  ctx.fillStyle='rgba(8,10,14,.55)';
+  ctx.fillRect(0,0,size,y);ctx.fillRect(0,y+w,size,size-y-w);ctx.fillRect(0,y,x,w);ctx.fillRect(x+w,y,size-x-w,w);
+  const dpr=size/(c.clientWidth||size);
+  ctx.strokeStyle='#fff';ctx.lineWidth=2*dpr;ctx.strokeRect(x,y,w,w);
+  ctx.fillStyle='#fff';ctx.strokeStyle='rgba(8,10,14,.45)';ctx.lineWidth=1*dpr;
+  [[x,y],[x+w,y],[x,y+w],[x+w,y+w]].forEach(p=>{ctx.beginPath();ctx.arc(p[0],p[1],9*dpr,0,6.2832);ctx.fill();ctx.stroke()});
+}
+function cropReset(){if(!CR)return;CR.clean=false;applyClean();CR.cb={x:0,y:0,s:CR.box};CR.cx=CR.w/2;CR.cy=CR.h/2;setScale(CR.min)}
 function closeCrop(){CR=null;const h=$('#crop');if(h)h.innerHTML=''}
 async function cropDone(){
   if(!CR||!S.sheet)return closeCrop();
   try{
     const c=document.createElement('canvas');c.width=c.height=CROP_OUT;
-    paintCrop(c.getContext('2d'),CROP_OUT);
+    paintCrop(c.getContext('2d'),CROP_OUT,true);
     const blob=await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('blob')),'image/jpeg',.85));
     const dr=S.sheet.draft;
     if(dr.previewUrl){try{URL.revokeObjectURL(dr.previewUrl)}catch(e){}}
@@ -1322,7 +1360,7 @@ async function saveItem(){
       else photo=d.photoData;
     }
     const id=sh.id||newId(),ex=sh.id?M.get(sh.id):null;
-    await putItem(id,{name:d.name.trim(),brand:d.brand.trim(),nickname:d.nickname.trim(),category:d.category,color:d.color,photo:photo,createdAt:ex&&ex.createdAt||Date.now()});
+    await putItem(id,{name:d.name.trim(),brand:d.brand.trim(),nickname:d.nickname.trim(),category:d.category,color:d.color,price:parsePrice(d.price),source:(d.source||'').trim(),photo:photo,createdAt:ex&&ex.createdAt||Date.now()});
     const wasNew=!sh.id,log=sh.addToLog;
     closeSheet();
     render();
