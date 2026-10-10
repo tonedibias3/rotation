@@ -254,7 +254,7 @@ svg{width:18px;height:18px;flex:none}
 .hero.fit img{object-fit:cover;mix-blend-mode:normal}
 .fit-l{display:grid;gap:10px}.fit-t{display:block;width:96px;height:120px;border-radius:14px;overflow:hidden;background:var(--bg);box-shadow:var(--shadow)}.fit-t img{display:block;width:100%;height:100%;object-fit:cover}
 .fit-p{border-radius:20px;overflow:hidden;margin-bottom:16px;background:var(--bg);box-shadow:var(--shadow)}
-.fit-p img{display:block;width:100%;max-height:52vh;object-fit:cover}
+.fit-p{display:grid;place-items:center}.fit-p img{display:block;width:auto;max-width:100%;height:auto;max-height:78vh;object-fit:contain}
 .grid.dv .cam{display:none}
 .sc-row{display:flex;align-items:center;gap:12px;margin-bottom:6px}
 .sc-row .ri-t{display:grid;gap:2px;min-width:0}
@@ -284,7 +284,7 @@ svg{width:18px;height:18px;flex:none}
 .tray-done{flex:none;min-height:42px;padding:8px 18px}
 .look{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .look-b{flex:1;min-width:0;display:grid;gap:8px;text-align:left;padding:10px;border-radius:16px;border:1px solid var(--line);background:var(--bg);cursor:pointer}
-.look-t{display:flex;gap:6px;align-items:center}
+.look-t{display:flex;gap:6px;align-items:center}.look-p{flex:none;width:64px;height:84px;border-radius:12px;overflow:hidden;background:var(--bg);box-shadow:var(--shadow)}.look-p img{display:block;width:100%;height:100%;object-fit:cover;object-position:top}.look-side{display:grid;gap:6px;justify-items:center}
 .look-t b{font:500 11px var(--f-mono);color:var(--ink2)}
 .look-n{font:600 13px/1.3 var(--f-body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .look-n i{font:500 10px var(--f-mono);font-style:normal;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);margin-left:8px}
@@ -942,9 +942,9 @@ const sameSet=(a,b)=>a.length===b.length&&a.every(x=>b.indexOf(x)>=0);
 function saveLook(){
   const t=target(false),ids=t.items.filter(id=>M.has(id));
   if(!ids.length){toast('Pick some pieces first');return}
-  if(S.looks.some(l=>sameSet(l.items,ids))){toast('That look is already saved');return}
-  S.looks.unshift({id:newId(),items:ids.slice(),tag:t.tag||'',createdAt:Date.now()});
-  persistLocal('looks');toast('Saved to your looks');
+  {const ex=S.looks.find(l=>sameSet(l.items,ids));if(ex){if(t.photo&&!ex.photo){ex.photo=t.photo;persistLocal('looks');toast('Photo added to that saved look')}else toast('That look is already saved');return}}
+  S.looks.unshift({id:newId(),items:ids.slice(),tag:t.tag||'',photo:t.photo||'',createdAt:Date.now()});
+  persistLocal('looks');toast(t.photo?'Saved to your looks with the photo':'Saved to your looks');
 }
 function lookLabel(l){return l.items.map(id=>M.get(id)).filter(Boolean).map(dn).slice(0,3).join(' · ')}
 function openLooks(){renderLooks(true)}
@@ -956,8 +956,9 @@ function renderLooks(open){
   h.innerHTML='<div class="crop-s"><div class="crop find" role="dialog" aria-modal="true" aria-label="Saved looks"><div class="sheet-h" style="margin-bottom:10px"><h2 style="margin:0">Saved looks</h2><button type="button" class="x" data-act="looks-close" aria-label="Close">'+ico(P.x)+'</button></div>'
    +(sorted.length?'<p class="hint" style="margin-top:0">Tap a look to load it into '+(S.mode==='plan'?'Option '+'ABCD'[S.opt]:'this outfit')+'. You can change it after.</p>'+sorted.map(x=>{
       const tg=TAGS.find(t=>t.id===x.l.tag);
-      return '<div class="look"><button type="button" class="look-b" data-act="look-use" data-id="'+esc(x.l.id)+'"><span class="look-t">'+x.its.slice(0,5).map(i=>'<span class="thumb">'+tileInner(i)+'</span>').join('')+(x.its.length>5?'<b>+'+(x.its.length-5)+'</b>':'')+'</span><span class="look-n">'+esc(lookLabel(x.l))+(tg?'<i>'+esc(tg.label)+'</i>':'')+'</span></button><button type="button" class="x" data-act="look-del" data-id="'+esc(x.l.id)+'" aria-label="Delete saved look">'+ico(P.x)+'</button></div>'}).join('')
+      return '<div class="look"><button type="button" class="look-b" data-act="look-use" data-id="'+esc(x.l.id)+'"><span class="look-t">'+(x.l.photo?'<span class="look-p"><img src="'+esc(photoSrc(x.l.photo))+'" alt="Photo of this look"></span>':'')+x.its.slice(0,5).map(i=>'<span class="thumb">'+tileInner(i)+'</span>').join('')+(x.its.length>5?'<b>+'+(x.its.length-5)+'</b>':'')+'</span><span class="look-n">'+esc(lookLabel(x.l))+(tg?'<i>'+esc(tg.label)+'</i>':'')+'</span></button><div class="look-side"><button type="button" class="chip" data-act="look-photo" data-id="'+esc(x.l.id)+'">'+(x.l.photo?'Change photo':'Add photo')+'</button><button type="button" class="x" data-act="look-del" data-id="'+esc(x.l.id)+'" aria-label="Delete saved look">'+ico(P.x)+'</button></div></div>'}).join('')
     :'<p class="hint">Nothing saved yet. Build an outfit and tap Save look. It keeps the pieces so you can load it on another day, no naming needed.</p>')
+   +'<input class="vh" id="f-look" type="file" accept="image/*">'
    +'</div></div>';
 }
 function useLook(id){
@@ -1141,9 +1142,17 @@ async function onFit(file){
     openFitCrop(src,d,S.fo||0)
   }catch(e){toast('Could not read that photo')}
 }
-function openFitCrop(img,d,fo){
+async function onLookFile(file){
+  const id=S.lk;if(!id)return;
+  try{
+    let src;
+    try{src=await createImageBitmap(file,{imageOrientation:'from-image'})}catch(e){src=await loadImg(file)}
+    closeLooks();openFitCrop(src,null,0,id)
+  }catch(e){toast('Could not read that photo')}
+}
+function openFitCrop(img,d,fo,look){
   openCrop(img);if(!CR)return;
-  CR.fit={d:d,fo:fo};
+  CR.fit={d:d,fo:fo,look:look||''};
   const r=imgRect();CR.cb={x:r.x0,y:r.y0,w:r.x1-r.x0,h:r.y1-r.y0};fitBox();
   const z=$('#crop-z');if(z)z.value=0;
 }
@@ -1161,6 +1170,7 @@ async function fitDone(){
   let photo;
   if(ASSETS){const blob=await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('b')),'image/jpeg',.82));photo=(await ASSETS.upload(blob,{type:'image/jpeg'})).id}
   else photo=c.toDataURL('image/jpeg',.8);
+  if(f.look){const lk=S.looks.find(x=>x.id===f.look);if(lk){lk.photo=photo;persistLocal('looks')}closeCrop();renderLooks(true);return}
   const dd=S.days[f.d]||(S.days[f.d]=normDay({}));
   const o=f.fo?dd.more[f.fo-1]:dd;
   if(!o){toast('Could not save that photo');return}
@@ -1809,6 +1819,7 @@ document.addEventListener('click',e=>{
     case 'look-save':saveLook();break;
     case 'looks-open':openLooks();break;
     case 'looks-close':closeLooks();break;
+    case 'look-photo':S.lk=id;{const f=$('#f-look');if(f)f.click()}break;
     case 'look-use':useLook(id);break;
     case 'look-del':delLook(id);break;
     case 'done':finishDay();break;
@@ -1893,6 +1904,7 @@ document.addEventListener('input',e=>{
 document.addEventListener('change',e=>{
   if(e.target.id==='f-file'){const f=e.target.files&&e.target.files[0];if(f)onFile(f,'f');e.target.value=''}
   if(e.target.id==='f-file2'){const f=e.target.files&&e.target.files[0];if(f)onFile(f,'b');e.target.value=''}
+  if(e.target.id==='f-look'){const f=e.target.files&&e.target.files[0];if(f)onLookFile(f);e.target.value=''}
   if(e.target.id==='f-fit'||e.target.id==='f-fitl'){const f=e.target.files&&e.target.files[0];if(f)onFit(f);e.target.value=''}
   if(e.target.id==='f-import'){const f=e.target.files&&e.target.files[0];if(f)importData(f);e.target.value=''}
 });
