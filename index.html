@@ -1330,7 +1330,7 @@ async function doShare(){
   if(!SH||!SH.blob)return;
   const file=new File([SH.blob],shareName(),{type:'image/png'});
   try{
-    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'My fit on Rotation'});return}
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'What\'s in my #rotationapp',text:'What\'s in my #rotationapp'});return}
   }catch(e){if(e&&e.name==='AbortError')return}
   saveShare();toast('Sharing is not available here. Image saved instead.');
 }
