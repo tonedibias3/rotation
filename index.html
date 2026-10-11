@@ -451,11 +451,11 @@ function normDay(r){
   const pl=Array.isArray(r.plans)?r.plans:[];
   const mk=p=>({cover:(p&&typeof p.cover==='string')?p.cover:'',items:Array.isArray(p&&p.items)?p.items.slice():[],tag:(p&&p.tag)||'',when:nw(p&&p.when),locked:!!(p&&p.locked),photo:(p&&typeof p.photo==='string')?p.photo:'',rating:(p&&typeof p.rating==='number'&&p.rating>0&&p.rating<=5)?Math.round(p.rating*2)/2:0});
   const mo=Array.isArray(r.more)?r.more.map(mk).filter(o=>o.items.length||o.photo):[];
-  return {cover:typeof r.cover==='string'?r.cover:'',items:Array.isArray(r.items)?r.items.slice():[],tag:r.tag||'',rating:(typeof r.rating==='number'&&r.rating>0&&r.rating<=5)?Math.round(r.rating*2)/2:0,photo:typeof r.photo==='string'?r.photo:'',scent:typeof r.scent==='string'?r.scent:'',when:nw(r.when),plans:[mk(pl[0]),mk(pl[1]),mk(pl[2]),mk(pl[3])],more:mo};
+  return {cover:typeof r.cover==='string'?r.cover:'',items:Array.isArray(r.items)?r.items.slice():[],tag:r.tag||'',rating:(typeof r.rating==='number'&&r.rating>0&&r.rating<=5)?Math.round(r.rating*2)/2:0,photo:typeof r.photo==='string'?r.photo:'',scent:typeof r.scent==='string'?r.scent:'',shoe:typeof r.shoe==='string'?r.shoe:'',shoePhoto:typeof r.shoePhoto==='string'?r.shoePhoto:'',when:nw(r.when),plans:[mk(pl[0]),mk(pl[1]),mk(pl[2]),mk(pl[3])],more:mo};
 }
 const outDoc=p=>({cover:p.cover||'',items:p.items.slice(),tag:p.tag||'',when:p.when||'',photo:p.photo||'',rating:p.rating||0,locked:!!p.locked});
-const dayDoc=d=>({cover:d.cover||'',items:d.items.slice(),tag:d.tag||'',photo:d.photo||'',scent:d.scent||'',rating:d.rating||0,when:d.when||'',plans:d.plans.map(outDoc),more:d.more.filter(p=>p.items.length||p.photo).map(outDoc)});
-const dayEmpty=d=>!d||(!d.items.length&&!d.photo&&!d.scent&&!d.plans.some(p=>p.items.length)&&!d.more.some(p=>p.items.length));
+const dayDoc=d=>({cover:d.cover||'',items:d.items.slice(),tag:d.tag||'',photo:d.photo||'',scent:d.scent||'',shoe:d.shoe||'',shoePhoto:d.shoePhoto||'',rating:d.rating||0,when:d.when||'',plans:d.plans.map(outDoc),more:d.more.filter(p=>p.items.length||p.photo).map(outDoc)});
+const dayEmpty=d=>!d||(!d.items.length&&!d.photo&&!d.scent&&!d.shoe&&!d.shoePhoto&&!d.plans.some(p=>p.items.length)&&!d.more.some(p=>p.items.length));
 const nw=v=>tlist(v).filter(w=>WR[w]!==undefined).sort((x,y)=>WR[x]-WR[y]).join(',');
 const WR={morning:0,afternoon:1,evening:2};
 const tlist=v=>v?String(v).split(',').filter(Boolean):[];
@@ -647,6 +647,14 @@ function setSave(t){
 }
 
 /* ---------- derived ---------- */
+/* the shoe of the day: the one picked for the day, else the first shoe in the earliest outfit */
+function shoeOf(dd){
+  if(!dd)return null;
+  if(dd.shoe&&M.has(dd.shoe))return M.get(dd.shoe);
+  const os=outfitsOf(dd);
+  for(let i=0;i<os.length;i++){const id=os[i].items.find(x=>M.has(x)&&M.get(x).category==='shoes');if(id)return M.get(id)}
+  return null;
+}
 function stats(){
   const wears={},last={};
   const keys=Object.keys(S.days).sort();
@@ -654,6 +662,7 @@ function stats(){
   keys.forEach(k=>{
     const d=S.days[k];
     if(d&&d.scent){wears[d.scent]=(wears[d.scent]||0)+1;if(!last[d.scent]||k>last[d.scent])last[d.scent]=k}
+    if(d&&d.shoe&&M.has(d.shoe)&&!outfitsOf(d).some(o=>o.items.indexOf(d.shoe)>=0)){wears[d.shoe]=(wears[d.shoe]||0)+1;if(!last[d.shoe]||k>last[d.shoe])last[d.shoe]=k}
     outfitsOf(d).forEach(o=>{any=true;new Set(o.items).forEach(id=>{wears[id]=(wears[id]||0)+1;if(!last[id]||k>last[id])last[id]=k})});
   });
   return {wears:wears,last:last,hasLogs:any};
@@ -791,7 +800,7 @@ function viewLog(){
       return la===lb?a.name.localeCompare(b.name):(la<lb?1:-1);
     });
     const n=isSc?(dd&&dd.scent?1:0):list.filter(i=>on.has(i.id)).length;
-    return '<section class="grp"><div class="grp-h"><h2>'+(isSc?'Scent of the day':c.label)+'</h2><span class="sub" id="cnt-'+c.id+'">'+(n?n+' selected · ':'')+list.length+'</span></div><div class="rail">'
+    return '<section class="grp"><div class="grp-h"><h2>'+(isSc?'Scent of the day':c.label)+'</h2><span class="sub" id="cnt-'+c.id+'">'+(n?n+' selected · ':'')+list.length+'</span>'+(c.id==='shoes'?'<button type="button" class="chip" data-act="shoe-log" aria-pressed="'+(!!dd&&!!dd.shoe)+'">Shoe of the day</button>':'')+'</div><div class="rail">'
       +'<button type="button" class="card" data-act="new-item" data-cat="'+c.id+'" aria-label="Add a new '+c.label.toLowerCase()+' piece"><span class="tile add">'+ico(P.plus,1.6)+'</span><span class="brand">New</span><span class="name">Add to '+c.label.toLowerCase()+'</span></button>'
       +list.map(i=>isSc?card(i,'data-act="scent" data-id="'+esc(i.id)+'" aria-pressed="'+(!!dd&&dd.scent===i.id)+'"'):card(i,'data-act="pick" data-id="'+esc(i.id)+'" aria-pressed="'+on.has(i.id)+'"')).join('')
       +'</div></section>';
@@ -1020,7 +1029,7 @@ function viewCalendar(){
     if(!ids.length&&dd&&!outfitsOf(dd).length){const sp=dd.plans.map((x,i)=>[x,i]).sort((a,b)=>wr(a[0])-wr(b[0])||a[1]-b[1]).map(a=>a[0]),p=sp.find(p=>p.locked&&p.items.some(id=>M.has(id)))||sp.find(p=>p.items.some(id=>M.has(id)));if(p){planned=true;pl=p;lockedP=!!p.locked;ids=p.items.filter(id=>M.has(id))}}
     const outs=planned?[]:outfitsOf(dd).map(o=>o.items.filter(id=>M.has(id))).filter(a=>a.length);
     const picks=ids.map(id=>M.get(id)).sort((a,b)=>(a.category==='shoes'?0:1)-(b.category==='shoes'?0:1));
-    const sOnly=(!ids.length&&!planned&&dd&&dd.scent&&M.get(dd.scent))||null,hero=coverOf(pl||outfitsOf(dd)[0])||picks[0]||sOnly||undefined,fo=(!planned&&dd)?outfitsOf(dd).find(o=>o.photo):null,fit=!!fo;
+    const sOnly=(!ids.length&&!planned&&dd&&((dd.shoe&&M.get(dd.shoe))||(dd.scent&&M.get(dd.scent))))||null,hero=coverOf(pl||outfitsOf(dd)[0])||picks[0]||sOnly||undefined,fo=(!planned&&dd)?outfitsOf(dd).find(o=>o.photo):null,fit=!!fo;
     const bars=(!planned&&dd&&ids.length)?outfitsOf(dd).map(o=>tagBar(o.tag)).join(''):'';
     const lbl=fmt(ds,{weekday:'long',month:'long',day:'numeric'})+(planned?(lockedP?', locked in':', planned'):outs.length>1?', '+outs.length+' outfits logged':ids.length?', '+ids.length+' pieces logged':'');
     cells.push('<button type="button" class="cell'+(([0,6].indexOf(new Date(y,m-1,d).getDay())>=0)?' wk':'')+(ds===t?' today':'')+(planned?' planned':'')+(lockedP?' locked':'')+'" data-act="open-day" data-d="'+ds+'" aria-label="'+lbl+'"><span class="n">'+d+'</span><span class="hero'+(fit?' fit':hero?'':' none')+'">'+(sOnly&&!sOnly.photo?'<span class="sn">'+esc(dn(sOnly))+'</span>':fit?'<img src="'+esc(photoSrc(fo.photo))+'" alt="" decoding="async">'+(outs.length>1?'<b>'+outs.length+' fits</b>':''):hero?tileInner(hero)+(sOnly?'':outs.length>1?'<b>'+outs.length+' fits</b>':ids.length>1?'<b>+'+(ids.length-1)+'</b>':''):'')+'</span><span class="bars">'+(bars||'<span class="bar"></span>')+'</span></button>');
@@ -1035,6 +1044,7 @@ function viewStats(){
   const keys=Object.keys(S.days).filter(k=>k.indexOf(S.month)===0&&outfitsOf(S.days[k]).some(o=>o.items.some(id=>M.has(id))));
   const wm={},tcnt={};
   keys.forEach(k=>{outfitsOf(S.days[k]).forEach(d=>{tlist(d.tag).forEach(tg=>{tcnt[tg]=(tcnt[tg]||0)+1});new Set(d.items).forEach(id=>{if(M.has(id))wm[id]=(wm[id]||0)+1})})});
+  Object.keys(S.days).forEach(k=>{const d=S.days[k];if(k.indexOf(S.month)===0&&d&&d.shoe&&M.has(d.shoe)&&!outfitsOf(d).some(o=>o.items.indexOf(d.shoe)>=0))wm[d.shoe]=(wm[d.shoe]||0)+1});
   const top=Object.keys(wm).map(id=>[id,wm[id]]).sort((a,b)=>b[1]-a[1]).slice(0,3);
   const rest=st.hasLogs?S.items.filter(i=>i.category==='shoes').map(i=>({i:i,d:st.last[i.id]?daysSince(st.last[i.id]):null})).filter(r=>r.d===null||r.d>=21).sort((a,b)=>(a.d===null)-(b.d===null)||(b.d||0)-(a.d||0)).slice(0,4):[];
   const row=(i,right)=>'<div class="ri"><span class="thumb lg">'+tileInner(i)+'</span><span class="ri-t"><b>'+esc(dn(i))+'</b><i>'+esc(i.brand||(CATS[catIdx(i.category)]||CATS[0]).label)+'</i></span><span class="mono">'+right+'</span></div>';
@@ -1107,6 +1117,8 @@ function renderDay(){
   const sc=dd.scent&&M.get(dd.scent)||null;
   let body='',total=0;
   body+='<h3 class="dv-h" style="margin-top:0">Scent of the day</h3>'+(sc?'<div class="sc-row"><span class="thumb lg">'+tileInner(sc)+'</span><span class="ri-t"><b>'+esc(dn(sc))+'</b><i>'+esc(sc.brand||'')+'</i></span></div><div class="btn-row" style="margin:8px 0 2px"><button type="button" class="btn ghost" data-act="share-scent-open">Share scent</button><button type="button" class="btn ghost" data-act="scent-pick">Change</button><button type="button" class="btn danger" data-act="scent-clear">Remove</button></div>':'<div class="btn-row" style="margin:0 0 2px"><button type="button" class="btn ghost" data-act="scent-pick">Add a scent</button></div>');
+  {const sh=shoeOf(dd);
+   body+='<h3 class="dv-h">Shoe of the day</h3>'+(sh?'<div class="sc-row"><span class="thumb lg">'+(dd.shoePhoto?'<img src="'+esc(photoSrc(dd.shoePhoto))+'" alt="" decoding="async">':tileInner(sh))+'</span><span class="ri-t"><b>'+esc(dn(sh))+'</b><i>'+esc(sh.brand||'')+'</i></span></div><div class="btn-row" style="margin:8px 0 2px"><button type="button" class="btn ghost" data-act="share-shoe-open">Share shoe</button><button type="button" class="btn ghost" data-act="shoe-day-pick">Change</button>'+(dd.shoe?'<button type="button" class="btn danger" data-act="shoe-clear" data-d="'+d+'">Remove</button>':'')+'</div><div class="btn-row" style="margin:8px 0 2px"><button type="button" class="btn ghost" data-act="shoe-photo">'+(dd.shoePhoto?'Change on-feet photo':'Add on-feet photo')+'</button>'+(dd.shoePhoto?'<button type="button" class="btn danger" data-act="shoe-photo-clear">Remove photo</button>':'')+'</div><input class="vh" id="f-shoe" type="file" accept="image/*">':'<div class="btn-row" style="margin:0 0 2px"><button type="button" class="btn ghost" data-act="shoe-day-pick">Add a shoe</button></div>');}
   shown.forEach((x,xi)=>{
     total+=x.l.length;
     const tl=tagLbl(x.o.tag);
@@ -1126,7 +1138,7 @@ function renderDay(){
   });
   const tag0=(!multi&&shown[0]&&tagLbl(shown[0].o.tag))||'';
   host.innerHTML='<div class="scrim" data-act="day-bg"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="dv-t" tabindex="-1">'
-   +'<div class="sheet-h"><div><h2 id="dv-t">'+esc(fmt(d,{weekday:'long',month:'short',day:'numeric'}))+'</h2><div class="sub" style="margin-top:4px">'+(total?total+' piece'+(total===1?'':'s'):(sc?'Scent only':''))+(multi?' · '+shown.length+' outfits':'')+(tag0?(total?' · ':'')+tag0:'')+'</div></div><button type="button" class="x" data-act="day-close" aria-label="Close">'+ico(P.x)+'</button></div>'
+   +'<div class="sheet-h"><div><h2 id="dv-t">'+esc(fmt(d,{weekday:'long',month:'short',day:'numeric'}))+'</h2><div class="sub" style="margin-top:4px">'+(total?total+' piece'+(total===1?'':'s'):(sc?'Scent only':shoeOf(dd)?'Shoe only':''))+(multi?' · '+shown.length+' outfits':'')+(tag0?(total?' · ':'')+tag0:'')+'</div></div><button type="button" class="x" data-act="day-close" aria-label="Close">'+ico(P.x)+'</button></div>'
    +body
    +'<div class="btn-row" style="margin-top:16px"><button type="button" class="btn primary" data-act="day-edit" data-o="0">Edit this day</button></div>'
    +'<input class="vh" id="f-fit" type="file" accept="image/*">'
@@ -1172,6 +1184,7 @@ async function fitDone(){
   else photo=c.toDataURL('image/jpeg',.8);
   if(f.look){const lk=S.looks.find(x=>x.id===f.look);if(lk){lk.photo=photo;persistLocal('looks')}closeCrop();renderLooks(true);return}
   const dd=S.days[f.d]||(S.days[f.d]=normDay({}));
+  if(f.shoe){dd.shoePhoto=photo;scheduleDay(f.d);closeCrop();if(S.dv===f.d)renderDay();refreshCal();return}
   const o=f.fo?dd.more[f.fo-1]:dd;
   if(!o){toast('Could not save that photo');return}
   o.photo=photo;scheduleDay(f.d);closeCrop();
@@ -1190,6 +1203,28 @@ function openScentPick(){
    +(list.length?'<p class="hint" style="margin:0 0 10px">Tap one to use it for '+esc(fmt(S.dv,{month:'short',day:'numeric'}))+'.</p><div class="grid dv">'+list.map(i=>card(i,'data-act="scent-set" data-id="'+esc(i.id)+'"')).join('')+'</div>':'<p class="hint">You have no scents yet. Add one with a photo, then it is ready to pick.</p>')
    +'<div class="btn-row" style="margin-top:14px"><button type="button" class="btn primary" data-act="scent-new">Add a new scent</button></div></div></div>';
 }
+function openShoePick(d){
+  S.pd=d;
+  const h=$('#looks'),list=S.items.filter(i=>i.category==='shoes'),dd=S.days[d];
+  h.innerHTML='<div class="crop-s"><div class="crop find" role="dialog" aria-modal="true" aria-label="Shoe of the day"><div class="sheet-h" style="margin-bottom:10px"><h2 style="margin:0">Shoe of the day</h2><button type="button" class="x" data-act="looks-close" aria-label="Close">'+ico(P.x)+'</button></div>'
+   +(list.length?'<p class="hint" style="margin:0 0 10px">Tap one to use it for '+esc(fmt(d,{month:'short',day:'numeric'}))+'.</p><div class="grid dv">'+list.map(i=>card(i,'data-act="shoe-set" data-id="'+esc(i.id)+'"')).join('')+'</div>':'<p class="hint">You have no shoes yet. Add a pair with a photo, then it is ready to pick.</p>')
+   +'<div class="btn-row" style="margin-top:14px"><button type="button" class="btn primary" data-act="shoe-new">Add a new pair</button>'+(dd&&dd.shoe?'<button type="button" class="btn danger" data-act="shoe-clear" data-d="'+d+'">Remove</button>':'')+'</div></div></div>';
+}
+function setDayShoe(d,id){
+  const dd=S.days[d]||(S.days[d]=normDay({}));
+  dd.shoe=id;scheduleDay(d);
+  if(S.dv===d&&document.querySelector('#dv-t'))renderDay();
+  if(S.tab==='log'){const y=window.scrollY;render();window.scrollTo(0,y)}
+  refreshCal();
+}
+async function onShoeFile(file){
+  const d=S.fd||S.dv;if(!d)return;
+  try{
+    let src;
+    try{src=await createImageBitmap(file,{imageOrientation:'from-image'})}catch(e){src=await loadImg(file)}
+    openFitCrop(src,d,0,'');if(CR&&CR.fit)CR.fit.shoe=true;
+  }catch(e){toast('Could not read that photo')}
+}
 function setDayScent(d,id){
   const dd=S.days[d]||(S.days[d]=normDay({}));
   dd.scent=id;scheduleDay(d);
@@ -1203,9 +1238,9 @@ const SIZES={sq:[1080,1080],st:[1080,1920]};
 const ACC={cobalt:'#2744E8',heritage:'#D4001F',peony:'#2E9E6B',graphite:'#16181C',ember:'#D9480F'};
 function openShare(d,k,mode){
   const dd=S.days[d];if(!dd)return;
-  const o=mode==='scent'?dd:(k?dd.more[k-1]:dd);if(!o)return;
-  if(mode==='scent'){if(!(dd.scent&&M.has(dd.scent)))return}else if(!o.items.length)return;
-  SH={mode:mode||'fit',sel:new Set(o.items.filter(id=>M.has(id))),scent:false,hasScent:!!(dd.scent&&M.has(dd.scent))&&mode!=='scent'&&o.items.indexOf(dd.scent)<0,d:d,k:k,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:mode!=='scent'&&!!o.photo,url:'',blob:null,seq:0};
+  const one=mode==='scent'||mode==='shoe',o=one?dd:(k?dd.more[k-1]:dd);if(!o)return;
+  if(mode==='scent'){if(!(dd.scent&&M.has(dd.scent)))return}else if(mode==='shoe'){if(!shoeOf(dd))return}else if(!o.items.length)return;
+  SH={mode:mode||'fit',sel:new Set(o.items.filter(id=>M.has(id))),scent:false,hasScent:!!(dd.scent&&M.has(dd.scent))&&!one&&o.items.indexOf(dd.scent)<0,hasFeet:mode==='shoe'&&!!dd.shoePhoto,feet:true,d:d,k:k,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:!one&&!!o.photo,url:'',blob:null,seq:0};
   renderShare();buildShare();
 }
 function closeShare(){
@@ -1231,6 +1266,7 @@ function renderShare(){
    +shOpt('side','Outfit photo',[['l','Left'],['r','Right']],!(SH.size==='sq'&&SH.hasPhoto))
    +'</div>'
    +(SH.mode==='fit'?'<div class="sh-opt" style="margin-bottom:8px"><span class="cap">Pieces to show</span><div class="chips wrapc" id="sh-pcs">'+Array.from(S.days[SH.d]&&(SH.k?S.days[SH.d].more[SH.k-1]:S.days[SH.d]).items||[]).filter(id=>M.has(id)).map(id=>'<button type="button" class="chip" data-act="share-piece" data-id="'+esc(id)+'" aria-pressed="'+SH.sel.has(id)+'">'+esc(M.get(id).nickname||M.get(id).name)+'</button>').join('')+'</div></div>':'')
+   +(SH.hasFeet?'<div class="set-row"><span><b>On-feet photo</b><i>Use your photo instead of the closet picture.</i></span><button type="button" class="sw-t" data-act="share-feet" aria-pressed="'+SH.feet+'" aria-label="On-feet photo"></button></div>':'')
    +(SH.hasScent?'<div class="set-row"><span><b>Include scent</b><i>Adds today\'s scent as another tile.</i></span><button type="button" class="sw-t" data-act="share-scent" aria-pressed="'+SH.scent+'" aria-label="Include scent"></button></div>':'')
    +'<div class="set-row"><span><b>Show names</b><i>Turn off for just the pictures.</i></span><button type="button" class="sw-t" data-act="share-names" aria-pressed="'+SH.names+'" aria-label="Show names"></button></div>'
    +(SH.names?'<div class="set-row"><span><b>Show brands</b><i>Prices and where you bought it are never shown.</i></span><button type="button" class="sw-t" id="sh-br" data-act="share-brands" aria-pressed="'+SH.brands+'" aria-label="Show brands"></button></div>':'')
@@ -1246,25 +1282,25 @@ const SHT={
 };
 async function drawShare(){
   const sz=SH.size,brands=SH.brands,T=SHT[SH.theme]||SHT.light;
-  const dd=S.days[SH.d],o=SH.mode==='scent'?dd:(SH.k?dd.more[SH.k-1]:dd);
+  const dd=S.days[SH.d],o=(SH.mode==='scent'||SH.mode==='shoe')?dd:(SH.k?dd.more[SH.k-1]:dd);
   const W=SIZES[sz][0],H=SIZES[sz][1],c=document.createElement('canvas');c.width=W;c.height=H;
   const x=c.getContext('2d');
   try{await document.fonts.ready}catch(e){}
   const INK=T.ink,INK2=T.ink2,WELL=T.well,BG=T.bg,ACCENT=T.acc[SET.accent]||T.acc.cobalt;
   const F=(w,px,fam)=>w+' '+px+'px '+(fam||'"Instrument Sans",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif');
   const DISP='"Archivo","Helvetica Neue",Arial,sans-serif';
-  const sc=dd.scent&&M.get(dd.scent),scentMode=SH.mode==='scent';
+  const shoeMode=SH.mode==='shoe',sc=shoeMode?shoeOf(dd):(dd.scent&&M.get(dd.scent)),scentMode=SH.mode==='scent'||shoeMode;
   const its=scentMode?(sc?[sc]:[]):o.items.filter(id=>SH.sel.has(id)).map(id=>M.get(id)).filter(Boolean).sort((a,b)=>catIdx(a.category)-catIdx(b.category));
   if(!scentMode&&SH.scent&&sc)its.push(sc);
   const imgs=await Promise.all(its.map(i=>loadSrc(photoSrc(i.photo))));
-  const fit=scentMode?null:await loadSrc(o.photo?photoSrc(o.photo):'');
+  const fit=scentMode?null:await loadSrc(o.photo?photoSrc(o.photo):''),feetImg=(shoeMode&&SH.feet&&dd.shoePhoto)?await loadSrc(photoSrc(dd.shoePhoto)):null;
   x.fillStyle=BG;x.fillRect(0,0,W,H);
   const pad=72;
   /* header: the date is always top left */
   x.textBaseline='alphabetic';x.textAlign='left';x.fillStyle=INK;x.font=F(700,40);
   x.fillText(fmt(SH.d,{weekday:'long',month:'long',day:'numeric'}).toUpperCase(),pad,pad+40);
   const tg={label:tagLbl(o.tag)};
-  const meta=scentMode?'Scent of the day':[tg&&tg.label,o.when&&whenLbl(o.when),o.rating?'\u2605 '+o.rating.toFixed(1):''].filter(Boolean).join('  \u00b7  ');
+  const meta=scentMode?(shoeMode?'Shoe of the day':'Scent of the day'):[tg&&tg.label,o.when&&whenLbl(o.when),o.rating?'\u2605 '+o.rating.toFixed(1):''].filter(Boolean).join('  \u00b7  ');
   if(meta){x.fillStyle=INK2;x.font=F(500,30);x.fillText(meta,pad,pad+88)}
   x.fillStyle=ACCENT;rr(x,pad,pad+(meta?118:70),72,8,4);x.fill();
   /* the Rotation watermark: top right, bottom left or bottom right */
@@ -1284,7 +1320,7 @@ async function drawShare(){
       const tx=(r===rows-1?rowOx:ox)+cc*(t+gap),ty=oy+r*(t+lab+gap);
       x.save();rr(x,tx,ty,t,t,Math.round(t*.14));x.clip();
       x.fillStyle=WELL;x.fillRect(tx,ty,t,t);
-      if(imgs[i]&&scentMode){const im=imgs[i],k=Math.max(t/im.width,t/im.height),w=im.width*k,h=im.height*k;x.drawImage(im,tx+(t-w)/2,ty+(t-h)/2,w,h)}
+      if(imgs[i]&&scentMode&&!shoeMode){const im=imgs[i],k=Math.max(t/im.width,t/im.height),w=im.width*k,h=im.height*k;x.drawImage(im,tx+(t-w)/2,ty+(t-h)/2,w,h)}
       else if(imgs[i]){const im=imgs[i],p=t*.07,k=Math.min((t-2*p)/im.width,(t-2*p)/im.height),w=im.width*k,h=im.height*k;x.globalCompositeOperation='multiply';x.drawImage(im,tx+(t-w)/2,ty+(t-h)/2,w,h);x.globalCompositeOperation='source-over'}
       else{x.fillStyle=T.ph;x.font=F(700,Math.round(t*.4),DISP);x.textAlign='center';x.fillText((it.name||'?').charAt(0).toUpperCase(),tx+t/2,ty+t/2+t*.14);x.textAlign='left'}
       x.restore();
@@ -1295,8 +1331,17 @@ async function drawShare(){
       x.textAlign='left';
     });
   };
-  const cover=(ax,ay,aw,ah)=>{x.save();rr(x,ax,ay,aw,ah,36);x.clip();const k=Math.max(aw/fit.width,ah/fit.height),w=fit.width*k,h=fit.height*k;x.drawImage(fit,ax+(aw-w)/2,ay+(ah-h)/2,w,h);x.restore()};
-  if(!fit){tiles(pad,top,cw,ch,its.length<=2?1:its.length<=4?2:its.length<=9?3:4)}
+  const cover=(ax,ay,aw,ah,im)=>{im=im||fit;x.save();rr(x,ax,ay,aw,ah,36);x.clip();const k=Math.max(aw/im.width,ah/im.height),w=im.width*k,h=im.height*k;x.drawImage(im,ax+(aw-w)/2,ay+(ah-h)/2,w,h);x.restore()};
+  if(feetImg&&its[0]){
+    const it=its[0],lab=SH.names?(brands&&it.brand?120:80):0;
+    cover(pad,top,cw,ch-lab,feetImg);
+    if(SH.names){
+      x.textAlign='center';let ly=top+ch-lab+44;
+      if(brands&&it.brand){x.fillStyle=INK2;x.font=F(600,28);x.fillText(fitText(x,it.brand.toUpperCase(),cw),W/2,ly);ly+=44}
+      x.fillStyle=INK;x.font=F(700,40);x.fillText(fitText(x,it.nickname||it.name,cw),W/2,ly);x.textAlign='left';
+    }
+  }
+  else if(!fit){tiles(pad,top,cw,ch,its.length<=2?1:its.length<=4?2:its.length<=9?3:4)}
   else if(!its.length){cover(pad,top,cw,ch)}
   else if(sz==='st'){
     const ph=Math.min(860,Math.round(ch*.56));
@@ -1325,7 +1370,7 @@ async function buildShare(){
     if(go)go.disabled=false;if(sv)sv.disabled=false;
   }catch(e){const w=$('#sh-wait');if(w){w.hidden=false;w.textContent='Could not build the image. Try again.'}}
 }
-const shareName=()=>'rotation-'+(SH.mode==='scent'?'scent-':'fit-')+SH.d+(SH.k&&SH.mode!=='scent'?'-'+(SH.k+1):'')+'.png';
+const shareName=()=>'rotation-'+(SH.mode==='scent'?'scent-':SH.mode==='shoe'?'shoe-':'fit-')+SH.d+(SH.k&&SH.mode==='fit'?'-'+(SH.k+1):'')+'.png';
 async function doShare(){
   if(!SH||!SH.blob)return;
   const file=new File([SH.blob],shareName(),{type:'image/png'});
@@ -1432,7 +1477,7 @@ function renderArrange(){
 function openItem(id,preset){
   const it=id?M.get(id):null;
   if(id&&!it)return;
-  S.slot='';S.sheet={scentDay:(preset&&preset.scentDay)||'',id:id||null,confirm:false,busy:false,addToLog:!!(preset&&preset.log),draft:{
+  S.slot='';S.sheet={scentDay:(preset&&preset.scentDay)||'',shoeDay:(preset&&preset.shoeDay)||'',id:id||null,confirm:false,busy:false,addToLog:!!(preset&&preset.log),draft:{
     name:it?it.name:'',brand:it?it.brand||'':'',nickname:it?it.nickname||'':'',
     category:it?it.category:(preset&&preset.cat)||(S.tab==='closet'&&S.filter!=='all'?S.filter:'shoes'),
     color:it?it.color||'':'',colors:it?(Array.isArray(it.colors)&&it.colors.length?it.colors.slice():(it.color?[it.color]:[])):[],kinds:it&&Array.isArray(it.kinds)?it.kinds.slice():[],price:(it&&typeof it.price==='number')?String(it.price):'',source:it?it.source||'':'',photo:it?it.photo||'':'',photoBlob:null,photoData:'',previewUrl:'',photo2:it?it.photo2||'':'',photoBlob2:null,photoData2:'',previewUrl2:'',bought:it?it.bought||'':'',released:it?it.released||'':''
@@ -1733,10 +1778,11 @@ async function saveItem(){
     }
     const id=sh.id||newId(),ex=sh.id?M.get(sh.id):null;
     await putItem(id,{name:d.name.trim(),brand:d.brand.trim(),nickname:d.nickname.trim(),category:d.category,color:(d.colors[0]||''),colors:d.colors.slice(),kinds:d.kinds.filter(k=>subsFor(d.category).indexOf(k)>=0),price:parsePrice(d.price),source:(d.source||'').trim(),bought:d.bought||'',released:(d.released||'').trim(),photo:photo,photo2:photo2,createdAt:ex&&ex.createdAt||Date.now()});
-    const wasNew=!sh.id,log=sh.addToLog,sd=sh.scentDay;
+    const wasNew=!sh.id,log=sh.addToLog,sd=sh.scentDay,shd=sh.shoeDay;
     closeSheet();
     render();
     if(wasNew&&sd)setDayScent(sd,id);
+    if(wasNew&&shd)setDayShoe(shd,id);
     if(log&&wasNew)toggleOutfit(id,true);
     toast(wasNew?'Added to closet':'Saved');
   }catch(e){
@@ -1863,6 +1909,15 @@ document.addEventListener('click',e=>{
     case 'share-piece':if(SH){const pid=el.dataset.id;if(SH.sel.has(pid))SH.sel.delete(pid);else SH.sel.add(pid);el.setAttribute('aria-pressed',SH.sel.has(pid)?'true':'false');buildShare()}break;
     case 'share-scent':if(SH){SH.scent=!SH.scent;el.setAttribute('aria-pressed',SH.scent?'true':'false');buildShare()}break;
     case 'set-cover':{const dd=S.days[S.dv];const o=dd&&(+el.dataset.o?dd.more[(+el.dataset.o)-1]:dd);if(o){o.cover=id;scheduleDay(S.dv);renderDay();refreshCal()}break}
+    case 'shoe-day-pick':openShoePick(S.dv);break;
+    case 'shoe-log':openShoePick(S.sel);break;
+    case 'shoe-set':setDayShoe(S.pd,id);closeLooks();break;
+    case 'shoe-new':closeLooks();openItem(null,{cat:'shoes',shoeDay:S.pd});break;
+    case 'shoe-clear':setDayShoe(el.dataset.d||S.pd||S.dv,'');closeLooks();toast('Shoe removed');break;
+    case 'shoe-photo':S.fd=S.dv;{const f=$('#f-shoe');if(f)f.click()}break;
+    case 'shoe-photo-clear':{const dd=S.days[S.dv];if(dd){dd.shoePhoto='';scheduleDay(S.dv);renderDay();refreshCal()}break}
+    case 'share-shoe-open':openShare(S.dv,0,'shoe');break;
+    case 'share-feet':if(SH){SH.feet=!SH.feet;el.setAttribute('aria-pressed',SH.feet?'true':'false');buildShare()}break;
     case 'scent-pick':openScentPick();break;
     case 'scent-set':setDayScent(S.dv,id);closeLooks();break;
     case 'scent-new':closeLooks();openItem(null,{cat:'scents',scentDay:S.dv});break;
@@ -1904,6 +1959,7 @@ document.addEventListener('input',e=>{
 document.addEventListener('change',e=>{
   if(e.target.id==='f-file'){const f=e.target.files&&e.target.files[0];if(f)onFile(f,'f');e.target.value=''}
   if(e.target.id==='f-file2'){const f=e.target.files&&e.target.files[0];if(f)onFile(f,'b');e.target.value=''}
+  if(e.target.id==='f-shoe'){const f=e.target.files&&e.target.files[0];if(f)onShoeFile(f);e.target.value=''}
   if(e.target.id==='f-look'){const f=e.target.files&&e.target.files[0];if(f)onLookFile(f);e.target.value=''}
   if(e.target.id==='f-fit'||e.target.id==='f-fitl'){const f=e.target.files&&e.target.files[0];if(f)onFit(f);e.target.value=''}
   if(e.target.id==='f-import'){const f=e.target.files&&e.target.files[0];if(f)importData(f);e.target.value=''}
