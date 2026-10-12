@@ -1269,7 +1269,7 @@ function renderShare(){
    +(SH.hasFeet?'<div class="set-row"><span><b>On-feet photo</b><i>Use your photo instead of the closet picture.</i></span><button type="button" class="sw-t" data-act="share-feet" aria-pressed="'+SH.feet+'" aria-label="On-feet photo"></button></div>':'')
    +(SH.hasScent?'<div class="set-row"><span><b>Include scent</b><i>Adds today\'s scent as another tile.</i></span><button type="button" class="sw-t" data-act="share-scent" aria-pressed="'+SH.scent+'" aria-label="Include scent"></button></div>':'')
    +'<div class="set-row"><span><b>Show names</b><i>Turn off for just the pictures.</i></span><button type="button" class="sw-t" data-act="share-names" aria-pressed="'+SH.names+'" aria-label="Show names"></button></div>'
-   +(SH.names?'<div class="set-row"><span><b>Show brands</b><i>Prices and where you bought it are never shown.</i></span><button type="button" class="sw-t" id="sh-br" data-act="share-brands" aria-pressed="'+SH.brands+'" aria-label="Show brands"></button></div>':'')
+   +'<div class="set-row"><span><b>Show brands</b><i>Works on its own, with or without names. Prices and where you bought it are never shown.</i></span><button type="button" class="sw-t" id="sh-br" data-act="share-brands" aria-pressed="'+SH.brands+'" aria-label="Show brands"></button></div>'
    +'<div class="btn-row sh-actions"><button type="button" class="btn primary" id="sh-go" data-act="share-go" disabled>Share</button><button type="button" class="btn ghost" id="sh-save" data-act="share-save" disabled>Save image</button></div>'
    +'</div></div>';
 }
@@ -1311,7 +1311,7 @@ async function drawShare(){
   const top=pad+(meta?118:70)+60,bottom=SH.logo==='tr'?H-pad:H-pad-76,cw=W-pad*2,ch=bottom-top;
   /* tile grid */
   const tiles=(ax,ay,aw,ah,cols)=>{
-    const n=its.length,rows=Math.ceil(n/cols),gap=30,lab=SH.names?(brands?96:60)+(its.length===1?30:0):0;
+    const n=its.length,rows=Math.ceil(n/cols),gap=30,lab=(SH.names||brands)?(SH.names&&brands?96:60)+(its.length===1?30:0):0;
     let t=Math.min((aw-(cols-1)*gap)/cols,(ah-rows*lab-(rows-1)*gap)/rows);t=Math.floor(Math.max(60,t));
     const gw=cols*t+(cols-1)*gap,gh=rows*(t+lab)+(rows-1)*gap;
     const ox=ax+(aw-gw)/2,oy=ay+Math.max(0,(ah-gh)/2);
@@ -1324,21 +1324,27 @@ async function drawShare(){
       else if(imgs[i]){const im=imgs[i],p=t*.07,k=Math.min((t-2*p)/im.width,(t-2*p)/im.height),w=im.width*k,h=im.height*k;x.globalCompositeOperation='multiply';x.drawImage(im,tx+(t-w)/2,ty+(t-h)/2,w,h);x.globalCompositeOperation='source-over'}
       else{x.fillStyle=T.ph;x.font=F(700,Math.round(t*.4),DISP);x.textAlign='center';x.fillText((it.name||'?').charAt(0).toUpperCase(),tx+t/2,ty+t/2+t*.14);x.textAlign='left'}
       x.restore();
-      if(!SH.names)return;
-      x.textAlign='center';const fs=Math.max(22,Math.round(t*.1));let ly=ty+t+22+(brands&&it.brand?Math.max(18,Math.round(t*.085)):fs);
-      if(brands&&it.brand){x.fillStyle=INK2;x.font=F(600,Math.max(18,Math.round(t*.085)));x.fillText(fitText(x,it.brand.toUpperCase(),t+gap),tx+t/2,ly);ly+=Math.max(26,Math.round(t*.115))}
+      if(!SH.names&&!brands)return;
+      const showB=brands&&!!it.brand,showN=SH.names||(brands&&!it.brand);
+      x.textAlign='center';const fs=Math.max(22,Math.round(t*.1));let ly=ty+t+22+(showB&&showN?Math.max(18,Math.round(t*.085)):fs);
+      if(showB&&!showN){x.fillStyle=INK;x.font=F(700,fs);x.fillText(fitText(x,it.brand.toUpperCase(),t+gap),tx+t/2,ly);x.textAlign='left';return}
+      if(showB){x.fillStyle=INK2;x.font=F(600,Math.max(18,Math.round(t*.085)));x.fillText(fitText(x,it.brand.toUpperCase(),t+gap),tx+t/2,ly);ly+=Math.max(26,Math.round(t*.115))}
       x.fillStyle=INK;x.font=F(700,fs);x.fillText(fitText(x,it.nickname||it.name,t+gap),tx+t/2,ly);
       x.textAlign='left';
     });
   };
   const cover=(ax,ay,aw,ah,im)=>{im=im||fit;x.save();rr(x,ax,ay,aw,ah,36);x.clip();const k=Math.max(aw/im.width,ah/im.height),w=im.width*k,h=im.height*k;x.drawImage(im,ax+(aw-w)/2,ay+(ah-h)/2,w,h);x.restore()};
   if(feetImg&&its[0]){
-    const it=its[0],lab=SH.names?(brands&&it.brand?120:80):0;
+    const it=its[0],lab=(SH.names||brands)?(SH.names&&brands&&it.brand?120:80):0;
     cover(pad,top,cw,ch-lab,feetImg);
-    if(SH.names){
+    if(SH.names||brands){
+      const showB=brands&&!!it.brand,showN=SH.names||(brands&&!it.brand);
       x.textAlign='center';let ly=top+ch-lab+44;
-      if(brands&&it.brand){x.fillStyle=INK2;x.font=F(600,28);x.fillText(fitText(x,it.brand.toUpperCase(),cw),W/2,ly);ly+=44}
-      x.fillStyle=INK;x.font=F(700,40);x.fillText(fitText(x,it.nickname||it.name,cw),W/2,ly);x.textAlign='left';
+      if(showB&&!showN){x.fillStyle=INK;x.font=F(700,40);x.fillText(fitText(x,it.brand.toUpperCase(),cw),W/2,ly)}
+      else{
+        if(showB){x.fillStyle=INK2;x.font=F(600,28);x.fillText(fitText(x,it.brand.toUpperCase(),cw),W/2,ly);ly+=44}
+        x.fillStyle=INK;x.font=F(700,40);x.fillText(fitText(x,it.nickname||it.name,cw),W/2,ly)}
+      x.textAlign='left';
     }
   }
   else if(!fit){tiles(pad,top,cw,ch,its.length<=2?1:its.length<=4?2:its.length<=9?3:4)}
