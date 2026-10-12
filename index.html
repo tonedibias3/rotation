@@ -1391,8 +1391,20 @@ async function doShare(){
   }catch(e){if(e&&e.name==='AbortError')return}
   saveShare();toast('Sharing is not available here. Image saved instead.');
 }
+async function saveNative(){
+  /* inside the iOS app: write the picture straight into the Photos library, no share sheet */
+  const C=window.Capacitor,P=C&&C.Plugins;
+  if(!(C&&C.isNativePlatform&&C.isNativePlatform())||!P||!P.Media||!P.Filesystem)return false;
+  try{
+    const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(SH.blob)});
+    const w=await P.Filesystem.writeFile({path:shareName(),data:b64,directory:'CACHE'});
+    await P.Media.savePhoto({path:w.uri});
+    toast('Saved to Photos');return true;
+  }catch(e){return false}
+}
 async function saveToPhotos(){
   if(!SH||!SH.blob)return;
+  if(await saveNative())return;
   const file=new File([SH.blob],shareName(),{type:'image/png'});
   try{
     if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]});return}

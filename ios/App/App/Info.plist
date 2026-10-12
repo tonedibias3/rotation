@@ -66,5 +66,11 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Rotation saves your outfit images to your photo library when you tap Save to Photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Rotation lets you pick photos of your clothes and outfits from your library.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Rotation uses the camera so you can take photos of your clothes and outfits.</string>
 </dict>
 </plist>
