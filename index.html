@@ -1276,7 +1276,7 @@ function renderShare(){
    +(SH.mode==='fit'?'<div class="set-row"><span><b>Show tag</b><i>The Work, Casual or Mixed label under the date.</i></span><button type="button" class="sw-t" data-act="share-tag" aria-pressed="'+SH.tag+'" aria-label="Show tag"></button></div>':'')
    +'<div class="set-row"><span><b>Show names</b><i>Turn off for just the pictures.</i></span><button type="button" class="sw-t" data-act="share-names" aria-pressed="'+SH.names+'" aria-label="Show names"></button></div>'
    +'<div class="set-row"><span><b>Show brands</b><i>Works on its own, with or without names. Prices and where you bought it are never shown.</i></span><button type="button" class="sw-t" id="sh-br" data-act="share-brands" aria-pressed="'+SH.brands+'" aria-label="Show brands"></button></div>'
-   +'<div class="btn-row sh-actions"><button type="button" class="btn primary" id="sh-go" data-act="share-go" disabled>Share</button><button type="button" class="btn ghost" id="sh-save" data-act="share-save" disabled>Save image</button></div>'
+   +'<div class="btn-row sh-actions"><button type="button" class="btn primary" id="sh-go" data-act="share-go" disabled>Share</button><button type="button" class="btn ghost" id="sh-save" data-act="share-save" disabled>Save to Photos</button></div>'
    +'</div></div>';
 }
 const loadSrc=src=>new Promise(res=>{if(!src)return res(null);const im=new Image();im.onload=()=>res(im);im.onerror=()=>res(null);im.src=src});
@@ -1390,6 +1390,14 @@ async function doShare(){
     if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'what\'s in my #rotationapp @rotationcloset',text:'what\'s in my #rotationapp @rotationcloset'});return}
   }catch(e){if(e&&e.name==='AbortError')return}
   saveShare();toast('Sharing is not available here. Image saved instead.');
+}
+async function saveToPhotos(){
+  if(!SH||!SH.blob)return;
+  const file=new File([SH.blob],shareName(),{type:'image/png'});
+  try{
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]});return}
+  }catch(e){if(e&&e.name==='AbortError')return}
+  saveShare();
 }
 function saveShare(){
   if(!SH||!SH.blob)return;
@@ -1940,7 +1948,7 @@ document.addEventListener('click',e=>{
     case 'share-names':if(SH){SH.names=SET.shnames=!SH.names;saveSet();renderShare();buildShare()}break;
     case 'share-brands':if(SH){SH.brands=SET.shbrand=!SH.brands;saveSet();el.setAttribute('aria-pressed',SH.brands?'true':'false');buildShare()}break;
     case 'share-go':doShare();break;
-    case 'share-save':saveShare();break;
+    case 'share-save':saveToPhotos();break;
     case 'view-close':closeView();break;
     case 'view-bg':if(e.target===el)closeView();break;
     case 'view-edit':{const id2=S.vw;closeView();openItem(id2);break}
