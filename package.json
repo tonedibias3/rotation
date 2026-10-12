@@ -1,0 +1,14 @@
+{
+  "name": "rotation",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "web": "node scripts/make-www.js",
+    "sync": "node scripts/make-www.js && npx cap sync ios"
+  },
+  "dependencies": {
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/ios": "^8.0.0"
+  }
+}

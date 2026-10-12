@@ -1,0 +1,6 @@
+{
+  "appId": "com.tonedibias3.rotation",
+  "appName": "Rotation",
+  "webDir": "www",
+  "ios": { "contentInset": "always" }
+}
