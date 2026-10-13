@@ -13,7 +13,9 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <script>try{var _s=JSON.parse(localStorage.getItem('rotation.settings')||'{}');if(_s.accent&&_s.accent!=='cobalt')document.documentElement.setAttribute('data-accent',_s.accent);if(_s.theme==='light'||_s.theme==='dark')document.documentElement.setAttribute('data-theme',_s.theme);if(_s.splash===false)document.documentElement.setAttribute('data-splash','off')}catch(e){}</script>
-<style>html,body{margin:0}img{max-width:100%}[hidden]{display:none!important}.cell.dim{opacity:.2}.ctags{margin:14px 0 4px}
+<style>html,body{margin:0}img{max-width:100%}[hidden]{display:none!important}.wxc{display:flex;flex-direction:column;align-items:flex-end;text-align:right;gap:1px;background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:4px 6px;max-width:210px}
+.wxc b{font-size:26px;line-height:1;font-weight:700}.wxc span{font-size:13px;opacity:.85}.wxc i{font-style:normal;font-size:11px;opacity:.6;white-space:nowrap}
+.cell.dim{opacity:.2}.ctags{margin:14px 0 4px}
 .det{margin-top:2px}.det summary{cursor:pointer;font-weight:600;list-style:none}.det summary i{font-style:normal;font-weight:400;opacity:.6;margin-left:6px}
 .det-g{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.det label{display:flex;flex-direction:column;gap:4px;font-size:13px;opacity:.9}.det-n{margin-top:10px}
 .det input{font:inherit;padding:10px 12px;border-radius:12px;border:1px solid color-mix(in srgb,currentColor 18%,transparent);background:transparent;color:inherit}
@@ -694,11 +696,46 @@ function renderNav(){
   $('#b-add').innerHTML=ico(P.plus,2);
 }
 
+/* ---------- weather chip (Open-Meteo, free, no key): shown on the closet screen ---------- */
+const WXK='rotation.wx';
+let WXS=(()=>{try{return JSON.parse(localStorage.getItem(WXK)||'null')||{}}catch(e){return {}}})();
+const wxSave=()=>{try{localStorage.setItem(WXK,JSON.stringify(WXS))}catch(e){}};
+function wxWord(c){
+  if(c===0)return 'Clear';if(c<=2)return 'Partly cloudy';if(c===3)return 'Cloudy';if(c===45||c===48)return 'Fog';
+  if(c>=51&&c<=57)return 'Drizzle';if((c>=61&&c<=67)||(c>=80&&c<=82))return 'Rain';if((c>=71&&c<=77)||c===85||c===86)return 'Snow';if(c>=95)return 'Storms';return 'Cloudy';
+}
+function wxHTML(){
+  if(!WXS.lat)return '<button type="button" class="wxc" data-act="wx-set"><span>Add weather</span></button>';
+  const d=WXS.d;
+  if(!d)return '<button type="button" class="wxc" data-act="wx-set"><span>'+esc(WXS.n||'Weather')+'</span></button>';
+  return '<button type="button" class="wxc" data-act="wx-set" aria-label="Weather in '+esc(WXS.n)+'. Tap to change city."><b>'+Math.round(d.t)+'\u00b0</b><span>'+esc(wxWord(d.c))+(d.p>=40?' \u00b7 '+d.p+'% rain':'')+'</span><i>H '+Math.round(d.h)+' \u00b7 L '+Math.round(d.l)+' \u00b7 '+esc(WXS.n)+'</i></button>';
+}
+function wxPaint(){const e=$('#wxbox');if(e)e.innerHTML=wxHTML()}
+async function wxLoad(force){
+  if(!WXS.lat)return;
+  if(!force&&WXS.d&&Date.now()-(WXS.at||0)<30*60*1000)return;
+  try{
+    const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude='+WXS.lat+'&longitude='+WXS.lon+'&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&temperature_unit=fahrenheit&timezone=auto&forecast_days=1');
+    const j=await r.json();
+    WXS.d={t:j.current.temperature_2m,c:j.current.weather_code,h:j.daily.temperature_2m_max[0],l:j.daily.temperature_2m_min[0],p:j.daily.precipitation_probability_max[0]||0};
+    WXS.at=Date.now();wxSave();wxPaint();
+  }catch(e){/* offline: keep the last reading */}
+}
+async function wxSet(){
+  const v=prompt('City for the weather',WXS.n||'');if(!v||!v.trim())return;
+  try{
+    const r=await fetch('https://geocoding-api.open-meteo.com/v1/search?count=1&language=en&name='+encodeURIComponent(v.trim()));
+    const j=await r.json(),g=j.results&&j.results[0];
+    if(!g){toast('Could not find that city');return}
+    WXS={n:g.name,lat:g.latitude,lon:g.longitude};wxSave();wxPaint();wxLoad(true);
+  }catch(e){toast('Could not look that up. Check your connection.')}
+}
+
 /* ---------- closet ---------- */
 function viewCloset(){
   const n=S.items.length;
   const chip=(id,label,c)=>'<button type="button" class="chip" data-act="filter" data-v="'+id+'" aria-pressed="'+(S.filter===id)+'">'+label+'<i>'+c+'</i></button>';
-  return '<div class="head"><div><div class="brand">Rotation</div><h1 class="h1">Closet</h1><div class="sub">'+(S.loading?'Loading':n+' piece'+(n===1?'':'s'))+'</div></div>'+gearBtn()+'</div>'
+  return '<div class="head"><div><div class="brand">Rotation</div><h1 class="h1">Closet</h1><div class="sub">'+(S.loading?'Loading':n+' piece'+(n===1?'':'s'))+'</div></div><div class="hr"><div id="wxbox">'+wxHTML()+'</div>'+gearBtn()+'</div></div>'
    +'<label class="search">'+ico(P.search)+'<input id="q" type="search" placeholder="Search name, brand or nickname" value="'+esc(S.q)+'" autocomplete="off" aria-label="Search closet"></label>'
    +'<div class="chips" role="group" aria-label="Filter by type">'+chip('all','All',n)+CATS.map(c=>chip(c.id,c.label,count(c.id))).join('')+'</div>'
    +'<div class="ctl">'+(S.filter!=='all'?'<div class="seg mini" role="group" aria-label="Layout"><button type="button" data-act="cview" data-v="grid" aria-pressed="'+(SET.cview==='grid')+'">Grid</button><button type="button" data-act="cview" data-v="swipe" aria-pressed="'+(SET.cview==='swipe')+'">Swipe</button></div>':'')+'<button type="button" class="link" data-act="arrange">Arrange sections</button></div>'
@@ -1879,7 +1916,7 @@ function render(){
   $('#b-add').hidden=$('#b-search').hidden=false;
   const v=$('#view');
   v.innerHTML=S.tab==='closet'?viewCloset():S.tab==='log'?viewLog():S.tab==='settings'?viewSettings():S.tab==='stats'?viewStats():viewCalendar();
-  if(S.tab==='closet'){fillKinds();fillGrid()}
+  if(S.tab==='closet'){fillKinds();fillGrid();wxLoad()}
   if(S.tab==='log')afterLogRender();
 }
 
@@ -1957,6 +1994,7 @@ document.addEventListener('click',e=>{
     case 'kind-filter':{const v=el.dataset.v,i=S.kinds.indexOf(v);if(i>=0)S.kinds.splice(i,1);else S.kinds.push(v);fillKinds();fillGrid();break}
     case 'ctag':S.ctag=el.dataset.v||'';render();break;
     case 'cview':SET.cview=el.dataset.v;saveSet();render();break;
+    case 'wx-set':wxSet();break;
     case 'arrange':S.arr=true;renderArrange();break;
     case 'arr-close':S.arr=false;renderArrange();render();break;
     case 'arr-bg':if(e.target===el){S.arr=false;renderArrange();render()}break;
