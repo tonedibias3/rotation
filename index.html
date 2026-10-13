@@ -774,7 +774,7 @@ function viewLook(id){
   $('#looks').innerHTML='<div class="crop-s"><div class="crop find lkv" role="dialog" aria-modal="true" aria-label="Saved look"><div class="sheet-h" style="margin-bottom:10px"><h2 style="margin:0">'+(tg?esc(tg.label)+' look':'Saved look')+'</h2><button type="button" class="x" data-act="looks-close" aria-label="Close">'+ico(P.x)+'</button></div>'
    +(l.photo?'<div class="lkv-p"><img src="'+esc(photoSrc(l.photo))+'" alt="Photo of this look"></div>':'')
    +'<div class="lkv-l">'+its.map(i=>'<div class="ri"><span class="thumb">'+tileInner(i)+'</span><span class="ri-t"><b>'+esc(dn(i))+'</b><i>'+esc(i.brand||'')+'</i></span></div>').join('')+'</div>'
-   +'<div class="btn-row" style="margin-top:14px"><button type="button" class="btn primary" data-act="look-wear" data-id="'+esc(id)+'">Wear today</button><button type="button" class="btn ghost" data-act="look-photo2" data-id="'+esc(id)+'">'+(l.photo?'Change photo':'Add photo')+'</button><button type="button" class="btn danger" data-act="look-del2" data-id="'+esc(id)+'">Delete</button></div>'
+   +'<div class="btn-row" style="margin-top:14px"><button type="button" class="btn primary" data-act="look-wear" data-id="'+esc(id)+'">Wear today</button><button type="button" class="btn ghost" data-act="look-share" data-id="'+esc(id)+'">Share</button><button type="button" class="btn ghost" data-act="look-photo2" data-id="'+esc(id)+'">'+(l.photo?'Change photo':'Add photo')+'</button><button type="button" class="btn danger" data-act="look-del2" data-id="'+esc(id)+'">Delete</button></div>'
    +'<input class="vh" id="f-look" type="file" accept="image/*"></div></div>';
 }
 function wearLook(id){
@@ -1343,6 +1343,13 @@ function openShare(d,k,mode){
   SH={mode:mode||'fit',sel:new Set(o.items.filter(id=>M.has(id))),scent:false,hasScent:!!(dd.scent&&M.has(dd.scent))&&!one&&o.items.indexOf(dd.scent)<0,hasFeet:mode==='shoe'&&!!dd.shoePhoto,feet:true,d:d,k:k,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:SET.shtag,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:!one&&!!o.photo,url:'',blob:null,seq:0};
   renderShare();buildShare();
 }
+function shLook(){const l=S.looks.find(x=>x.id===SH.look)||{items:[],tag:'',photo:''};return {items:l.items.filter(i=>M.has(i)),tag:l.tag||'',photo:l.photo||''}}
+function openShareLook(id){
+  const l=S.looks.find(x=>x.id===id);if(!l)return;
+  const its=l.items.filter(i=>M.has(i));if(!its.length){toast('That look has no pieces left');return}
+  SH={mode:'fit',look:id,sel:new Set(its),scent:false,hasScent:false,hasFeet:false,feet:false,d:'',k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:SET.shtag,det:false,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:!!l.photo,url:'',blob:null,seq:0};
+  closeLooks();renderShare();buildShare();
+}
 function openShareItem(id){
   const it=M.get(id);if(!it)return;
   SH={mode:'item',item:id,sel:new Set(),scent:false,hasScent:false,hasFeet:false,feet:false,d:'',k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:SET.shtag,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:false,url:'',blob:null,seq:0};
@@ -1370,10 +1377,10 @@ function renderShare(){
    +shOpt('logo','Rotation watermark',[['tr','Top right'],['bl','Bottom left'],['br','Bottom right']])
    +shOpt('side','Outfit photo',[['l','Left'],['r','Right']],!(SH.size==='sq'&&SH.hasPhoto))
    +'</div>'
-   +(SH.mode==='fit'?'<div class="sh-opt" style="margin-bottom:8px"><span class="cap">Pieces to show</span><div class="chips wrapc" id="sh-pcs">'+Array.from(S.days[SH.d]&&(SH.k?S.days[SH.d].more[SH.k-1]:S.days[SH.d]).items||[]).filter(id=>M.has(id)).map(id=>'<button type="button" class="chip" data-act="share-piece" data-id="'+esc(id)+'" aria-pressed="'+SH.sel.has(id)+'">'+esc(M.get(id).nickname||M.get(id).name)+'</button>').join('')+'</div></div>':'')
+   +(SH.mode==='fit'?'<div class="sh-opt" style="margin-bottom:8px"><span class="cap">Pieces to show</span><div class="chips wrapc" id="sh-pcs">'+Array.from(SH.look?shLook().items:S.days[SH.d]&&(SH.k?S.days[SH.d].more[SH.k-1]:S.days[SH.d]).items||[]).filter(id=>M.has(id)).map(id=>'<button type="button" class="chip" data-act="share-piece" data-id="'+esc(id)+'" aria-pressed="'+SH.sel.has(id)+'">'+esc(M.get(id).nickname||M.get(id).name)+'</button>').join('')+'</div></div>':'')
    +(SH.hasFeet?'<div class="set-row"><span><b>On-feet photo</b><i>Use your photo instead of the closet picture.</i></span><button type="button" class="sw-t" data-act="share-feet" aria-pressed="'+SH.feet+'" aria-label="On-feet photo"></button></div>':'')
    +(SH.hasScent?'<div class="set-row"><span><b>Include scent</b><i>Adds today\'s scent as another tile.</i></span><button type="button" class="sw-t" data-act="share-scent" aria-pressed="'+SH.scent+'" aria-label="Include scent"></button></div>':'')
-   +(SH.mode==='fit'?'<div class="set-row"><span><b>Show place, weather and note</b><i>What you typed under Details.</i></span><button type="button" class="sw-t" data-act="share-det" aria-pressed="'+SH.det+'" aria-label="Show place, weather and note"></button></div>':'')
+   +(SH.mode==='fit'&&!SH.look?'<div class="set-row"><span><b>Show place, weather and note</b><i>What you typed under Details.</i></span><button type="button" class="sw-t" data-act="share-det" aria-pressed="'+SH.det+'" aria-label="Show place, weather and note"></button></div>':'')
    +(SH.mode==='fit'?'<div class="set-row"><span><b>Show tag</b><i>The Work, Casual or Mixed label under the date.</i></span><button type="button" class="sw-t" data-act="share-tag" aria-pressed="'+SH.tag+'" aria-label="Show tag"></button></div>':'')
    +'<div class="set-row"><span><b>Show names</b><i>Turn off for just the pictures.</i></span><button type="button" class="sw-t" data-act="share-names" aria-pressed="'+SH.names+'" aria-label="Show names"></button></div>'
    +'<div class="set-row"><span><b>Show brands</b><i>Works on its own, with or without names. Prices and where you bought it are never shown.</i></span><button type="button" class="sw-t" id="sh-br" data-act="share-brands" aria-pressed="'+SH.brands+'" aria-label="Show brands"></button></div>'
@@ -1389,7 +1396,7 @@ const SHT={
 };
 async function drawShare(){
   const sz=SH.size,brands=SH.brands,T=SHT[SH.theme]||SHT.light;
-  const itemMode=SH.mode==='item',dd=itemMode?{}:S.days[SH.d],o=(itemMode||SH.mode==='scent'||SH.mode==='shoe')?dd:(SH.k?dd.more[SH.k-1]:dd);
+  const itemMode=SH.mode==='item',dd=(itemMode||SH.look)?{}:S.days[SH.d],o=SH.look?shLook():(itemMode||SH.mode==='scent'||SH.mode==='shoe')?dd:(SH.k?dd.more[SH.k-1]:dd);
   const W=SIZES[sz][0],H=SIZES[sz][1],c=document.createElement('canvas');c.width=W;c.height=H;
   const x=c.getContext('2d');
   try{await document.fonts.ready}catch(e){}
@@ -1405,7 +1412,7 @@ async function drawShare(){
   const pad=72;
   /* header: the date is always top left */
   x.textBaseline='alphabetic';x.textAlign='left';x.fillStyle=INK;x.font=F(700,40);
-  x.fillText(itemMode?(((CATS[catIdx((sc||{}).category)]||{}).label)||'Piece').toUpperCase():fmt(SH.d,{weekday:'long',month:'long',day:'numeric'}).toUpperCase(),pad,pad+40);
+  x.fillText(itemMode?(((CATS[catIdx((sc||{}).category)]||{}).label)||'Piece').toUpperCase():SH.look?'SAVED LOOK':fmt(SH.d,{weekday:'long',month:'long',day:'numeric'}).toUpperCase(),pad,pad+40);
   const tg={label:tagLbl(o.tag)};
   const meta=itemMode?'':scentMode?(shoeMode?'Shoe of the day':'Scent of the day'):[SH.tag&&tg&&tg.label,SH.det&&o.place,SH.det&&o.wx,o.when&&whenLbl(o.when),o.rating?'\u2605 '+o.rating.toFixed(1):''].filter(Boolean).join('  \u00b7  ');
   if(meta){x.fillStyle=INK2;x.font=F(500,30);x.fillText(meta,pad,pad+88)}
@@ -2002,6 +2009,7 @@ document.addEventListener('click',e=>{
     case 'looks-open':openLooks();break;
     case 'cmode':S.cm=el.dataset.v==='looks'?'looks':'pieces';render();toTop();break;
     case 'look-view':viewLook(id);break;
+    case 'look-share':openShareLook(id);break;
     case 'look-wear':wearLook(id);break;
     case 'look-photo2':S.lk=id;{const f=$('#f-look');if(f)f.click()}break;
     case 'look-del2':delLook(id);closeLooks();if(S.tab==='closet'&&S.cm==='looks')fillLooks();break;
