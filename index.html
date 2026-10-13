@@ -1353,7 +1353,7 @@ function openShare(d,k,mode){
   const dd=S.days[d];if(!dd)return;
   const one=mode==='scent'||mode==='shoe',o=one?dd:(k?dd.more[k-1]:dd);if(!o)return;
   if(mode==='scent'){if(!(dd.scent&&M.has(dd.scent)))return}else if(mode==='shoe'){if(!shoeOf(dd))return}else if(!o.items.length)return;
-  SH={mode:mode||'fit',sel:new Set(o.items.filter(id=>M.has(id))),scent:false,hasScent:!!(dd.scent&&M.has(dd.scent))&&!one&&o.items.indexOf(dd.scent)<0,hasFeet:mode==='shoe'&&!!dd.shoePhoto,feet:true,d:d,k:k,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:SET.shtag,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:!one&&!!o.photo,url:'',blob:null,seq:0};
+  SH={mode:mode||'fit',sel:new Set(o.items.filter(id=>M.has(id))),scent:false,hasScent:!!(dd.scent&&M.has(dd.scent))&&!one&&o.items.indexOf(dd.scent)<0,hasFeet:mode==='shoe'&&!!dd.shoePhoto,feet:true,d:d,k:k,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:SET.shtag,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:!one&&!!o.photo,caption:'',url:'',blob:null,seq:0};
   renderShare();buildShare();
 }
 
@@ -1456,7 +1456,7 @@ function shLook(){const l=S.looks.find(x=>x.id===SH.look)||{items:[],tag:'',phot
 function openShareLook(id){
   const l=S.looks.find(x=>x.id===id);if(!l)return;
   const its=l.items.filter(i=>M.has(i));if(!its.length){toast('That look has no pieces left');return}
-  SH={mode:'fit',look:id,sel:new Set(its),scent:false,hasScent:false,hasFeet:false,feet:false,d:'',k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:SET.shtag,det:false,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:!!l.photo,url:'',blob:null,seq:0};
+  SH={mode:'fit',look:id,sel:new Set(its),scent:false,hasScent:false,hasFeet:false,feet:false,d:'',k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:SET.shtag,det:false,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:!!l.photo,caption:'',url:'',blob:null,seq:0};
   closeLooks();renderShare();buildShare();
 }
 function openShareItem(id){
@@ -1480,6 +1480,7 @@ function renderShare(){
   h.innerHTML='<div class="crop-s"><div class="crop find" role="dialog" aria-modal="true" aria-label="Share outfit">'
    +'<div class="sheet-h" style="margin-bottom:10px"><h2 style="margin:0">Share</h2><button type="button" class="x" data-act="share-close" aria-label="Close">'+ico(P.x)+'</button></div>'
    +'<div class="sh-prev"><img id="sh-img" alt="Preview of the image you will share" hidden><span id="sh-wait" class="hint">Building your image</span></div>'
+   +(SH.mode==='fit'?'<div class="sh-opt" style="margin-bottom:4px"><div class="det" style="margin:0"><input id="sh-cap-inp" type="text" maxlength="60" placeholder="Add a caption (optional)" value="'+esc(SH.caption||'')+'" data-act="share-caption" autocomplete="off" style="width:100%;font-size:15px"></div></div>':'')
    +'<div class="sh-opts">'
    +shOpt('size','Size',[['sq','Square'],['st','Story']])
    +shOpt('theme','Look',[['light','Light'],['dark','Dark']])
@@ -1522,13 +1523,14 @@ async function drawShare(){
   const pad=72;
   /* header: the date is always top left */
   x.textBaseline='alphabetic';x.textAlign='left';x.fillStyle=INK;x.font=F(700,40);
-  x.fillText(itemMode?(((CATS[catIdx((sc||{}).category)]||{}).label)||'Piece').toUpperCase():SH.look?'SAVED LOOK':fmt(SH.d,{weekday:'long',month:'long',day:'numeric'}).toUpperCase(),pad,pad+40);
+  const hdTxt=itemMode?(((CATS[catIdx((sc||{}).category)]||{}).label)||'Piece').toUpperCase():SH.caption?SH.caption.toUpperCase():(SH.look?'':fmt(SH.d,{weekday:'long',month:'long',day:'numeric'}).toUpperCase());
+  if(hdTxt)x.fillText(hdTxt,pad,pad+40);
   const tg={label:tagLbl(o.tag)};
   const meta=itemMode?'':scentMode?(shoeMode?'Shoe of the day':'Scent of the day'):[SH.tag&&tg&&tg.label,SH.det&&o.place,SH.det&&o.wx,o.when&&whenLbl(o.when),o.rating?'\u2605 '+o.rating.toFixed(1):''].filter(Boolean).join('  \u00b7  ');
   if(meta){x.fillStyle=INK2;x.font=F(500,30);x.fillText(meta,pad,pad+88)}
   let noteTxt=(!itemMode&&!scentMode&&SH.det&&o.note)?o.note:'';
   if(noteTxt){x.font=F(500,28);while(noteTxt.length>3&&x.measureText(noteTxt).width>W-pad*2){noteTxt=noteTxt.slice(0,-2)}if(noteTxt!==o.note)noteTxt=noteTxt.trim()+'\u2026';x.fillStyle=INK;x.fillText(noteTxt,pad,pad+(meta?132:88))}
-  const hd=(meta?118:70)+(noteTxt?44:0);
+  const hd=(hdTxt?(meta?118:70):meta?70:20)+(noteTxt?44:0);
   x.fillStyle=ACCENT;rr(x,pad,pad+hd,72,8,4);x.fill();
   /* the Rotation watermark: top right, bottom left or bottom right */
   x.fillStyle=INK;x.font=F(800,44,DISP);
@@ -2220,6 +2222,7 @@ document.addEventListener('input',e=>{
   if(t.dataset&&t.dataset.sf){SET[t.dataset.sf]=t.value.trim();saveSet()}
   if(t.dataset&&t.dataset.f&&S.sheet)S.sheet.draft[t.dataset.f]=t.value;
   if(t.id==='q'){S.q=t.value;fillGrid()}
+  if(t.dataset&&t.dataset.act==='share-caption'&&SH){SH.caption=t.value;buildShare()}
 });
 document.addEventListener('change',e=>{
   if(e.target.id==='f-file'){const f=e.target.files&&e.target.files[0];if(f)onFile(f,'f');e.target.value=''}
