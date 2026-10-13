@@ -1438,6 +1438,14 @@ function openRecap(){
   SH={mode:'recap',m:S.month,sel:new Set(),scent:false,hasScent:false,hasFeet:false,feet:false,d:S.month,k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:false,det:false,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:false,url:'',blob:null,seq:0};
   renderShare();buildShare();
 }
+/* the Rotation wordmark and web address: on every picture the app makes, the person only chooses the corner */
+function drawMark(x,W,H,pad,pos,INK,INK2,F,DISP){
+  const right=pos!=='bl',ax=right?W-pad:pad,wy=pos==='tr'?pad+40:H-pad-30,uy=pos==='tr'?pad+76:H-pad+4;
+  x.save();x.textBaseline='alphabetic';x.textAlign=right?'right':'left';
+  x.fillStyle=INK;x.font=F(800,44,DISP);x.fillText('ROTATION',ax,wy);
+  x.fillStyle=INK2;x.font=F(600,26);x.fillText('rotation.fit',ax,uy);
+  x.restore();
+}
 async function drawRecap(){
   const sz=SH.size,T=SHT[SH.theme]||SHT.light,W=SIZES[sz][0],H=SIZES[sz][1],c=document.createElement('canvas');c.width=W;c.height=H;
   const x=c.getContext('2d');try{await document.fonts.ready}catch(e){}
@@ -1450,9 +1458,7 @@ async function drawRecap(){
   x.fillStyle=INK;x.font=F(700,40);x.fillText(fmt(SH.m+'-01',{month:'long',year:'numeric'}).toUpperCase()+' RECAP',pad,pad+40);
   x.fillStyle=ACCENT;rr(x,pad,pad+70,72,8,4);x.fill();
   x.fillStyle=INK;x.font=F(800,44,DISP);
-  if(SH.logo==='tr'){x.textAlign='right';x.fillText('ROTATION',W-pad,pad+40);x.textAlign='left'}
-  else if(SH.logo==='br'){x.textAlign='right';x.fillText('ROTATION',W-pad,H-pad+4);x.textAlign='left'}
-  else x.fillText('ROTATION',pad,H-pad+4);
+  drawMark(x,W,H,pad,SH.logo,INK,INK2,F,DISP);
   /* big numbers */
   const top=pad+170,stats3=[[r.days,'DAYS LOGGED'],[r.pieces,'PIECES WORN'],[sk.best,'BEST STREAK']];
   const cw=(W-pad*2)/3;
@@ -1590,9 +1596,7 @@ async function drawShare(){
   x.fillStyle=ACCENT;rr(x,pad,pad+hd,72,8,4);x.fill();
   /* the Rotation watermark: top right, bottom left or bottom right */
   x.fillStyle=INK;x.font=F(800,44,DISP);
-  if(SH.logo==='tr'){x.textAlign='right';x.fillText('ROTATION',W-pad,pad+40);x.textAlign='left'}
-  else if(SH.logo==='br'){x.textAlign='right';x.fillText('ROTATION',W-pad,H-pad+4);x.textAlign='left'}
-  else x.fillText('ROTATION',pad,H-pad+4);
+  drawMark(x,W,H,pad,SH.logo,INK,INK2,F,DISP);
   const top=pad+hd+60,bottom=SH.logo==='tr'?H-pad:H-pad-76,cw=W-pad*2,ch=bottom-top;
   /* tile grid */
   const tiles=(ax,ay,aw,ah,cols)=>{
