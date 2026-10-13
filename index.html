@@ -1400,7 +1400,7 @@ function recapData(m){
   return {days:keys.length,top:top,tag:tg?tagLbl(tg):'',pieces:Object.keys(wm).length};
 }
 function openRecap(){
-  SH={mode:'recap',m:S.month,sel:new Set(),scent:false,hasScent:false,hasFeet:false,feet:false,d:S.month,k:0,size:SET.shsize,brands:false,names:true,tag:false,det:false,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:false,url:'',blob:null,seq:0};
+  SH={mode:'recap',m:S.month,sel:new Set(),scent:false,hasScent:false,hasFeet:false,feet:false,d:S.month,k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:false,det:false,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:false,url:'',blob:null,seq:0};
   renderShare();buildShare();
 }
 async function drawRecap(){
@@ -1427,7 +1427,7 @@ async function drawRecap(){
   const bottom=SH.logo==='tr'?H-pad:H-pad-76,n=r.top.length;
   if(!n){x.fillStyle=INK2;x.font=F(500,34);x.fillText('Log a few outfits to fill this in.',pad,y+60)}
   else{
-    const gap=30,avail=bottom-y,t=Math.floor(Math.min((W-pad*2-(n-1)*gap)/n,avail-90));
+    const gap=30,avail=bottom-y,nl=(SH.names?1:0)+((SH.brands&&!SH.names)||(SH.brands&&SH.names)?1:0)+1,t=Math.floor(Math.min((W-pad*2-(n-1)*gap)/n,avail-(nl*38+30)));
     const ox=pad+((W-pad*2)-(n*t+(n-1)*gap))/2;
     r.top.forEach((a,i)=>{
       const it=M.get(a[0]),tx=ox+i*(t+gap);
@@ -1435,8 +1435,12 @@ async function drawRecap(){
       if(imgs[i]){const im=imgs[i],p=t*.07,k=Math.min((t-2*p)/im.width,(t-2*p)/im.height),w=im.width*k,h=im.height*k;x.globalCompositeOperation='multiply';x.drawImage(im,tx+(t-w)/2,y+(t-h)/2,w,h);x.globalCompositeOperation='source-over'}
       else{x.fillStyle=T.ph;x.font=F(700,Math.round(t*.4),DISP);x.textAlign='center';x.fillText((it.name||'?').charAt(0).toUpperCase(),tx+t/2,y+t/2+t*.14);x.textAlign='left'}
       x.restore();
-      x.fillStyle=INK;x.font=F(700,30);x.textAlign='center';let nm=dn(it);while(nm.length>3&&x.measureText(nm).width>t+gap-8)nm=nm.slice(0,-2);if(nm!==dn(it))nm=nm.trim()+'…';
-      x.fillText(nm,tx+t/2,y+t+44);x.fillStyle=INK2;x.font=F(500,26);x.fillText(a[1]+'x',tx+t/2,y+t+80);x.textAlign='left';
+      x.textAlign='center';let ly=y+t+40;
+      const trunc=(str,px)=>{let v=str;while(v.length>3&&x.measureText(v).width>t+gap-8)v=v.slice(0,-2);return v!==str?v.trim()+'\u2026':v};
+      const showB=SH.brands&&!!it.brand,showN=SH.names||(SH.brands&&!it.brand);
+      if(showB){x.fillStyle=showN?INK2:INK;x.font=F(showN?600:700,showN?24:30);x.fillText(trunc(it.brand.toUpperCase()),tx+t/2,ly);ly+=38}
+      if(showN){x.fillStyle=INK;x.font=F(700,30);x.fillText(trunc(dn(it)),tx+t/2,ly);ly+=38}
+      x.fillStyle=INK2;x.font=F(500,26);x.fillText(a[1]+'x',tx+t/2,ly);x.textAlign='left';
     });
   }
   return c;
