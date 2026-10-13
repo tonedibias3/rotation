@@ -13,7 +13,12 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <script>try{var _s=JSON.parse(localStorage.getItem('rotation.settings')||'{}');if(_s.accent&&_s.accent!=='cobalt')document.documentElement.setAttribute('data-accent',_s.accent);if(_s.theme==='light'||_s.theme==='dark')document.documentElement.setAttribute('data-theme',_s.theme);if(_s.splash===false)document.documentElement.setAttribute('data-splash','off')}catch(e){}</script>
-<style>html,body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>html,body{margin:0}img{max-width:100%}[hidden]{display:none!important}.cell.dim{opacity:.2}.ctags{margin:14px 0 4px}
+.det{margin-top:2px}.det summary{cursor:pointer;font-weight:600;list-style:none}.det summary i{font-style:normal;font-weight:400;opacity:.6;margin-left:6px}
+.det-g{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.det label{display:flex;flex-direction:column;gap:4px;font-size:13px;opacity:.9}.det-n{margin-top:10px}
+.det input{font:inherit;padding:10px 12px;border-radius:12px;border:1px solid color-mix(in srgb,currentColor 18%,transparent);background:transparent;color:inherit}
+.det-v{margin:0 0 10px;font-size:14px;line-height:1.4}
+</style>
 <!-- Copyright (c) 2026 Antonio Isaac. All rights reserved. See LICENSE. -->
 <title>Rotation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -431,7 +436,7 @@ const daysSince=s=>Math.round((parse(today())-parse(s))/864e5);
 const newId=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
 /* ---------- state ---------- */
-const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,gkey:typeof o.gkey==='string'?o.gkey:'',gcx:typeof o.gcx==='string'?o.gcx:'',occ:Array.isArray(o.occ)?o.occ.filter(x=>x&&x.id&&x.label).slice(0,4):[],accent:['cobalt','heritage','peony','graphite','ember'].indexOf(o.accent)>=0?o.accent:'cobalt',start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:'',order:Array.isArray(o.order)?o.order.filter(x=>typeof x==='string'):[],cview:o.cview==='swipe'?'swipe':'grid',subs:(o.subs&&typeof o.subs==='object')?o.subs:{},shsize:o.shsize==='st'?'st':'sq',shbrand:o.shbrand!==false,shnames:o.shnames!==false,shtag:o.shtag!==false,shtheme:o.shtheme==='dark'?'dark':'light',shlogo:['tr','bl','br'].indexOf(o.shlogo)>=0?o.shlogo:'tr',shside:o.shside==='r'?'r':'l'}})();
+const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,gkey:typeof o.gkey==='string'?o.gkey:'',gcx:typeof o.gcx==='string'?o.gcx:'',occ:Array.isArray(o.occ)?o.occ.filter(x=>x&&x.id&&x.label).slice(0,4):[],accent:['cobalt','heritage','peony','graphite','ember'].indexOf(o.accent)>=0?o.accent:'cobalt',start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:'',order:Array.isArray(o.order)?o.order.filter(x=>typeof x==='string'):[],cview:o.cview==='swipe'?'swipe':'grid',subs:(o.subs&&typeof o.subs==='object')?o.subs:{},shsize:o.shsize==='st'?'st':'sq',shbrand:o.shbrand!==false,shnames:o.shnames!==false,shtag:o.shtag!==false,shdet:o.shdet!==false,shtheme:o.shtheme==='dark'?'dark':'light',shlogo:['tr','bl','br'].indexOf(o.shlogo)>=0?o.shlogo:'tr',shside:o.shside==='r'?'r':'l'}})();
 function applyOrder(){const o=SET.order;CATS.sort((a,b)=>{const ia=o.indexOf(a.id),ib=o.indexOf(b.id);return (ia<0?99:ia)-(ib<0?99:ib)})}
 applyOrder();
 const SUBS={tops:['Short sleeve','Long sleeve','T-shirt','Polo','Dress shirt','Collared','Sweater','Hoodie','Tank'],bottoms:['Jeans','Pants','Slacks','Shorts','Joggers'],shoes:['Sneakers','Boots','Dress','Loafers','Sandals'],outerwear:['Jacket','Coat','Vest','Blazer','Hoodie'],accessories:['Hat','Watch','Belt','Chain','Bag','Sunglasses'],scents:['Fresh','Woody','Sweet','Spicy']};
@@ -446,15 +451,16 @@ const dirty=new Set(),timers={},vers={},chains={};
 const rebuild=()=>{M=new Map(S.items.map(i=>[i.id,i]))};
 const enqueue=(key,fn)=>{const p=(chains[key]||Promise.resolve()).then(fn);chains[key]=p.catch(()=>{});return p};
 
+const dt=(v,n)=>typeof v==='string'?v.slice(0,n):'';
 function normDay(r){
   r=r||{};
   const pl=Array.isArray(r.plans)?r.plans:[];
-  const mk=p=>({cover:(p&&typeof p.cover==='string')?p.cover:'',items:Array.isArray(p&&p.items)?p.items.slice():[],tag:(p&&p.tag)||'',when:nw(p&&p.when),locked:!!(p&&p.locked),photo:(p&&typeof p.photo==='string')?p.photo:'',rating:(p&&typeof p.rating==='number'&&p.rating>0&&p.rating<=5)?Math.round(p.rating*2)/2:0});
+  const mk=p=>({cover:(p&&typeof p.cover==='string')?p.cover:'',items:Array.isArray(p&&p.items)?p.items.slice():[],tag:(p&&p.tag)||'',place:dt(p&&p.place,30),wx:dt(p&&p.wx,30),note:dt(p&&p.note,140),when:nw(p&&p.when),locked:!!(p&&p.locked),photo:(p&&typeof p.photo==='string')?p.photo:'',rating:(p&&typeof p.rating==='number'&&p.rating>0&&p.rating<=5)?Math.round(p.rating*2)/2:0});
   const mo=Array.isArray(r.more)?r.more.map(mk).filter(o=>o.items.length||o.photo):[];
-  return {cover:typeof r.cover==='string'?r.cover:'',items:Array.isArray(r.items)?r.items.slice():[],tag:r.tag||'',rating:(typeof r.rating==='number'&&r.rating>0&&r.rating<=5)?Math.round(r.rating*2)/2:0,photo:typeof r.photo==='string'?r.photo:'',scent:typeof r.scent==='string'?r.scent:'',shoe:typeof r.shoe==='string'?r.shoe:'',shoePhoto:typeof r.shoePhoto==='string'?r.shoePhoto:'',when:nw(r.when),plans:[mk(pl[0]),mk(pl[1]),mk(pl[2]),mk(pl[3])],more:mo};
+  return {cover:typeof r.cover==='string'?r.cover:'',items:Array.isArray(r.items)?r.items.slice():[],tag:r.tag||'',place:dt(r.place,30),wx:dt(r.wx,30),note:dt(r.note,140),rating:(typeof r.rating==='number'&&r.rating>0&&r.rating<=5)?Math.round(r.rating*2)/2:0,photo:typeof r.photo==='string'?r.photo:'',scent:typeof r.scent==='string'?r.scent:'',shoe:typeof r.shoe==='string'?r.shoe:'',shoePhoto:typeof r.shoePhoto==='string'?r.shoePhoto:'',when:nw(r.when),plans:[mk(pl[0]),mk(pl[1]),mk(pl[2]),mk(pl[3])],more:mo};
 }
-const outDoc=p=>({cover:p.cover||'',items:p.items.slice(),tag:p.tag||'',when:p.when||'',photo:p.photo||'',rating:p.rating||0,locked:!!p.locked});
-const dayDoc=d=>({cover:d.cover||'',items:d.items.slice(),tag:d.tag||'',photo:d.photo||'',scent:d.scent||'',shoe:d.shoe||'',shoePhoto:d.shoePhoto||'',rating:d.rating||0,when:d.when||'',plans:d.plans.map(outDoc),more:d.more.filter(p=>p.items.length||p.photo).map(outDoc)});
+const outDoc=p=>({cover:p.cover||'',items:p.items.slice(),tag:p.tag||'',place:p.place||'',wx:p.wx||'',note:p.note||'',when:p.when||'',photo:p.photo||'',rating:p.rating||0,locked:!!p.locked});
+const dayDoc=d=>({cover:d.cover||'',items:d.items.slice(),tag:d.tag||'',place:d.place||'',wx:d.wx||'',note:d.note||'',photo:d.photo||'',scent:d.scent||'',shoe:d.shoe||'',shoePhoto:d.shoePhoto||'',rating:d.rating||0,when:d.when||'',plans:d.plans.map(outDoc),more:d.more.filter(p=>p.items.length||p.photo).map(outDoc)});
 const dayEmpty=d=>!d||(!d.items.length&&!d.photo&&!d.scent&&!d.shoe&&!d.shoePhoto&&!d.plans.some(p=>p.items.length)&&!d.more.some(p=>p.items.length));
 const nw=v=>tlist(v).filter(w=>WR[w]!==undefined).sort((x,y)=>WR[x]-WR[y]).join(',');
 const WR={morning:0,afternoon:1,evening:2};
@@ -810,6 +816,7 @@ function viewLog(){
    +'<div class="stack">'+modeSeg+optSeg+'<div id="outwrap">'+outSegHTML()+'</div>'
    +'<div><span class="cap">Time of day</span><div class="seg" id="whenseg" role="group" aria-label="Time of day">'+whenSeg()+'</div></div>'
    +'<div><span class="cap">Outfit type</span><div class="seg wrap" id="tagseg" role="group" aria-label="Outfit type">'+tagSeg()+'</div></div>'
+   +'<div id="detbox">'+detHTML()+'</div>'
    +fitRowHTML()
    +'<div id="rate">'+rateHTML()+'</div>'
    +'<div class="btn-row"><button type="button" class="btn ghost" data-act="repeat"'+(canRepeat?'':' disabled')+'>'+(sel===t?'Repeat yesterday':'Repeat day before')+'</button><button type="button" class="btn ghost" data-act="clear">Clear</button><button type="button" class="btn ghost" data-act="look-save"'+(tgt.items.length?'':' disabled')+'>Save look</button><button type="button" class="btn ghost" data-act="looks-open">Saved looks'+(S.looks.length?' ('+S.looks.length+')':'')+'</button>'+(S.mode==='log'&&S.out>0?'<button type="button" class="btn ghost" id="rm-out" data-act="rm-out">Remove outfit</button>':'')
@@ -846,6 +853,7 @@ function refreshPicker(){
   const ts=$('#tagseg');if(ts)ts.innerHTML=tagSeg();
   const wsg=$('#whenseg');if(wsg)wsg.innerHTML=whenSeg();
   const ow=$('#outwrap');if(ow)ow.innerHTML=outSegHTML();
+  refreshDet();
   renderTray();
 }
 function toggleOutfit(id,force){
@@ -865,6 +873,19 @@ function pickScent(id){
 const WHENS=[['','Any'],['morning','Morning'],['afternoon','Afternoon'],['evening','Evening']];
 function whenSeg(){const t=target(false);return WHENS.map(w=>'<button type="button" data-act="when" data-v="'+w[0]+'" aria-pressed="'+(w[0]===''?!t.when:thas(t.when,w[0]))+'">'+w[1]+'</button>').join('')}
 function setWhen(v){const t=target(true);t.when=v===''?'':nw(ttog(t.when,v));scheduleDay(S.sel);const e=$('#whenseg');if(e)e.innerHTML=whenSeg();const ow=$('#outwrap');if(ow)ow.innerHTML=outSegHTML()}
+function detHTML(){
+  const t=target(false),open=!!(t.place||t.wx||t.note);
+  return '<details class="det"'+(open?' open':'')+'><summary>Details <i>optional</i></summary>'
+   +'<div class="det-g"><label>Where<input id="f-place" maxlength="30" placeholder="Greenville" autocomplete="off" value="'+esc(t.place||'')+'"></label>'
+   +'<label>Weather<input id="f-wx" maxlength="30" placeholder="Rainy, cold" autocomplete="off" value="'+esc(t.wx||'')+'"></label></div>'
+   +'<label class="det-n">Note<input id="f-note" maxlength="140" placeholder="Wore the windbreaker, cozy day" autocomplete="off" value="'+esc(t.note||'')+'"></label></details>';
+}
+function refreshDet(){const b=$('#detbox');if(b&&!(document.activeElement&&b.contains(document.activeElement)))b.innerHTML=detHTML()}
+document.addEventListener('input',e=>{
+  const id=e.target&&e.target.id,f={'f-place':'place','f-wx':'wx','f-note':'note'}[id];
+  if(!f)return;
+  const t=target(true);t[f]=e.target.value;scheduleDay(S.sel);
+});
 function setTag(v){const t=target(true);t.tag=ttog(t.tag,v);scheduleDay(S.sel);const ts=$('#tagseg');if(ts)ts.innerHTML=tagSeg();const ow=$('#outwrap');if(ow)ow.innerHTML=outSegHTML()}
 function repeatPrev(){
   const y=S.days[addDays(S.sel,-1)];
@@ -876,7 +897,7 @@ function repeatPrev(){
 function clearOutfit(){
   const t=target(true);
   if(!t.items.length&&!t.tag&&!t.rating)return;
-  t.items=[];t.tag='';t.rating=0;t.when='';t.locked=false;t.cover='';
+  t.items=[];t.tag='';t.place='';t.wx='';t.note='';t.rating=0;t.when='';t.locked=false;t.cover='';
   scheduleDay(S.sel);refreshPicker();const rr=$('#rate');if(rr)rr.innerHTML=rateHTML();
 }
 function lockPlan(){
@@ -892,7 +913,7 @@ function lockPlan(){
   }
   const w=p.when||'';
   if(!d.items.length){d.items=p.items.slice();d.tag=p.tag;d.when=w;S.out=0}
-  else{d.more.push({items:p.items.slice(),tag:p.tag,when:w,photo:'',rating:0});S.out=d.more.length}
+  else{d.more.push({items:p.items.slice(),tag:p.tag,place:p.place||'',wx:p.wx||'',note:p.note||'',when:w,photo:'',rating:0});S.out=d.more.length}
   d.plans=d.plans.map((q,i)=>(i===idx||wov(q.when,w))?{items:[],tag:'',when:''}:q);
   S.mode='log';S.opt=0;
   scheduleDay(S.sel);render();
@@ -1007,7 +1028,7 @@ function settleDays(){
         lk.forEach(x=>{
           const w=x.p.when||'';
           if(!d.items.length){d.items=x.p.items.slice();d.tag=x.p.tag||'';d.when=w}
-          else d.more.push({items:x.p.items.slice(),tag:x.p.tag||'',when:w,photo:'',rating:0});
+          else d.more.push({items:x.p.items.slice(),tag:x.p.tag||'',place:x.p.place||'',wx:x.p.wx||'',note:x.p.note||'',when:w,photo:'',rating:0});
           d.plans=d.plans.map((q,i)=>(i===x.i||wov(q.when,w))?{items:[],tag:'',when:'',locked:false}:q);
         });
         ch=true;
@@ -1030,12 +1051,13 @@ function viewCalendar(){
     const outs=planned?[]:outfitsOf(dd).map(o=>o.items.filter(id=>M.has(id))).filter(a=>a.length);
     const picks=ids.map(id=>M.get(id)).sort((a,b)=>(a.category==='shoes'?0:1)-(b.category==='shoes'?0:1));
     const sOnly=(!ids.length&&!planned&&dd&&((dd.shoe&&M.get(dd.shoe))||(dd.scent&&M.get(dd.scent))))||null,hero=coverOf(pl||outfitsOf(dd)[0])||picks[0]||sOnly||undefined,fo=(!planned&&dd)?outfitsOf(dd).find(o=>o.photo):null,fit=!!fo;
-    const bars=(!planned&&dd&&ids.length)?outfitsOf(dd).map(o=>tagBar(o.tag)).join(''):'';
+    const dimmed=S.ctag&&!(dd&&outfitsOf(dd).some(o=>thas(o.tag,S.ctag))),bars=(!planned&&dd&&ids.length)?outfitsOf(dd).map(o=>tagBar(o.tag)).join(''):'';
     const lbl=fmt(ds,{weekday:'long',month:'long',day:'numeric'})+(planned?(lockedP?', locked in':', planned'):outs.length>1?', '+outs.length+' outfits logged':ids.length?', '+ids.length+' pieces logged':'');
-    cells.push('<button type="button" class="cell'+(([0,6].indexOf(new Date(y,m-1,d).getDay())>=0)?' wk':'')+(ds===t?' today':'')+(planned?' planned':'')+(lockedP?' locked':'')+'" data-act="open-day" data-d="'+ds+'" aria-label="'+lbl+'"><span class="n">'+d+'</span><span class="hero'+(fit?' fit':hero?'':' none')+'">'+(sOnly&&!sOnly.photo?'<span class="sn">'+esc(dn(sOnly))+'</span>':fit?'<img src="'+esc(photoSrc(fo.photo))+'" alt="" decoding="async">'+(outs.length>1?'<b>'+outs.length+' fits</b>':''):hero?tileInner(hero)+(sOnly?'':outs.length>1?'<b>'+outs.length+' fits</b>':ids.length>1?'<b>+'+(ids.length-1)+'</b>':''):'')+'</span><span class="bars">'+(bars||'<span class="bar"></span>')+'</span></button>');
+    cells.push('<button type="button" class="cell'+(dimmed?' dim':'')+(([0,6].indexOf(new Date(y,m-1,d).getDay())>=0)?' wk':'')+(ds===t?' today':'')+(planned?' planned':'')+(lockedP?' locked':'')+'" data-act="open-day" data-d="'+ds+'" aria-label="'+lbl+'"><span class="n">'+d+'</span><span class="hero'+(fit?' fit':hero?'':' none')+'">'+(sOnly&&!sOnly.photo?'<span class="sn">'+esc(dn(sOnly))+'</span>':fit?'<img src="'+esc(photoSrc(fo.photo))+'" alt="" decoding="async">'+(outs.length>1?'<b>'+outs.length+' fits</b>':''):hero?tileInner(hero)+(sOnly?'':outs.length>1?'<b>'+outs.length+' fits</b>':ids.length>1?'<b>+'+(ids.length-1)+'</b>':''):'')+'</span><span class="bars">'+(bars||'<span class="bar"></span>')+'</span></button>');
   }
   return '<div class="head"><div><div class="brand">Rotation</div><h1 class="h1">Calendar</h1><div class="sub">'+fmt(S.month+'-01',{month:'long',year:'numeric'})+'</div></div><div class="mnav"><button type="button" class="rb" data-act="month" data-v="-1" aria-label="Previous month">'+ico(P.left)+'</button><button type="button" class="rb" data-act="month" data-v="1" aria-label="Next month">'+ico(P.right)+'</button>'+statsBtn()+gearBtn()+'</div></div>'
    +'<div class="cal" role="group" aria-label="Month">'+(SET.week==='1'?['M','T','W','T','F','S','S']:['S','M','T','W','T','F','S']).map((d,i)=>'<span class="dow'+((SET.week==='1'?i>=5:(i===0||i===6))?' wk':'')+'">'+d+'</span>').join('')+cells.join('')+'</div>'
+   +'<div class="chips ctags" role="group" aria-label="Show only one outfit type"><button type="button" class="chip" data-act="ctag" data-v="" aria-pressed="'+(!S.ctag)+'">All</button>'+TAGS.map(t=>'<button type="button" class="chip" data-act="ctag" data-v="'+t.id+'" aria-pressed="'+(S.ctag===t.id)+'">'+esc(t.label)+'</button>').join('')+'</div>'
    +'<div class="legend">'+TAGS.map(t=>'<span><i class="'+(t.custom?'':'t-'+t.id)+'"'+(t.custom?' style="background:'+t.color+'"':'')+'></i>'+esc(t.label)+'</span>').join('')+'</div>'
    +footText();
 }
@@ -1123,6 +1145,7 @@ function renderDay(){
     total+=x.l.length;
     const tl=tagLbl(x.o.tag);
     body+='<h3 class="dv-h">'+(multi?'Outfit '+(xi+1):'Outfit')+(x.o.when?' · '+whenLbl(x.o.when):'')+(tl?' · '+tl:'')+'</h3>';
+    {const dl=[x.o.place,x.o.wx].filter(Boolean).join(' · ');if(dl||x.o.note)body+='<p class="det-v">'+(dl?'<b>'+esc(dl)+'</b>':'')+(x.o.note?(dl?'<br>':'')+esc(x.o.note):'')+'</p>'}
     if(x.o.rating)body+='<div class="rate-row" style="margin-bottom:10px">'+starsHTML(x.o.rating,false)+'<span class="mono">'+x.o.rating.toFixed(1)+'</span></div>';
     if(x.o.photo)body+='<div class="fit-p"><img src="'+esc(photoSrc(x.o.photo))+'" alt="Outfit photo"></div>';
     if(x.l.length){
@@ -1273,6 +1296,7 @@ function renderShare(){
    +(SH.mode==='fit'?'<div class="sh-opt" style="margin-bottom:8px"><span class="cap">Pieces to show</span><div class="chips wrapc" id="sh-pcs">'+Array.from(S.days[SH.d]&&(SH.k?S.days[SH.d].more[SH.k-1]:S.days[SH.d]).items||[]).filter(id=>M.has(id)).map(id=>'<button type="button" class="chip" data-act="share-piece" data-id="'+esc(id)+'" aria-pressed="'+SH.sel.has(id)+'">'+esc(M.get(id).nickname||M.get(id).name)+'</button>').join('')+'</div></div>':'')
    +(SH.hasFeet?'<div class="set-row"><span><b>On-feet photo</b><i>Use your photo instead of the closet picture.</i></span><button type="button" class="sw-t" data-act="share-feet" aria-pressed="'+SH.feet+'" aria-label="On-feet photo"></button></div>':'')
    +(SH.hasScent?'<div class="set-row"><span><b>Include scent</b><i>Adds today\'s scent as another tile.</i></span><button type="button" class="sw-t" data-act="share-scent" aria-pressed="'+SH.scent+'" aria-label="Include scent"></button></div>':'')
+   +(SH.mode==='fit'?'<div class="set-row"><span><b>Show place, weather and note</b><i>What you typed under Details.</i></span><button type="button" class="sw-t" data-act="share-det" aria-pressed="'+SH.det+'" aria-label="Show place, weather and note"></button></div>':'')
    +(SH.mode==='fit'?'<div class="set-row"><span><b>Show tag</b><i>The Work, Casual or Mixed label under the date.</i></span><button type="button" class="sw-t" data-act="share-tag" aria-pressed="'+SH.tag+'" aria-label="Show tag"></button></div>':'')
    +'<div class="set-row"><span><b>Show names</b><i>Turn off for just the pictures.</i></span><button type="button" class="sw-t" data-act="share-names" aria-pressed="'+SH.names+'" aria-label="Show names"></button></div>'
    +'<div class="set-row"><span><b>Show brands</b><i>Works on its own, with or without names. Prices and where you bought it are never shown.</i></span><button type="button" class="sw-t" id="sh-br" data-act="share-brands" aria-pressed="'+SH.brands+'" aria-label="Show brands"></button></div>'
@@ -1306,15 +1330,18 @@ async function drawShare(){
   x.textBaseline='alphabetic';x.textAlign='left';x.fillStyle=INK;x.font=F(700,40);
   x.fillText(itemMode?(((CATS[catIdx((sc||{}).category)]||{}).label)||'Piece').toUpperCase():fmt(SH.d,{weekday:'long',month:'long',day:'numeric'}).toUpperCase(),pad,pad+40);
   const tg={label:tagLbl(o.tag)};
-  const meta=itemMode?'':scentMode?(shoeMode?'Shoe of the day':'Scent of the day'):[SH.tag&&tg&&tg.label,o.when&&whenLbl(o.when),o.rating?'\u2605 '+o.rating.toFixed(1):''].filter(Boolean).join('  \u00b7  ');
+  const meta=itemMode?'':scentMode?(shoeMode?'Shoe of the day':'Scent of the day'):[SH.tag&&tg&&tg.label,SH.det&&o.place,SH.det&&o.wx,o.when&&whenLbl(o.when),o.rating?'\u2605 '+o.rating.toFixed(1):''].filter(Boolean).join('  \u00b7  ');
   if(meta){x.fillStyle=INK2;x.font=F(500,30);x.fillText(meta,pad,pad+88)}
-  x.fillStyle=ACCENT;rr(x,pad,pad+(meta?118:70),72,8,4);x.fill();
+  let noteTxt=(!itemMode&&!scentMode&&SH.det&&o.note)?o.note:'';
+  if(noteTxt){x.font=F(500,28);while(noteTxt.length>3&&x.measureText(noteTxt).width>W-pad*2){noteTxt=noteTxt.slice(0,-2)}if(noteTxt!==o.note)noteTxt=noteTxt.trim()+'\u2026';x.fillStyle=INK;x.fillText(noteTxt,pad,pad+(meta?132:88))}
+  const hd=(meta?118:70)+(noteTxt?44:0);
+  x.fillStyle=ACCENT;rr(x,pad,pad+hd,72,8,4);x.fill();
   /* the Rotation watermark: top right, bottom left or bottom right */
   x.fillStyle=INK;x.font=F(800,44,DISP);
   if(SH.logo==='tr'){x.textAlign='right';x.fillText('ROTATION',W-pad,pad+40);x.textAlign='left'}
   else if(SH.logo==='br'){x.textAlign='right';x.fillText('ROTATION',W-pad,H-pad+4);x.textAlign='left'}
   else x.fillText('ROTATION',pad,H-pad+4);
-  const top=pad+(meta?118:70)+60,bottom=SH.logo==='tr'?H-pad:H-pad-76,cw=W-pad*2,ch=bottom-top;
+  const top=pad+hd+60,bottom=SH.logo==='tr'?H-pad:H-pad-76,cw=W-pad*2,ch=bottom-top;
   /* tile grid */
   const tiles=(ax,ay,aw,ah,cols)=>{
     const n=its.length,rows=Math.ceil(n/cols),gap=30,lab=(SH.names||brands)?(SH.names&&brands?96:60)+(its.length===1?30:0):0;
@@ -1928,6 +1955,7 @@ document.addEventListener('click',e=>{
     case 'kind-pick':if(S.sheet){const dr=S.sheet.draft,v=el.dataset.v,i=dr.kinds.indexOf(v);if(i>=0)dr.kinds.splice(i,1);else dr.kinds.push(v);syncKinds()}break;
     case 'kind-add':if(S.sheet){const inp=$('#f-kind'),v=inp&&inp.value.trim().slice(0,24),dr=S.sheet.draft;if(!v)break;if(!subsFor(dr.category).some(k=>k.toLowerCase()===v.toLowerCase())){(SET.subs[dr.category]=SET.subs[dr.category]||[]).push(v);saveSet()}const ex=subsFor(dr.category).find(k=>k.toLowerCase()===v.toLowerCase());if(dr.kinds.indexOf(ex)<0)dr.kinds.push(ex);inp.value='';syncKinds()}break;
     case 'kind-filter':{const v=el.dataset.v,i=S.kinds.indexOf(v);if(i>=0)S.kinds.splice(i,1);else S.kinds.push(v);fillKinds();fillGrid();break}
+    case 'ctag':S.ctag=el.dataset.v||'';render();break;
     case 'cview':SET.cview=el.dataset.v;saveSet();render();break;
     case 'arrange':S.arr=true;renderArrange();break;
     case 'arr-close':S.arr=false;renderArrange();render();break;
@@ -1956,6 +1984,7 @@ document.addEventListener('click',e=>{
     case 'scent-new':closeLooks();openItem(null,{cat:'scents',scentDay:S.dv});break;
     case 'scent-clear':setDayScent(S.dv,'');toast('Scent removed');break;
     case 'share-opt':if(SH){const k=el.dataset.k,v=el.dataset.v;if(SH[k]!==v){SH[k]=v;SET['sh'+k]=v;saveSet();syncShareOpts();buildShare()}}break;
+    case 'share-det':if(SH){SH.det=SET.shdet=!SH.det;saveSet();renderShare();buildShare()}break;
     case 'share-tag':if(SH){SH.tag=SET.shtag=!SH.tag;saveSet();renderShare();buildShare()}break;
     case 'share-names':if(SH){SH.names=SET.shnames=!SH.names;saveSet();renderShare();buildShare()}break;
     case 'share-brands':if(SH){SH.brands=SET.shbrand=!SH.brands;saveSet();el.setAttribute('aria-pressed',SH.brands?'true':'false');buildShare()}break;
