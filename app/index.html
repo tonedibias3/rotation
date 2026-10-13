@@ -1501,10 +1501,11 @@ function shOpt(key,label,opts,hide){
 }
 function syncShareOpts(){
   const e=$('#sh-o-side');if(e)e.hidden=!(SH.size==='sq'&&SH.hasPhoto);
-  ['size','theme','logo','side'].forEach(k=>document.querySelectorAll('#sh-o-'+k+' button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===SH[k]?'true':'false')));
+  ['size','theme','logo','side','pfit'].forEach(k=>document.querySelectorAll('#sh-o-'+k+' button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===SH[k]?'true':'false')));
 }
 function renderShare(){
   const h=$('#share');if(!SH){if(h)h.innerHTML='';return}
+  if(!SH.pfit)SH.pfit='auto';
   h.innerHTML='<div class="crop-s"><div class="crop find" role="dialog" aria-modal="true" aria-label="Share outfit">'
    +'<div class="sheet-h" style="margin-bottom:10px"><h2 style="margin:0">Share</h2><button type="button" class="x" data-act="share-close" aria-label="Close">'+ico(P.x)+'</button></div>'
    +'<div class="sh-prev"><img id="sh-img" alt="Preview of the image you will share" hidden><span id="sh-wait" class="hint">Building your image</span></div>'
@@ -1514,6 +1515,7 @@ function renderShare(){
    +shOpt('theme','Look',[['light','Light'],['dark','Dark']])
    +shOpt('logo','Rotation watermark',[['tr','Top right'],['bl','Bottom left'],['br','Bottom right']])
    +shOpt('side','Outfit photo',[['l','Left'],['r','Right']],!(SH.size==='sq'&&SH.hasPhoto))
+   +shOpt('pfit','Photo fit',[['auto','Auto'],['fill','Fill'],['whole','Whole photo']],!SH.hasPhoto)
    +'</div>'
    +(SH.mode==='fit'?'<div class="sh-opt" style="margin-bottom:8px"><span class="cap">Pieces to show</span><div class="chips wrapc" id="sh-pcs">'+Array.from(SH.look?shLook().items:S.days[SH.d]&&(SH.k?S.days[SH.d].more[SH.k-1]:S.days[SH.d]).items||[]).filter(id=>M.has(id)).map(id=>'<button type="button" class="chip" data-act="share-piece" data-id="'+esc(id)+'" aria-pressed="'+SH.sel.has(id)+'">'+esc(M.get(id).nickname||M.get(id).name)+'</button>').join('')+'</div></div>':'')
    +(SH.hasFeet?'<div class="set-row"><span><b>On-feet photo</b><i>Use your photo instead of the closet picture.</i></span><button type="button" class="sw-t" data-act="share-feet" aria-pressed="'+SH.feet+'" aria-label="On-feet photo"></button></div>':'')
@@ -1591,6 +1593,14 @@ async function drawShare(){
     });
   };
   const cover=(ax,ay,aw,ah,im)=>{im=im||fit;x.save();rr(x,ax,ay,aw,ah,36);x.clip();const k=Math.max(aw/im.width,ah/im.height),w=im.width*k,h=im.height*k;x.drawImage(im,ax+(aw-w)/2,ay+(ah-h)/2,w,h);x.restore()};
+  /* outfit photo: fill the box, or (auto, when the photo's shape is far from the box) show the whole photo */
+  const photoMode=(aw,ah)=>{if(SH.pfit==='fill'||SH.pfit==='whole')return SH.pfit;const q=fit.width/fit.height,r=aw/ah;return Math.max(q/r,r/q)>(sz==='st'?1.25:1.6)?'whole':'fill'};
+  const place=(ax,ay,aw,ah,im)=>{
+    im=im||fit;if(photoMode(aw,ah)==='fill')return cover(ax,ay,aw,ah,im);
+    x.save();rr(x,ax,ay,aw,ah,36);x.clip();x.fillStyle=WELL;x.fillRect(ax,ay,aw,ah);
+    const k=Math.min(aw/im.width,ah/im.height),w=im.width*k,h=im.height*k,ix=ax+(aw-w)/2,iy=ay+(ah-h)/2;
+    rr(x,ix,iy,w,h,Math.min(28,w/4));x.clip();x.drawImage(im,ix,iy,w,h);x.restore();
+  };
   if(feetImg&&its[0]){
     const it=its[0],lab=(SH.names||brands)?(SH.names&&brands&&it.brand?120:80):0;
     cover(pad,top,cw,ch-lab,feetImg);
@@ -1605,14 +1615,15 @@ async function drawShare(){
     }
   }
   else if(!fit){tiles(pad,top,cw,ch,its.length<=2?1:its.length<=4?2:its.length<=9?3:4)}
-  else if(!its.length){cover(pad,top,cw,ch)}
+  else if(!its.length){place(pad,top,cw,ch)}
   else if(sz==='st'){
-    const ph=Math.min(860,Math.round(ch*.56));
-    cover(pad,top,cw,ph);
+    let ph=Math.min(860,Math.round(ch*.56));
+    if(photoMode(cw,ph)==='whole'&&fit.width<fit.height)ph=Math.max(ph,Math.min(Math.round(ch*.64),Math.round(cw*fit.height/fit.width)));
+    place(pad,top,cw,ph);
     const n=its.length;tiles(pad,top+ph+40,cw,ch-ph-40,n<=3?n:Math.ceil(n/2));
   }else{
     const pw=Math.round(cw*.46),right=SH.side==='r',gx=pad+(right?cw-pw:0);
-    cover(gx,top,pw,ch);
+    place(gx,top,pw,ch);
     tiles(right?pad:pad+pw+40,top,cw-pw-40,ch,its.length<=2?1:its.length>6?3:2);
   }
   return c;
@@ -2215,7 +2226,7 @@ document.addEventListener('click',e=>{
     case 'scent-set':setDayScent(S.dv,id);closeLooks();break;
     case 'scent-new':closeLooks();openItem(null,{cat:'scents',scentDay:S.dv});break;
     case 'scent-clear':setDayScent(S.dv,'');toast('Scent removed');break;
-    case 'share-opt':if(SH){const k=el.dataset.k,v=el.dataset.v;if(SH[k]!==v){SH[k]=v;SET['sh'+k]=v;saveSet();syncShareOpts();buildShare()}}break;
+    case 'share-opt':if(SH){const k=el.dataset.k,v=el.dataset.v;if(SH[k]!==v){SH[k]=v;if(k!=='pfit'){SET['sh'+k]=v;saveSet()}syncShareOpts();buildShare()}}break;
     case 'share-det':if(SH){SH.det=SET.shdet=!SH.det;saveSet();renderShare();buildShare()}break;
     case 'share-tag':if(SH){SH.tag=SET.shtag=!SH.tag;saveSet();renderShare();buildShare()}break;
     case 'share-names':if(SH){SH.names=SET.shnames=!SH.names;saveSet();renderShare();buildShare()}break;
