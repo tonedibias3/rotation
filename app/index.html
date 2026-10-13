@@ -376,7 +376,7 @@ details.det[open] summary{border-bottom:1px solid var(--line);margin-bottom:14px
 .grid.hz{grid-template-columns:none;grid-auto-flow:column;grid-template-rows:auto;grid-auto-columns:clamp(150px,44vw,280px);overflow-x:auto;margin-inline:-16px;padding:6px 16px 22px;scroll-snap-type:x proximity;scroll-padding-inline:16px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .grid.hz::-webkit-scrollbar{display:none}.grid.hz .card{scroll-snap-align:start}
 .vbig{aspect-ratio:1;border-radius:22px;overflow:hidden;background:var(--well);margin-bottom:14px;display:grid;place-items:center}
-.vbig img{width:100%;height:100%;object-fit:contain}.vbig .ph svg{width:40%;height:40%}
+.vbig img{width:100%;height:100%;object-fit:contain}.vbig.both{aspect-ratio:2/1.15;grid-template-columns:1fr 1fr;gap:6px;padding:6px}.vbig.both img{border-radius:14px;min-width:0}.vbig.both#vfront{order:-1}.vbig.both #vfront{order:-1}.vbig .ph svg{width:40%;height:40%}
 .vkinds{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}.vkinds span{font:600 12px var(--f-body);padding:6px 12px;border-radius:999px;background:color-mix(in srgb,var(--ink) 8%,transparent)}
 .vrow{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-top:1px solid var(--line);font-size:14.5px}.vrow span{color:var(--ink2);font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;align-self:center}.vrow b{font-weight:600;text-align:right}
 .vrow .dots{display:flex;gap:6px}.vrow .dots i{width:20px;height:20px;border-radius:50%;border:1px solid var(--line)}
@@ -1774,7 +1774,7 @@ function viewItem(id){
   const host=$('#sheet');
   host.innerHTML='<div class="scrim" data-act="view-bg"><div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(it.name)+'" tabindex="-1">'
    +'<div class="sheet-h"><h2>'+esc(it.name)+'</h2><button type="button" class="x" data-act="view-close" aria-label="Close">'+ico(P.x)+'</button></div>'
-   +(it.photo2?'<div class="seg mini" id="vside" role="group" aria-label="Side" style="margin-bottom:10px;width:max-content"><button type="button" data-act="view-side" data-v="f" aria-pressed="true">Front</button><button type="button" data-act="view-side" data-v="b" aria-pressed="false">Back</button></div>':'')
+   +(it.photo2?'<div class="seg mini" id="vside" role="group" aria-label="Side" style="margin-bottom:10px;width:max-content"><button type="button" data-act="view-side" data-v="f" aria-pressed="true">Front</button><button type="button" data-act="view-side" data-v="b" aria-pressed="false">Back</button><button type="button" data-act="view-side" data-v="2" aria-pressed="false">Both</button></div>':'')
    +'<div class="vbig">'+(it.photo2?'<img id="vback" src="'+esc(photoSrc(it.photo2))+'" alt="" hidden>':'')+(src?'<img id="vfront" src="'+esc(src)+'" alt="">':'<span class="ph" style="--c:'+(COLORS[it.color]||'#9a9ea6')+'">'+(ICONS[it.category]||ICONS.tops)+'</span>')+'</div>'
    +(Array.isArray(it.kinds)&&it.kinds.length?'<div class="vkinds">'+it.kinds.map(k=>'<span>'+esc(k)+'</span>').join('')+'</div>':'')
    +row('Brand',it.brand)+row('Nickname',it.nickname)+row('Type',(CATS[catIdx(it.category)]||{}).label)
@@ -2236,7 +2236,7 @@ document.addEventListener('click',e=>{
     case 'arr-bg':if(e.target===el){S.arr=false;renderArrange();render()}break;
     case 'arr-mv':{const i=catIdx(el.dataset.v),j=i+(+el.dataset.d);if(j>=0&&j<CATS.length){const t=CATS[i];CATS[i]=CATS[j];CATS[j]=t;SET.order=CATS.map(c=>c.id);saveSet();renderArrange()}break}
     case 'arr-reset':SET.order=['tops','bottoms','shoes','outerwear','accessories','scents'];applyOrder();saveSet();renderArrange();break;
-    case 'view-side':{const b2=el.dataset.v==='b',fr=$('#vfront'),bk=$('#vback');if(fr)fr.hidden=b2;if(bk)bk.hidden=!b2;document.querySelectorAll('#vside button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===el.dataset.v?'true':'false'));break}
+    case 'view-side':{const v=el.dataset.v,b2=v==='b',two=v==='2',fr=$('#vfront'),bk=$('#vback'),vb=document.querySelector('.vbig');if(fr)fr.hidden=b2;if(bk)bk.hidden=!(b2||two);if(vb)vb.classList.toggle('both',two);document.querySelectorAll('#vside button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===el.dataset.v?'true':'false'));break}
     case 'share-open':openShare(S.dv,+el.dataset.o||0);break;
     case 'share-close':closeShare();break;
     case 'share-scent-open':openShare(S.dv,0,'scent');break;
