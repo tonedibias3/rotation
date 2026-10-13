@@ -289,6 +289,10 @@ svg{width:18px;height:18px;flex:none}
 .pal i b{flex:1}
 .find{max-height:88vh;overflow:auto}
 .tray-done{flex:none;min-height:42px;padding:8px 18px}
+.stk{font-weight:700;white-space:nowrap}.stk .sl{display:none}@media(min-width:430px){.stk .sl{display:inline}}.stk::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent,#2744E8);margin-right:6px;vertical-align:1px}.stk.risk::before{background:#E8890C}
+.ins{display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px 14px;border-radius:16px;background:var(--surface);box-shadow:var(--shadow)}
+.ins .thumb{flex:none;width:44px;height:44px}
+.ins-t{font:500 14px/1.35 var(--f-body);min-width:0}.ins-t i{display:block;font:500 10px var(--f-mono);font-style:normal;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);margin-bottom:2px}
 .cm{margin:0 0 12px}
 .lk-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 12px}
 .lk{display:block;width:100%;padding:0;border:0;background:none;text-align:left;cursor:pointer;color:inherit}
@@ -888,7 +892,7 @@ function viewLog(){
       +list.map(i=>isSc?card(i,'data-act="scent" data-id="'+esc(i.id)+'" aria-pressed="'+(!!dd&&dd.scent===i.id)+'"'):card(i,'data-act="pick" data-id="'+esc(i.id)+'" aria-pressed="'+on.has(i.id)+'"')).join('')
       +'</div></section>';
   }).join('');
-  return '<div class="head"><div><div class="brand">Rotation</div><h1 class="h1">Log</h1><div class="sub">'+fmt(sel,{weekday:'long',month:'long',day:'numeric'})+'</div></div><div class="hr"><button type="button" class="chip" data-act="today">Today</button>'+gearBtn()+'</div></div>'
+  return '<div class="head"><div><div class="brand">Rotation</div><h1 class="h1">Log</h1><div class="sub">'+fmt(sel,{weekday:'long',month:'long',day:'numeric'})+'</div></div><div class="hr">'+streakChip()+'<button type="button" class="chip" data-act="today">Today</button>'+gearBtn()+'</div></div>'+(sel===t&&!isPlan?insightHTML():'')
    +'<div class="days" id="days">'+strip+'</div>'
    +'<div class="stack">'+modeSeg+optSeg+'<div id="outwrap">'+outSegHTML()+'</div>'
    +'<div><span class="cap">Time of day</span><div class="seg" id="whenseg" role="group" aria-label="Time of day">'+whenSeg()+'</div></div>'
@@ -1148,7 +1152,9 @@ function viewStats(){
   const rest=st.hasLogs?S.items.filter(i=>i.category==='shoes').map(i=>({i:i,d:st.last[i.id]?daysSince(st.last[i.id]):null})).filter(r=>r.d===null||r.d>=21).sort((a,b)=>(a.d===null)-(b.d===null)||(b.d||0)-(a.d||0)).slice(0,4):[];
   const row=(i,right)=>'<div class="ri"><span class="thumb lg">'+tileInner(i)+'</span><span class="ri-t"><b>'+esc(dn(i))+'</b><i>'+esc(i.brand||(CATS[catIdx(i.category)]||CATS[0]).label)+'</i></span><span class="mono">'+right+'</span></div>';
   const rts=[];keys.forEach(k=>outfitsOf(S.days[k]).forEach(o=>{if(o.rating)rts.push(o.rating)}));
-  let insights='<div class="panel"><h2>This month</h2>';
+  const sk=streakInfo(),rc=recapData(S.month);
+  let insights='<div class="panel"><h2>Streak</h2><div class="nums"><div><b>'+sk.cur+'</b><span>Current</span></div><div><b>'+sk.best+'</b><span>Best</span></div></div><p class="hint" style="margin:10px 0 0">'+(sk.risk?'Log today to keep it going. ':'')+'Miss one day and your streak survives. It\u2019s forgiven once every 7 days.</p>'+(rc.days?'<div class="btn-row" style="margin-top:12px"><button type="button" class="btn primary" data-act="recap-open">Share '+esc(fmt(S.month+'-01',{month:'long'}))+' recap</button></div>':'')+'</div>';
+  insights+='<div class="panel"><h2>This month</h2>';
   insights+=keys.length?'<div class="nums"><div><b>'+keys.length+'</b><span>Days</span></div>'+TAGS.filter(t=>tcnt[t.id]||['work','casual'].indexOf(t.id)>=0).slice(0,5).map(t=>'<div><b>'+(tcnt[t.id]||0)+'</b><span>'+esc(t.label)+'</span></div>').join('')+'</div>'+(rts.length?'<div class="rate-row" style="margin-top:14px">'+starsHTML(Math.round(rts.reduce((a,b)=>a+b,0)/rts.length*2)/2,false)+'<span class="mono">Avg '+(rts.reduce((a,b)=>a+b,0)/rts.length).toFixed(1)+' · '+rts.length+' rated</span></div>':''):'<p style="margin:0">Log an outfit and this month fills in.</p>';
   insights+='</div>';
   {const sc={};Object.keys(S.days).forEach(k=>{if(k.indexOf(S.month)===0){const id=S.days[k].scent;if(id&&M.has(id))sc[id]=(sc[id]||0)+1}});
@@ -1343,6 +1349,98 @@ function openShare(d,k,mode){
   SH={mode:mode||'fit',sel:new Set(o.items.filter(id=>M.has(id))),scent:false,hasScent:!!(dd.scent&&M.has(dd.scent))&&!one&&o.items.indexOf(dd.scent)<0,hasFeet:mode==='shoe'&&!!dd.shoePhoto,feet:true,d:d,k:k,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:SET.shtag,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:!one&&!!o.photo,url:'',blob:null,seq:0};
   renderShare();buildShare();
 }
+
+/* ---------- streak, insight, recap ---------- */
+const hasFit=k=>{const d=S.days[k];return !!d&&outfitsOf(d).some(o=>o.items.some(id=>M.has(id)))};
+function streakInfo(){
+  const t=today(),ks=Object.keys(S.days).filter(k=>k<=t&&hasFit(k)).sort();
+  if(!ks.length)return {cur:0,best:0,risk:false,done:false,saved:false};
+  const end=hasFit(t)?t:addDays(t,-1);
+  let d=ks[0],run=0,best=0,lf=null,saved=false,risk=false,g=0;
+  while(d<=end&&g++<4000){
+    if(hasFit(d)){run++;if(run>best)best=run}
+    else{
+      const canF=hasFit(addDays(d,-1))&&(lf===null||daysSince(lf)-daysSince(d)>=7);
+      if(canF&&hasFit(addDays(d,1))&&addDays(d,1)<=end){lf=d;if(daysSince(d)<=7)saved=true}
+      else if(canF&&d===end&&d<t)risk=true;
+      else run=0;
+    }
+    d=addDays(d,1);
+  }
+  return {cur:run,best:best,risk:risk,done:hasFit(t),saved:saved};
+}
+function streakChip(){
+  const s=streakInfo();if(s.cur<2)return '';
+  return '<button type="button" class="chip stk'+(s.risk?' risk':'')+'" data-act="tab" data-tab="stats" aria-label="'+s.cur+' day streak">'+s.cur+'-day<span class="sl"> streak</span>'+(s.risk?'<span class="sl"> · log today</span>':'')+'</button>';
+}
+function insightHTML(){
+  const st=stats();if(!st.hasLogs||S.loading)return '';
+  const t=today(),ms=t.slice(0,7),c=[];
+  const piece=(i,txt)=>({i:i,t:txt});
+  const worn=S.items.filter(i=>st.wears[i.id]>0);
+  worn.filter(i=>i.category!=='scents').forEach(i=>{const d=daysSince(st.last[i.id]);if(d>=45)c.push(piece(i,'You haven’t worn '+dn(i)+' in '+d+' days.'))});
+  const wm={};Object.keys(S.days).forEach(k=>{if(k.indexOf(ms)===0&&k<=t)outfitsOf(S.days[k]).forEach(o=>new Set(o.items).forEach(id=>{if(M.has(id))wm[id]=(wm[id]||0)+1}))});
+  const top=Object.keys(wm).sort((a,b)=>wm[b]-wm[a])[0];
+  if(top&&wm[top]>=3)c.push(piece(M.get(top),dn(M.get(top))+' is your most worn this month, '+wm[top]+' times.'));
+  const pieces=S.items.filter(i=>i.category!=='scents'),usedM=pieces.filter(i=>wm[i.id]>0).length;
+  if(pieces.length>=8&&usedM>0)c.push({i:null,t:'You’ve worn '+usedM+' of your '+pieces.length+' pieces this month.'});
+  const never=pieces.filter(i=>!st.wears[i.id]);
+  if(never.length>=3){const n=never[0];c.push(piece(n,never.length+' pieces haven’t been worn yet, like '+dn(n)+'.'))}
+  const sk=streakInfo();if(sk.best>=7)c.push({i:null,t:'Your best streak is '+sk.best+' days. Current: '+sk.cur+'.'});
+  if(!c.length)return '';
+  const n=Math.floor(parse(t)/864e5),p=c[n%c.length];
+  return '<div class="ins">'+(p.i?'<span class="thumb">'+tileInner(p.i)+'</span>':'')+'<span class="ins-t"><i>Insight</i>'+esc(p.t)+'</span></div>';
+}
+function recapData(m){
+  const t=today(),keys=Object.keys(S.days).filter(k=>k.indexOf(m)===0&&k<=t&&hasFit(k));
+  const wm={},tc={};
+  keys.forEach(k=>outfitsOf(S.days[k]).forEach(o=>{tlist(o.tag).forEach(g=>{tc[g]=(tc[g]||0)+1});new Set(o.items).forEach(id=>{if(M.has(id)&&M.get(id).category!=='scents')wm[id]=(wm[id]||0)+1})}));
+  const top=Object.keys(wm).map(id=>[id,wm[id]]).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  const tg=Object.keys(tc).sort((a,b)=>tc[b]-tc[a])[0];
+  return {days:keys.length,top:top,tag:tg?tagLbl(tg):'',pieces:Object.keys(wm).length};
+}
+function openRecap(){
+  SH={mode:'recap',m:S.month,sel:new Set(),scent:false,hasScent:false,hasFeet:false,feet:false,d:S.month,k:0,size:SET.shsize,brands:false,names:true,tag:false,det:false,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:false,url:'',blob:null,seq:0};
+  renderShare();buildShare();
+}
+async function drawRecap(){
+  const sz=SH.size,T=SHT[SH.theme]||SHT.light,W=SIZES[sz][0],H=SIZES[sz][1],c=document.createElement('canvas');c.width=W;c.height=H;
+  const x=c.getContext('2d');try{await document.fonts.ready}catch(e){}
+  const INK=T.ink,INK2=T.ink2,ACCENT=T.acc[SET.accent]||T.acc.cobalt,pad=72;
+  const F=(w,px,fam)=>w+' '+px+'px '+(fam||'"Instrument Sans",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif');
+  const DISP='"Archivo","Helvetica Neue",Arial,sans-serif';
+  const r=recapData(SH.m),sk=streakInfo();
+  const imgs=await Promise.all(r.top.map(a=>loadSrc(photoSrc((M.get(a[0])||{}).photo))));
+  x.fillStyle=T.bg;x.fillRect(0,0,W,H);x.textBaseline='alphabetic';x.textAlign='left';
+  x.fillStyle=INK;x.font=F(700,40);x.fillText(fmt(SH.m+'-01',{month:'long',year:'numeric'}).toUpperCase()+' RECAP',pad,pad+40);
+  x.fillStyle=ACCENT;rr(x,pad,pad+70,72,8,4);x.fill();
+  x.fillStyle=INK;x.font=F(800,44,DISP);
+  if(SH.logo==='tr'){x.textAlign='right';x.fillText('ROTATION',W-pad,pad+40);x.textAlign='left'}
+  else if(SH.logo==='br'){x.textAlign='right';x.fillText('ROTATION',W-pad,H-pad+4);x.textAlign='left'}
+  else x.fillText('ROTATION',pad,H-pad+4);
+  /* big numbers */
+  const top=pad+170,stats3=[[r.days,'DAYS LOGGED'],[r.pieces,'PIECES WORN'],[sk.best,'BEST STREAK']];
+  const cw=(W-pad*2)/3;
+  stats3.forEach((s,i)=>{x.fillStyle=INK;x.font=F(800,sz==='st'?120:104,DISP);x.fillText(String(s[0]),pad+i*cw,top+100);x.fillStyle=INK2;x.font=F(500,26);x.fillText(s[1],pad+i*cw,top+148)});
+  let y=top+(sz==='st'?260:220);
+  x.fillStyle=INK2;x.font=F(500,28);x.fillText('MOST WORN',pad,y);y+=30;
+  const bottom=SH.logo==='tr'?H-pad:H-pad-76,n=r.top.length;
+  if(!n){x.fillStyle=INK2;x.font=F(500,34);x.fillText('Log a few outfits to fill this in.',pad,y+60)}
+  else{
+    const gap=30,avail=bottom-y,t=Math.floor(Math.min((W-pad*2-(n-1)*gap)/n,avail-90));
+    const ox=pad+((W-pad*2)-(n*t+(n-1)*gap))/2;
+    r.top.forEach((a,i)=>{
+      const it=M.get(a[0]),tx=ox+i*(t+gap);
+      x.save();rr(x,tx,y,t,t,Math.round(t*.14));x.clip();x.fillStyle=T.well;x.fillRect(tx,y,t,t);
+      if(imgs[i]){const im=imgs[i],p=t*.07,k=Math.min((t-2*p)/im.width,(t-2*p)/im.height),w=im.width*k,h=im.height*k;x.globalCompositeOperation='multiply';x.drawImage(im,tx+(t-w)/2,y+(t-h)/2,w,h);x.globalCompositeOperation='source-over'}
+      else{x.fillStyle=T.ph;x.font=F(700,Math.round(t*.4),DISP);x.textAlign='center';x.fillText((it.name||'?').charAt(0).toUpperCase(),tx+t/2,y+t/2+t*.14);x.textAlign='left'}
+      x.restore();
+      x.fillStyle=INK;x.font=F(700,30);x.textAlign='center';let nm=dn(it);while(nm.length>3&&x.measureText(nm).width>t+gap-8)nm=nm.slice(0,-2);if(nm!==dn(it))nm=nm.trim()+'…';
+      x.fillText(nm,tx+t/2,y+t+44);x.fillStyle=INK2;x.font=F(500,26);x.fillText(a[1]+'x',tx+t/2,y+t+80);x.textAlign='left';
+    });
+  }
+  return c;
+}
 function shLook(){const l=S.looks.find(x=>x.id===SH.look)||{items:[],tag:'',photo:''};return {items:l.items.filter(i=>M.has(i)),tag:l.tag||'',photo:l.photo||''}}
 function openShareLook(id){
   const l=S.looks.find(x=>x.id===id);if(!l)return;
@@ -1395,6 +1493,7 @@ const SHT={
   dark:{bg:'#101216',ink:'#F2F3F5',ink2:'#98A0AC',well:'#E4E6EA',ph:'#6A717C',acc:{cobalt:'#8196FF',heritage:'#FF3B3B',peony:'#5FD39A',graphite:'#EDEDEE',ember:'#FF8A4C'}}
 };
 async function drawShare(){
+  if(SH.mode==='recap')return drawRecap();
   const sz=SH.size,brands=SH.brands,T=SHT[SH.theme]||SHT.light;
   const itemMode=SH.mode==='item',dd=(itemMode||SH.look)?{}:S.days[SH.d],o=SH.look?shLook():(itemMode||SH.mode==='scent'||SH.mode==='shoe')?dd:(SH.k?dd.more[SH.k-1]:dd);
   const W=SIZES[sz][0],H=SIZES[sz][1],c=document.createElement('canvas');c.width=W;c.height=H;
@@ -1493,7 +1592,7 @@ async function buildShare(){
     if(go)go.disabled=false;if(sv)sv.disabled=false;
   }catch(e){const w=$('#sh-wait');if(w){w.hidden=false;w.textContent='Could not build the image. Try again.'}}
 }
-const shareName=()=>SH.mode==='item'?'rotation-piece-'+String((M.get(SH.item)||{}).name||'piece').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'.png':'rotation-'+(SH.mode==='scent'?'scent-':SH.mode==='shoe'?'shoe-':'fit-')+SH.d+(SH.k&&SH.mode==='fit'?'-'+(SH.k+1):'')+'.png';
+const shareName=()=>SH.mode==='recap'?'rotation-recap-'+SH.m+'.png':SH.mode==='item'?'rotation-piece-'+String((M.get(SH.item)||{}).name||'piece').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'.png':'rotation-'+(SH.mode==='scent'?'scent-':SH.mode==='shoe'?'shoe-':'fit-')+SH.d+(SH.k&&SH.mode==='fit'?'-'+(SH.k+1):'')+'.png';
 async function doShare(){
   if(!SH||!SH.blob)return;
   const file=new File([SH.blob],shareName(),{type:'image/png'});
@@ -2009,6 +2108,7 @@ document.addEventListener('click',e=>{
     case 'looks-open':openLooks();break;
     case 'cmode':S.cm=el.dataset.v==='looks'?'looks':'pieces';render();toTop();break;
     case 'look-view':viewLook(id);break;
+    case 'recap-open':openRecap();break;
     case 'look-share':openShareLook(id);break;
     case 'look-wear':wearLook(id);break;
     case 'look-photo2':S.lk=id;{const f=$('#f-look');if(f)f.click()}break;
