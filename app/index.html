@@ -1715,7 +1715,7 @@ async function doShare(){
   if(!SH||!SH.blob)return;
   const file=new File([SH.blob],shareName(),{type:'image/png'});
   try{
-    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'what\'s in my #rotationapp @rotationcloset',text:'what\'s in my #rotationapp @rotationcloset'});return}
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'what\'s in my #rotationapp rotation.fit',text:'what\'s in my #rotationapp rotation.fit'});return}
   }catch(e){if(e&&e.name==='AbortError')return}
   saveShare();toast('Sharing is not available here. Image saved instead.');
 }
