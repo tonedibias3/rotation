@@ -1711,11 +1711,13 @@ async function buildShare(fast){
   }catch(e){const w=$('#sh-wait');if(w){w.hidden=false;w.textContent='Could not build the image. Try again.'}}
 }
 const shareName=()=>SH.mode==='recap'?'rotation-recap-'+SH.m+'.png':SH.mode==='item'?'rotation-piece-'+String((M.get(SH.item)||{}).name||'piece').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'.png':'rotation-'+(SH.mode==='scent'?'scent-':SH.mode==='shoe'?'shoe-':'fit-')+SH.d+(SH.k&&SH.mode==='fit'?'-'+(SH.k+1):'')+'.png';
+/* the caption that goes with a shared picture: one hashtag for the kind of post, the app tag, then the handle (a real @ so it is tappable) */
+const shareTags=()=>{const m=SH?SH.mode:'fit',t=m==='scent'?'#SOTD':m==='shoe'?'#KOTD':m==='item'?'#closetcheck':m==='recap'?'#monthinreview':'#OOTD';return t+' #rotationapp @rotationfit'};
 async function doShare(){
   if(!SH||!SH.blob)return;
   const file=new File([SH.blob],shareName(),{type:'image/png'});
   try{
-    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'what\'s in my #rotationapp rotation.fit',text:'what\'s in my #rotationapp rotation.fit'});return}
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text:shareTags()});return}
   }catch(e){if(e&&e.name==='AbortError')return}
   saveShare();toast('Sharing is not available here. Image saved instead.');
 }
