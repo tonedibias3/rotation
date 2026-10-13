@@ -1474,7 +1474,7 @@ async function drawRecap(){
   stats3.forEach((s,i)=>{x.fillStyle=INK;x.font=F(800,sz==='st'?120:104,DISP);x.fillText(String(s[0]),pad+i*cw,top+100);x.fillStyle=INK2;x.font=F(500,26);x.fillText(s[1],pad+i*cw,top+148)});
   let y=top+(sz==='st'?260:220);
   x.fillStyle=INK2;x.font=F(500,28);x.fillText('MOST WORN',pad,y);y+=30;
-  const bottom=SH.logo==='tr'?H-pad:H-pad-76,n=r.top.length;
+  const bottom=SH.logo==='tr'?H-pad:H-pad-120,n=r.top.length;
   if(!n){x.fillStyle=INK2;x.font=F(500,34);x.fillText('Log a few outfits to fill this in.',pad,y+60)}
   else{
     const gap=30,avail=bottom-y,nl=(SH.names?1:0)+((SH.brands&&!SH.names)||(SH.brands&&SH.names)?1:0)+1,t=Math.floor(Math.min((W-pad*2-(n-1)*gap)/n,avail-(nl*38+30)));
@@ -1611,7 +1611,7 @@ async function drawShare(){
   /* the Rotation watermark: top right, bottom left or bottom right */
   x.fillStyle=INK;x.font=F(800,44,DISP);
   drawMark(x,W,H,pad,SH.logo,INK,INK2,F,DISP);
-  const top=pad+hd+60,bottom=SH.logo==='tr'?H-pad:H-pad-76,cw=W-pad*2,ch=bottom-top;
+  const top=pad+hd+60,bottom=SH.logo==='tr'?H-pad:H-pad-120,cw=W-pad*2,ch=bottom-top;
   /* tile grid */
   const tiles=(ax,ay,aw,ah,cols)=>{
     const n=its.length,rows=Math.ceil(n/cols),gap=30,lab=(lnames||brands)?(lnames&&brands?96:60)+(its.length===1?30:0):0;
