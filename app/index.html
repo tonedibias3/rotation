@@ -1440,10 +1440,9 @@ function openRecap(){
 }
 /* the Rotation wordmark and web address: on every picture the app makes, the person only chooses the corner */
 function drawMark(x,W,H,pad,pos,INK,INK2,F,DISP){
-  const right=pos!=='bl',ax=right?W-pad:pad,wy=pos==='tr'?pad+40:H-pad-30,uy=pos==='tr'?pad+76:H-pad+4;
+  const right=pos!=='bl',ax=right?W-pad:pad,wy=pos==='tr'?pad+40:H-pad-30;
   x.save();x.textBaseline='alphabetic';x.textAlign=right?'right':'left';
-  x.fillStyle=INK;x.font=F(800,44,DISP);x.fillText('ROTATION',ax,wy);
-  x.fillStyle=INK2;x.font=F(600,26);x.fillText('rotation.fit',ax,uy);
+  x.fillStyle=INK;x.font=F(800,44,DISP);x.fillText('ROTATION.fit',ax,wy);
   x.restore();
 }
 async function drawRecap(){
