@@ -482,10 +482,10 @@ function normDay(r){
   const pl=Array.isArray(r.plans)?r.plans:[];
   const mk=p=>({cover:(p&&typeof p.cover==='string')?p.cover:'',items:Array.isArray(p&&p.items)?p.items.slice():[],tag:(p&&p.tag)||'',place:dt(p&&p.place,30),wx:dt(p&&p.wx,30),note:dt(p&&p.note,140),when:nw(p&&p.when),locked:!!(p&&p.locked),photo:(p&&typeof p.photo==='string')?p.photo:'',rating:(p&&typeof p.rating==='number'&&p.rating>0&&p.rating<=5)?Math.round(p.rating*2)/2:0});
   const mo=Array.isArray(r.more)?r.more.map(mk).filter(o=>o.items.length||o.photo):[];
-  return {cover:typeof r.cover==='string'?r.cover:'',items:Array.isArray(r.items)?r.items.slice():[],tag:r.tag||'',place:dt(r.place,30),wx:dt(r.wx,30),note:dt(r.note,140),rating:(typeof r.rating==='number'&&r.rating>0&&r.rating<=5)?Math.round(r.rating*2)/2:0,photo:typeof r.photo==='string'?r.photo:'',scent:typeof r.scent==='string'?r.scent:'',shoe:typeof r.shoe==='string'?r.shoe:'',shoePhoto:typeof r.shoePhoto==='string'?r.shoePhoto:'',when:nw(r.when),plans:[mk(pl[0]),mk(pl[1]),mk(pl[2]),mk(pl[3])],more:mo};
+  return {cover:typeof r.cover==='string'?r.cover:'',items:Array.isArray(r.items)?r.items.slice():[],tag:r.tag||'',place:dt(r.place,30),wx:dt(r.wx,30),note:dt(r.note,140),rating:(typeof r.rating==='number'&&r.rating>0&&r.rating<=5)?Math.round(r.rating*2)/2:0,photo:typeof r.photo==='string'?r.photo:'',scent:typeof r.scent==='string'?r.scent:'',scentRating:(typeof r.scentRating==='number'&&r.scentRating>0&&r.scentRating<=5)?Math.round(r.scentRating*2)/2:0,shoe:typeof r.shoe==='string'?r.shoe:'',shoePhoto:typeof r.shoePhoto==='string'?r.shoePhoto:'',when:nw(r.when),plans:[mk(pl[0]),mk(pl[1]),mk(pl[2]),mk(pl[3])],more:mo};
 }
 const outDoc=p=>({cover:p.cover||'',items:p.items.slice(),tag:p.tag||'',place:p.place||'',wx:p.wx||'',note:p.note||'',when:p.when||'',photo:p.photo||'',rating:p.rating||0,locked:!!p.locked});
-const dayDoc=d=>({cover:d.cover||'',items:d.items.slice(),tag:d.tag||'',place:d.place||'',wx:d.wx||'',note:d.note||'',photo:d.photo||'',scent:d.scent||'',shoe:d.shoe||'',shoePhoto:d.shoePhoto||'',rating:d.rating||0,when:d.when||'',plans:d.plans.map(outDoc),more:d.more.filter(p=>p.items.length||p.photo).map(outDoc)});
+const dayDoc=d=>({cover:d.cover||'',items:d.items.slice(),tag:d.tag||'',place:d.place||'',wx:d.wx||'',note:d.note||'',photo:d.photo||'',scent:d.scent||'',scentRating:d.scentRating||0,shoe:d.shoe||'',shoePhoto:d.shoePhoto||'',rating:d.rating||0,when:d.when||'',plans:d.plans.map(outDoc),more:d.more.filter(p=>p.items.length||p.photo).map(outDoc)});
 const dayEmpty=d=>!d||(!d.items.length&&!d.photo&&!d.scent&&!d.shoe&&!d.shoePhoto&&!d.plans.some(p=>p.items.length)&&!d.more.some(p=>p.items.length));
 const nw=v=>tlist(v).filter(w=>WR[w]!==undefined).sort((x,y)=>WR[x]-WR[y]).join(',');
 const WR={morning:0,afternoon:1,evening:2};
@@ -983,7 +983,7 @@ function toggleOutfit(id,force){
 }
 function pickScent(id){
   const d=S.days[S.sel]||(S.days[S.sel]=normDay({}));
-  d.scent=d.scent===id?'':id;
+  d.scent=d.scent===id?'':id;d.scentRating=0;
   scheduleDay(S.sel);refreshPicker();
 }
 const WHENS=[['','Any'],['morning','Morning'],['afternoon','Afternoon'],['evening','Evening']];
@@ -1055,12 +1055,12 @@ function pruneMore(date,keep){
   }
 }
 const STAR='<path d="M12 3.4l2.7 5.5 6 .9-4.4 4.2 1.1 6-5.4-2.9-5.4 2.9 1.1-6L3.3 9.8l6-.9z"/>';
-function starsHTML(v,live){
+function starsHTML(v,live,act){act=act||'rate';
   let h='<span class="stars'+(live?' live':'')+'" role="'+(live?'group':'img')+'" aria-label="'+(v?v+' out of 5 stars':'Not rated')+'">';
   for(let i=0;i<5;i++){
     const f=v>=i+1?0:v>=i+.5?50:100;
     h+='<span class="st"><svg viewBox="0 0 24 24" class="o" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">'+STAR+'</svg><svg viewBox="0 0 24 24" class="f" fill="currentColor" style="clip-path:inset(0 '+f+'% 0 0)">'+STAR+'</svg>'
-      +(live?'<button type="button" class="h l" data-act="rate" data-v="'+(i+.5)+'" aria-label="'+(i+.5)+' stars"></button><button type="button" class="h r" data-act="rate" data-v="'+(i+1)+'" aria-label="'+(i+1)+' stars"></button>':'')+'</span>';
+      +(live?'<button type="button" class="h l" data-act="'+act+'" data-v="'+(i+.5)+'" aria-label="'+(i+.5)+' stars"></button><button type="button" class="h r" data-act="'+act+'" data-v="'+(i+1)+'" aria-label="'+(i+1)+' stars"></button>':'')+'</span>';
   }
   return h+'</span>';
 }
@@ -1074,6 +1074,15 @@ function setRating(v){
   t.rating=(t.rating===v)?0:v;
   scheduleDay(S.sel);
   const r=$('#rate');if(r)r.innerHTML=rateHTML();
+}
+const scRateHTML=(v,act)=>starsHTML(v,true,act)+'<span class="mono">'+(v?v.toFixed(1):'Not rated')+'</span>';
+function rateScent(date,v){
+  const dd=S.days[date];if(!dd||!dd.scent)return;
+  dd.scentRating=(dd.scentRating===v)?0:v;
+  scheduleDay(date);
+  const a=$('#sc-rate');if(a)a.innerHTML=scRateHTML(dd.scentRating,'rate-scent');
+  const b=$('#sh-rate');if(b)b.innerHTML=scRateHTML(dd.scentRating,'share-rate');
+  if(SH&&SH.mode==='scent'&&SH.d===date)buildShare();
 }
 function removeOutfit(){
   const d=S.days[S.sel];if(!d||S.out<1||!d.more[S.out-1])return;
@@ -1256,7 +1265,7 @@ function renderDay(){
   const multi=shown.length>1;
   const sc=dd.scent&&M.get(dd.scent)||null;
   let body='',total=0;
-  body+='<h3 class="dv-h" style="margin-top:0">Scent of the day</h3>'+(sc?'<div class="sc-row"><span class="thumb lg">'+tileInner(sc)+'</span><span class="ri-t"><b>'+esc(dn(sc))+'</b><i>'+esc(sc.brand||'')+'</i></span></div><div class="btn-row" style="margin:8px 0 2px"><button type="button" class="btn ghost" data-act="share-scent-open">Share scent</button><button type="button" class="btn ghost" data-act="scent-pick">Change</button><button type="button" class="btn danger" data-act="scent-clear">Remove</button></div>':'<div class="btn-row" style="margin:0 0 2px"><button type="button" class="btn ghost" data-act="scent-pick">Add a scent</button></div>');
+  body+='<h3 class="dv-h" style="margin-top:0">Scent of the day</h3>'+(sc?'<div class="sc-row"><span class="thumb lg">'+tileInner(sc)+'</span><span class="ri-t"><b>'+esc(dn(sc))+'</b><i>'+esc(sc.brand||'')+'</i></span></div><span class="cap">Rate this scent</span><div class="rate-row" id="sc-rate" style="margin:2px 0 6px">'+scRateHTML(dd.scentRating||0,'rate-scent')+'</div><div class="btn-row" style="margin:8px 0 2px"><button type="button" class="btn ghost" data-act="share-scent-open">Share scent</button><button type="button" class="btn ghost" data-act="scent-pick">Change</button><button type="button" class="btn danger" data-act="scent-clear">Remove</button></div>':'<div class="btn-row" style="margin:0 0 2px"><button type="button" class="btn ghost" data-act="scent-pick">Add a scent</button></div>');
   {const sh=shoeOf(dd);
    body+='<h3 class="dv-h">Shoe of the day</h3>'+(sh?'<div class="sc-row"><span class="thumb lg">'+(dd.shoePhoto?'<img src="'+esc(photoSrc(dd.shoePhoto))+'" alt="" decoding="async">':tileInner(sh))+'</span><span class="ri-t"><b>'+esc(dn(sh))+'</b><i>'+esc(sh.brand||'')+'</i></span></div><div class="btn-row" style="margin:8px 0 2px"><button type="button" class="btn ghost" data-act="share-shoe-open">Share shoe</button><button type="button" class="btn ghost" data-act="shoe-day-pick">Change</button>'+(dd.shoe?'<button type="button" class="btn danger" data-act="shoe-clear" data-d="'+d+'">Remove</button>':'')+'</div><div class="btn-row" style="margin:8px 0 2px"><button type="button" class="btn ghost" data-act="shoe-photo">'+(dd.shoePhoto?'Change on-feet photo':'Add on-feet photo')+'</button>'+(dd.shoePhoto?'<button type="button" class="btn danger" data-act="shoe-photo-clear">Remove photo</button>':'')+'</div><input class="vh" id="f-shoe" type="file" accept="image/*">':'<div class="btn-row" style="margin:0 0 2px"><button type="button" class="btn ghost" data-act="shoe-day-pick">Add a shoe</button></div>');}
   shown.forEach((x,xi)=>{
@@ -1368,6 +1377,7 @@ async function onShoeFile(file){
 }
 function setDayScent(d,id){
   const dd=S.days[d]||(S.days[d]=normDay({}));
+  if(dd.scent!==id)dd.scentRating=0;
   dd.scent=id;scheduleDay(d);
   if(S.dv===d)renderDay();
   refreshCal();
@@ -1548,6 +1558,7 @@ function renderShare(){
    +(SH.hasPhoto?'<div class="sh-opt" id="sh-o-move"><span class="cap">Photo</span><p class="hint" style="margin:0 0 6px">Drag the preview to move your photo. Use the slider to zoom.</p><div style="display:flex;align-items:center;gap:12px"><input id="sh-zoom" type="range" min="100" max="300" step="5" value="'+Math.round((SH.zm||1)*100)+'" aria-label="Zoom photo" style="flex:1"><button type="button" class="link" data-act="share-reset">Reset</button></div></div>':'')
    +'</div>'
    +(SH.mode==='fit'?'<div class="sh-opt" style="margin-bottom:8px"><span class="cap">Pieces to show</span><div class="chips wrapc" id="sh-pcs">'+Array.from(SH.look?shLook().items:S.days[SH.d]&&(SH.k?S.days[SH.d].more[SH.k-1]:S.days[SH.d]).items||[]).filter(id=>M.has(id)).map(id=>'<button type="button" class="chip" data-act="share-piece" data-id="'+esc(id)+'" aria-pressed="'+SH.sel.has(id)+'">'+esc(M.get(id).nickname||M.get(id).name)+'</button>').join('')+'</div></div>':'')
+   +(SH.mode==='scent'?'<div class="sh-opt" style="margin-bottom:8px"><span class="cap">Rate this scent</span><div class="rate-row" id="sh-rate">'+scRateHTML((S.days[SH.d]||{}).scentRating||0,'share-rate')+'</div></div>':'')
    +(SH.hasFeet?'<div class="set-row"><span><b>On-feet photo</b><i>Use your photo instead of the closet picture.</i></span><button type="button" class="sw-t" data-act="share-feet" aria-pressed="'+SH.feet+'" aria-label="On-feet photo"></button></div>':'')
    +(SH.hasScent?'<div class="set-row"><span><b>Include scent</b><i>Adds today\'s scent as another tile.</i></span><button type="button" class="sw-t" data-act="share-scent" aria-pressed="'+SH.scent+'" aria-label="Include scent"></button></div>':'')
    +(SH.mode==='fit'&&!SH.look?'<div class="set-row"><span><b>Show place, weather and note</b><i>What you typed under Details.</i></span><button type="button" class="sw-t" data-act="share-det" aria-pressed="'+SH.det+'" aria-label="Show place, weather and note"></button></div>':'')
@@ -1591,7 +1602,7 @@ async function drawShare(){
   const hdTxt=itemMode?(SH.names&&sc?fitText(x,String(sc.nickname||sc.name||'').toUpperCase(),W-pad*2-(SH.logo==='tr'?380:0)):''):SH.caption?SH.caption.toUpperCase():(SH.look?'':fmt(SH.d,{weekday:'long',month:'long',day:'numeric'}).toUpperCase());
   if(hdTxt)x.fillText(hdTxt,pad,pad+40);
   const tg={label:tagLbl(o.tag)};
-  const meta=itemMode?'':scentMode?(shoeMode?'Shoe of the day':'Scent of the day'):[SH.tag&&tg&&tg.label,SH.det&&o.place,SH.det&&o.wx,o.when&&whenLbl(o.when),o.rating?'\u2605 '+o.rating.toFixed(1):''].filter(Boolean).join('  \u00b7  ');
+  const meta=itemMode?'':scentMode?(shoeMode?'Shoe of the day':['Scent of the day',dd.scentRating?'★ '+dd.scentRating.toFixed(1):''].filter(Boolean).join('  ·  ')):[SH.tag&&tg&&tg.label,SH.det&&o.place,SH.det&&o.wx,o.when&&whenLbl(o.when),o.rating?'\u2605 '+o.rating.toFixed(1):''].filter(Boolean).join('  \u00b7  ');
   if(meta){x.fillStyle=INK2;x.font=F(500,30);x.fillText(meta,pad,pad+88)}
   let noteTxt=(!itemMode&&!scentMode&&SH.det&&o.note)?o.note:'';
   if(noteTxt){x.font=F(500,28);while(noteTxt.length>3&&x.measureText(noteTxt).width>W-pad*2){noteTxt=noteTxt.slice(0,-2)}if(noteTxt!==o.note)noteTxt=noteTxt.trim()+'\u2026';x.fillStyle=INK;x.fillText(noteTxt,pad,pad+(meta?132:88))}
@@ -1802,7 +1813,7 @@ function viewItem(id){
    +'<div class="vbig">'+(it.photo2?'<img id="vback" src="'+esc(photoSrc(it.photo2))+'" alt="" hidden>':'')+(src?'<img id="vfront" src="'+esc(src)+'" alt="">':'<span class="ph" style="--c:'+(COLORS[it.color]||'#9a9ea6')+'">'+(ICONS[it.category]||ICONS.tops)+'</span>')+'</div>'
    +(Array.isArray(it.kinds)&&it.kinds.length?'<div class="vkinds">'+it.kinds.map(k=>'<span>'+esc(k)+'</span>').join('')+'</div>':'')
    +row('Brand',it.brand)+row('Nickname',it.nickname)+row('Type',(CATS[catIdx(it.category)]||{}).label)
-   +(cols.length?'<div class="vrow"><span>Colors</span><b class="dots">'+cols.map(c=>'<i'+(c==='multi'?' class="multi"':' style="background:'+(COLORS[c]||'#9a9ea6')+'"')+' title="'+esc(c)+'"></i>').join('')+'</b></div>':'')
+   +(cols.length&&it.category!=='scents'?'<div class="vrow"><span>Colors</span><b class="dots">'+cols.map(c=>'<i'+(c==='multi'?' class="multi"':' style="background:'+(COLORS[c]||'#9a9ea6')+'"')+' title="'+esc(c)+'"></i>').join('')+'</b></div>':'')
    +row('Worn',w?w+' time'+(w===1?'':'s')+' · last '+fmt(st.last[id],{month:'short',day:'numeric'}):'Not logged yet')
    +(typeof it.price==='number'?row('Paid',money(it.price))+(w?row('Cost per wear',money(Math.round(it.price/w*100)/100)):''):'')
    +row('Bought at',it.source)+row('Date bought',it.bought?fmt(it.bought,{year:'numeric',month:'short',day:'numeric'}):'')+row('Released',it.released)
@@ -1853,7 +1864,7 @@ function renderSheet(){
    +'<datalist id="brands">'+brands.map(b=>'<option value="'+esc(b)+'">').join('')+'</datalist>'
    +'<div class="field"><span class="lbl">Type</span><div class="seg wrap" id="s-cat" role="group" aria-label="Type">'+CATS.map(c=>'<button type="button" data-act="s-cat" data-v="'+c.id+'" aria-pressed="'+(d.category===c.id)+'">'+c.label+'</button>').join('')+'</div></div>'
    +'<div class="field"><span class="lbl">Style</span><div class="chips wrapc" id="s-kind"></div><div class="addk"><input id="f-kind" placeholder="Add your own" autocomplete="off" aria-label="Add your own style"><button type="button" class="btn ghost" data-act="kind-add">Add</button></div></div>'
-   +'<div class="field"><span class="lbl">Colors <i class="lbln">tap more than one if it has several</i></span><div class="swatches" id="s-col" role="group" aria-label="Colors">'+Object.keys(COLORS).map(k=>'<button type="button" class="sw" data-act="s-col" data-v="'+k+'" aria-label="'+k+'" aria-pressed="'+(d.colors.indexOf(k)>=0)+'" style="--c:'+COLORS[k]+'"></button>').join('')+'</div></div>'
+   +'<div class="field" id="f-colors"'+(d.category==='scents'?' style="display:none"':'')+'><span class="lbl">Colors <i class="lbln">tap more than one if it has several</i></span><div class="swatches" id="s-col" role="group" aria-label="Colors">'+Object.keys(COLORS).map(k=>'<button type="button" class="sw" data-act="s-col" data-v="'+k+'" aria-label="'+k+'" aria-pressed="'+(d.colors.indexOf(k)>=0)+'" style="--c:'+COLORS[k]+'"></button>').join('')+'</div></div>'
    +(it?'<p class="sub" style="margin:0 0 16px">'+esc(line)+'</p>':'')
    +'<div class="btn-row"><button type="button" class="btn primary" id="b-save" data-act="s-save">Save</button>'+(it?'<button type="button" class="btn danger" id="b-del" data-act="s-del">Remove</button>':'')+'</div>'
    +'</div></div>';
@@ -1892,6 +1903,7 @@ function syncChoices(){
   syncKinds();
   document.querySelectorAll('#s-cat button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===sh.draft.category?'true':'false'));
   document.querySelectorAll('#s-col button').forEach(b=>b.setAttribute('aria-pressed',sh.draft.colors.indexOf(b.dataset.v)>=0?'true':'false'));
+  const fc=$('#f-colors');if(fc)fc.style.display=sh.draft.category==='scents'?'none':'';
   syncPhoto();
 }
 function closeSheet(){
@@ -2126,7 +2138,7 @@ async function saveItem(){
       else photo2=d.photoData2;
     }
     const id=sh.id||newId(),ex=sh.id?M.get(sh.id):null;
-    await putItem(id,{name:d.name.trim(),brand:d.brand.trim(),nickname:d.nickname.trim(),category:d.category,color:(d.colors[0]||''),colors:d.colors.slice(),kinds:d.kinds.filter(k=>subsFor(d.category).indexOf(k)>=0),price:parsePrice(d.price),source:(d.source||'').trim(),bought:d.bought||'',released:(d.released||'').trim(),photo:photo,photo2:photo2,createdAt:ex&&ex.createdAt||Date.now()});
+    await putItem(id,{name:d.name.trim(),brand:d.brand.trim(),nickname:d.nickname.trim(),category:d.category,color:(d.category==='scents'?'':(d.colors[0]||'')),colors:(d.category==='scents'?[]:d.colors.slice()),kinds:d.kinds.filter(k=>subsFor(d.category).indexOf(k)>=0),price:parsePrice(d.price),source:(d.source||'').trim(),bought:d.bought||'',released:(d.released||'').trim(),photo:photo,photo2:photo2,createdAt:ex&&ex.createdAt||Date.now()});
     const wasNew=!sh.id,log=sh.addToLog,sd=sh.scentDay,shd=sh.shoeDay;
     closeSheet();
     render();
@@ -2244,6 +2256,8 @@ document.addEventListener('click',e=>{
     case 'add-out':addOutfit();break;
     case 'rm-out':removeOutfit();break;
     case 'rate':setRating(+el.dataset.v);break;
+    case 'rate-scent':rateScent(S.dv,+el.dataset.v);break;
+    case 'share-rate':if(SH)rateScent(SH.d,+el.dataset.v);break;
     case 'month':shiftMonth(+el.dataset.v);break;
     case 'sheet-bg':if(e.target===el)closeSheet();break;
     case 'sheet-close':closeSheet();break;
