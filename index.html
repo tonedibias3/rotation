@@ -289,6 +289,17 @@ svg{width:18px;height:18px;flex:none}
 .pal i b{flex:1}
 .find{max-height:88vh;overflow:auto}
 .tray-done{flex:none;min-height:42px;padding:8px 18px}
+.cm{margin:0 0 12px}
+.lk-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 12px}
+.lk{display:block;width:100%;padding:0;border:0;background:none;text-align:left;cursor:pointer;color:inherit}
+.lk-img{display:block;aspect-ratio:3/4;border-radius:16px;overflow:hidden;background:var(--bg);border:1px solid var(--line);box-shadow:var(--shadow)}
+.lk-img img{display:block;width:100%;height:100%;object-fit:cover;object-position:top}
+.lk-col{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:6px}
+.lk-col .thumb{width:100%;height:auto;aspect-ratio:1}
+.lk-n{display:block;margin-top:8px;font:600 13px/1.3 var(--f-body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lk-t{display:block;font:500 10px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);margin-top:2px}
+.lkv-p{border-radius:16px;overflow:hidden;margin-bottom:12px;background:var(--bg)}.lkv-p img{display:block;width:100%;max-height:62vh;object-fit:contain}
+.lkv-l{display:grid;gap:8px}
 .look{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .look-b{flex:1;min-width:0;display:grid;gap:8px;text-align:left;padding:10px;border-radius:16px;border:1px solid var(--line);background:var(--bg);cursor:pointer}
 .look-t{display:flex;gap:6px;align-items:center}.look-p{flex:none;width:64px;height:84px;border-radius:12px;overflow:hidden;background:var(--bg);box-shadow:var(--shadow)}.look-p img{display:block;width:100%;height:100%;object-fit:cover;object-position:top}.look-side{display:grid;gap:6px;justify-items:center}
@@ -446,7 +457,7 @@ const subsFor=c=>(SUBS[c]||[]).concat((SET.subs&&SET.subs[c])||[]);
 function saveSet(){try{localStorage.setItem('rotation.settings',JSON.stringify(SET))}catch(e){}}
 function applyTheme(){const r=document.documentElement;if(SET.accent==='cobalt')r.removeAttribute('data-accent');else r.setAttribute('data-accent',SET.accent);if(SET.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',SET.theme);const dark=SET.theme==='dark'||(SET.theme==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);document.querySelectorAll('meta[name=theme-color]').forEach(m=>{m.setAttribute('content',dark?'#0E1115':'#E7E9ED');m.removeAttribute('media')})}
 buildTags();
-const S={items:[],looks:[],days:{},tab:SET.start,filter:'all',q:'',sel:today(),mode:'log',opt:0,out:0,month:today().slice(0,7),sheet:null,vw:null,arr:false,kinds:[],dv:null,fo:0,loading:true,store:'local',saveText:'',gotItems:false,gotDays:false};
+const S={items:[],looks:[],days:{},tab:SET.start,filter:'all',cm:'pieces',q:'',sel:today(),mode:'log',opt:0,out:0,month:today().slice(0,7),sheet:null,vw:null,arr:false,kinds:[],dv:null,fo:0,loading:true,store:'local',saveText:'',gotItems:false,gotDays:false};
 let M=new Map();
 let itemsCol=null,daysCol=null,ASSETS=null,lastSig='';
 const dirty=new Set(),timers={},vers={},chains={};
@@ -734,14 +745,43 @@ async function wxSet(){
 /* ---------- closet ---------- */
 function viewCloset(){
   const n=S.items.length;
+  const modeSeg='<div class="seg mini cm" role="group" aria-label="Closet view"><button type="button" data-act="cmode" data-v="pieces" aria-pressed="'+(S.cm!=='looks')+'">Pieces</button><button type="button" data-act="cmode" data-v="looks" aria-pressed="'+(S.cm==='looks')+'">Looks'+(S.looks.length?' ('+S.looks.length+')':'')+'</button></div>';
+  if(S.cm==='looks')return '<div class="head"><div><div class="brand">Rotation</div><h1 class="h1">Closet</h1><div class="sub">'+S.looks.length+' saved look'+(S.looks.length===1?'':'s')+'</div></div><div class="hr"><div id="wxbox">'+wxHTML()+'</div>'+gearBtn()+'</div></div>'+modeSeg+'<div id="lookgrid"></div>'+footText();
   const chip=(id,label,c)=>'<button type="button" class="chip" data-act="filter" data-v="'+id+'" aria-pressed="'+(S.filter===id)+'">'+label+'<i>'+c+'</i></button>';
   return '<div class="head"><div><div class="brand">Rotation</div><h1 class="h1">Closet</h1><div class="sub">'+(S.loading?'Loading':n+' piece'+(n===1?'':'s'))+'</div></div><div class="hr"><div id="wxbox">'+wxHTML()+'</div>'+gearBtn()+'</div></div>'
+   +modeSeg
    +'<label class="search">'+ico(P.search)+'<input id="q" type="search" placeholder="Search name, brand or nickname" value="'+esc(S.q)+'" autocomplete="off" aria-label="Search closet"></label>'
    +'<div class="chips" role="group" aria-label="Filter by type">'+chip('all','All',n)+CATS.map(c=>chip(c.id,c.label,count(c.id))).join('')+'</div>'
    +'<div class="ctl">'+(S.filter!=='all'?'<div class="seg mini" role="group" aria-label="Layout"><button type="button" data-act="cview" data-v="grid" aria-pressed="'+(SET.cview==='grid')+'">Grid</button><button type="button" data-act="cview" data-v="swipe" aria-pressed="'+(SET.cview==='swipe')+'">Swipe</button></div>':'')+'<button type="button" class="link" data-act="arrange">Arrange sections</button></div>'
    +(S.filter!=='all'?'<div class="chips" id="kinds" role="group" aria-label="Filter by style"></div>':'')
    +(!S.loading&&S.items.length?'<p class="hint" style="margin-bottom:4px">Tap a piece to edit it. Press and hold to view it.</p>':'')
    +'<div id="grid"></div>'+backupRow()+footText();
+}
+function lookCard(l){
+  const its=l.items.map(id=>M.get(id)).filter(Boolean);if(!its.length)return '';
+  const tg=TAGS.find(t=>t.id===l.tag);
+  const media=l.photo?'<span class="lk-img"><img src="'+esc(photoSrc(l.photo))+'" alt="" decoding="async" loading="lazy"></span>':'<span class="lk-img lk-col">'+its.slice(0,4).map(i=>'<span class="thumb">'+tileInner(i)+'</span>').join('')+'</span>';
+  return '<button type="button" class="lk" data-act="look-view" data-id="'+esc(l.id)+'">'+media+'<span class="lk-n">'+esc(lookLabel(l))+'</span>'+(tg?'<span class="lk-t">'+esc(tg.label)+'</span>':'')+'</button>';
+}
+function fillLooks(){
+  const g=$('#lookgrid');if(!g)return;
+  const h=S.looks.map(lookCard).join('');
+  g.innerHTML=h?'<div class="lk-grid">'+h+'</div>':'<div class="panel empty"><h2>No saved looks yet</h2><p>Build an outfit in the Log and tap Save look. Add a photo and it shows up here as a card you can scroll through.</p><div class="btn-row"><button type="button" class="btn primary" data-act="tab" data-tab="log">Go to Log</button></div></div>';
+}
+function viewLook(id){
+  const l=S.looks.find(x=>x.id===id);if(!l)return;
+  const its=l.items.map(i=>M.get(i)).filter(Boolean),tg=TAGS.find(t=>t.id===l.tag);
+  $('#looks').innerHTML='<div class="crop-s"><div class="crop find lkv" role="dialog" aria-modal="true" aria-label="Saved look"><div class="sheet-h" style="margin-bottom:10px"><h2 style="margin:0">'+(tg?esc(tg.label)+' look':'Saved look')+'</h2><button type="button" class="x" data-act="looks-close" aria-label="Close">'+ico(P.x)+'</button></div>'
+   +(l.photo?'<div class="lkv-p"><img src="'+esc(photoSrc(l.photo))+'" alt="Photo of this look"></div>':'')
+   +'<div class="lkv-l">'+its.map(i=>'<div class="ri"><span class="thumb">'+tileInner(i)+'</span><span class="ri-t"><b>'+esc(dn(i))+'</b><i>'+esc(i.brand||'')+'</i></span></div>').join('')+'</div>'
+   +'<div class="btn-row" style="margin-top:14px"><button type="button" class="btn primary" data-act="look-wear" data-id="'+esc(id)+'">Wear today</button><button type="button" class="btn ghost" data-act="look-photo2" data-id="'+esc(id)+'">'+(l.photo?'Change photo':'Add photo')+'</button><button type="button" class="btn danger" data-act="look-del2" data-id="'+esc(id)+'">Delete</button></div>'
+   +'<input class="vh" id="f-look" type="file" accept="image/*"></div></div>';
+}
+function wearLook(id){
+  const l=S.looks.find(x=>x.id===id);if(!l)return;
+  S.sel=today();S.mode='log';S.out=0;
+  const t=target(true);t.items=l.items.filter(i=>M.has(i));if(!t.tag&&l.tag)t.tag=l.tag;
+  scheduleDay(S.sel);closeLooks();S.tab='log';render();toTop();toast('Look added to today');
 }
 function fillKinds(){
   const h=$('#kinds');if(!h)return;
@@ -1242,7 +1282,7 @@ async function fitDone(){
   let photo;
   if(ASSETS){const blob=await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('b')),'image/jpeg',.82));photo=(await ASSETS.upload(blob,{type:'image/jpeg'})).id}
   else photo=c.toDataURL('image/jpeg',.8);
-  if(f.look){const lk=S.looks.find(x=>x.id===f.look);if(lk){lk.photo=photo;persistLocal('looks')}closeCrop();renderLooks(true);return}
+  if(f.look){const lk=S.looks.find(x=>x.id===f.look);if(lk){lk.photo=photo;persistLocal('looks')}closeCrop();if(S.tab==='closet'&&S.cm==='looks'){fillLooks();viewLook(f.look)}else renderLooks(true);return}
   const dd=S.days[f.d]||(S.days[f.d]=normDay({}));
   if(f.shoe){dd.shoePhoto=photo;scheduleDay(f.d);closeCrop();if(S.dv===f.d)renderDay();refreshCal();return}
   const o=f.fo?dd.more[f.fo-1]:dd;
@@ -1916,7 +1956,7 @@ function render(){
   $('#b-add').hidden=$('#b-search').hidden=false;
   const v=$('#view');
   v.innerHTML=S.tab==='closet'?viewCloset():S.tab==='log'?viewLog():S.tab==='settings'?viewSettings():S.tab==='stats'?viewStats():viewCalendar();
-  if(S.tab==='closet'){fillKinds();fillGrid();wxLoad()}
+  if(S.tab==='closet'){if(S.cm==='looks')fillLooks();else{fillKinds();fillGrid()}wxLoad()}
   if(S.tab==='log')afterLogRender();
 }
 
@@ -1960,6 +2000,11 @@ document.addEventListener('click',e=>{
     case 'tag':setTag(el.dataset.v);break;
     case 'look-save':saveLook();break;
     case 'looks-open':openLooks();break;
+    case 'cmode':S.cm=el.dataset.v==='looks'?'looks':'pieces';render();toTop();break;
+    case 'look-view':viewLook(id);break;
+    case 'look-wear':wearLook(id);break;
+    case 'look-photo2':S.lk=id;{const f=$('#f-look');if(f)f.click()}break;
+    case 'look-del2':delLook(id);closeLooks();if(S.tab==='closet'&&S.cm==='looks')fillLooks();break;
     case 'looks-close':closeLooks();break;
     case 'look-photo':S.lk=id;{const f=$('#f-look');if(f)f.click()}break;
     case 'look-use':useLook(id);break;
