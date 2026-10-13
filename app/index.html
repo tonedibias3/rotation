@@ -1588,7 +1588,8 @@ async function drawShare(){
   const pad=72;
   /* header: the date is always top left */
   x.textBaseline='alphabetic';x.textAlign='left';x.fillStyle=INK;x.font=F(700,40);
-  const hdTxt=itemMode?(((CATS[catIdx((sc||{}).category)]||{}).label)||'Piece').toUpperCase():SH.caption?SH.caption.toUpperCase():(SH.look?'':fmt(SH.d,{weekday:'long',month:'long',day:'numeric'}).toUpperCase());
+  const lnames=itemMode?false:SH.names;
+  const hdTxt=itemMode?(SH.names&&sc?fitText(x,String(sc.nickname||sc.name||'').toUpperCase(),W-pad*2-(SH.logo==='tr'?380:0)):''):SH.caption?SH.caption.toUpperCase():(SH.look?'':fmt(SH.d,{weekday:'long',month:'long',day:'numeric'}).toUpperCase());
   if(hdTxt)x.fillText(hdTxt,pad,pad+40);
   const tg={label:tagLbl(o.tag)};
   const meta=itemMode?'':scentMode?(shoeMode?'Shoe of the day':'Scent of the day'):[SH.tag&&tg&&tg.label,SH.det&&o.place,SH.det&&o.wx,o.when&&whenLbl(o.when),o.rating?'\u2605 '+o.rating.toFixed(1):''].filter(Boolean).join('  \u00b7  ');
@@ -1603,7 +1604,7 @@ async function drawShare(){
   const top=pad+hd+60,bottom=SH.logo==='tr'?H-pad:H-pad-76,cw=W-pad*2,ch=bottom-top;
   /* tile grid */
   const tiles=(ax,ay,aw,ah,cols)=>{
-    const n=its.length,rows=Math.ceil(n/cols),gap=30,lab=(SH.names||brands)?(SH.names&&brands?96:60)+(its.length===1?30:0):0;
+    const n=its.length,rows=Math.ceil(n/cols),gap=30,lab=(lnames||brands)?(lnames&&brands?96:60)+(its.length===1?30:0):0;
     let t=Math.min((aw-(cols-1)*gap)/cols,(ah-rows*lab-(rows-1)*gap)/rows);t=Math.floor(Math.max(60,t));
     const gw=cols*t+(cols-1)*gap,gh=rows*(t+lab)+(rows-1)*gap;
     const ox=ax+(aw-gw)/2,oy=ay+Math.max(0,(ah-gh)/2);
@@ -1616,8 +1617,8 @@ async function drawShare(){
       else if(imgs[i]){const im=imgs[i],p=t*.07,k=Math.min((t-2*p)/im.width,(t-2*p)/im.height),w=im.width*k,h=im.height*k;x.globalCompositeOperation='multiply';x.drawImage(im,tx+(t-w)/2,ty+(t-h)/2,w,h);x.globalCompositeOperation='source-over'}
       else{x.fillStyle=T.ph;x.font=F(700,Math.round(t*.4),DISP);x.textAlign='center';x.fillText((it.name||'?').charAt(0).toUpperCase(),tx+t/2,ty+t/2+t*.14);x.textAlign='left'}
       x.restore();
-      if(!SH.names&&!brands)return;
-      const showB=brands&&!!it.brand,showN=SH.names||(brands&&!it.brand);
+      if(!lnames&&!brands)return;
+      const showB=brands&&!!it.brand,showN=!itemMode&&(SH.names||(brands&&!it.brand));
       x.textAlign='center';const fs=Math.max(22,Math.round(t*.1));let ly=ty+t+22+(showB&&showN?Math.max(18,Math.round(t*.085)):fs);
       if(showB&&!showN){x.fillStyle=INK;x.font=F(700,fs);x.fillText(fitText(x,it.brand.toUpperCase(),t+gap),tx+t/2,ly);x.textAlign='left';return}
       if(showB){x.fillStyle=INK2;x.font=F(600,Math.max(18,Math.round(t*.085)));x.fillText(fitText(x,it.brand.toUpperCase(),t+gap),tx+t/2,ly);ly+=Math.max(26,Math.round(t*.115))}
@@ -1636,10 +1637,10 @@ async function drawShare(){
     if(mine)SH.box={x:ax,y:ay,w:aw,h:ah,iw:w,ih:h,cw:W,ch:H};
   };
   if(feetImg&&its[0]){
-    const it=its[0],lab=(SH.names||brands)?(SH.names&&brands&&it.brand?120:80):0;
+    const it=its[0],lab=(lnames||brands)?(lnames&&brands&&it.brand?120:80):0;
     cover(pad,top,cw,ch-lab,feetImg);
-    if(SH.names||brands){
-      const showB=brands&&!!it.brand,showN=SH.names||(brands&&!it.brand);
+    if(lnames||brands){
+      const showB=brands&&!!it.brand,showN=!itemMode&&(SH.names||(brands&&!it.brand));
       x.textAlign='center';let ly=top+ch-lab+44;
       if(showB&&!showN){x.fillStyle=INK;x.font=F(700,40);x.fillText(fitText(x,it.brand.toUpperCase(),cw),W/2,ly)}
       else{
@@ -1650,7 +1651,7 @@ async function drawShare(){
   }
   else if(!fit&&img2&&imgs[0]&&its[0]){
     /* a piece with a back photo: front and back together */
-    const it=its[0],gap=30,cap=44,lab=(SH.names||brands)?(SH.names&&brands&&it.brand?120:80):0,story=sz==='st';
+    const it=its[0],gap=30,cap=44,lab=(lnames||brands)?(lnames&&brands&&it.brand?120:80):0,story=sz==='st';
     const w=story?cw:Math.floor((cw-gap)/2),h=story?Math.min(Math.floor((ch-lab-2*cap-gap)/2),Math.round(cw*.9)):Math.min(Math.round(w*1.15),ch-lab-cap);
     const total=story?2*h+gap+2*cap:h+cap,y0=top+Math.max(0,Math.round((ch-lab-total)/2));
     const rects=story?[[imgs[0],pad,y0,'FRONT'],[img2,pad,y0+h+cap+gap,'BACK']]:[[imgs[0],pad,y0,'FRONT'],[img2,pad+w+gap,y0,'BACK']];
@@ -1659,8 +1660,8 @@ async function drawShare(){
       const k=Math.max(w/r[0].width,h/r[0].height),iw=r[0].width*k,ih=r[0].height*k;x.drawImage(r[0],r[1]+(w-iw)/2,r[2]+(h-ih)/2,iw,ih);x.restore();
       x.fillStyle=INK2;x.font=F(600,24);x.textAlign='center';x.fillText(r[3],r[1]+w/2,r[2]+h+34);x.textAlign='left';
     });
-    if(SH.names||brands){
-      const showB=brands&&!!it.brand,showN=SH.names||(brands&&!it.brand);
+    if(lnames||brands){
+      const showB=brands&&!!it.brand,showN=!itemMode&&(SH.names||(brands&&!it.brand));
       x.textAlign='center';let ly=y0+total+44;
       if(showB&&!showN){x.fillStyle=INK;x.font=F(700,40);x.fillText(fitText(x,it.brand.toUpperCase(),cw),W/2,ly)}
       else{
