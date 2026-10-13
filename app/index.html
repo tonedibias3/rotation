@@ -737,6 +737,12 @@ function wxPaint(){const e=$('#wxbox');if(e)e.innerHTML=wxHTML()}
 async function wxLoad(force){
   if(!WXS.lat)return;
   if(!force&&WXS.d&&Date.now()-(WXS.at||0)<30*60*1000)return;
+  if(WXS.gps&&!force&&navigator.permissions&&navigator.permissions.query){
+    try{const st=await navigator.permissions.query({name:'geolocation'});
+      if(st.state==='granted'){const c=await wxGps(),lat=Math.round(c.latitude*100)/100,lon=Math.round(c.longitude*100)/100;
+        if(Math.abs(lat-WXS.lat)>0.15||Math.abs(lon-WXS.lon)>0.15){WXS.n=await wxName(lat,lon)}
+        WXS.lat=lat;WXS.lon=lon}}catch(e){}
+  }
   try{
     const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude='+WXS.lat+'&longitude='+WXS.lon+'&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&temperature_unit=fahrenheit&timezone=auto&forecast_days=1');
     const j=await r.json();
@@ -744,14 +750,35 @@ async function wxLoad(force){
     WXS.at=Date.now();wxSave();wxPaint();
   }catch(e){/* offline: keep the last reading */}
 }
-async function wxSet(){
-  const v=prompt('City for the weather',WXS.n||'');if(!v||!v.trim())return;
+function wxGps(){return new Promise((res,rej)=>{if(!navigator.geolocation)return rej(new Error('nogeo'));navigator.geolocation.getCurrentPosition(p=>res(p.coords),e=>rej(e),{enableHighAccuracy:false,timeout:10000,maximumAge:600000})})}
+async function wxName(lat,lon){
+  try{const r=await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude='+lat+'&longitude='+lon+'&localityLanguage=en');const j=await r.json();return j.city||j.locality||j.principalSubdivision||'Near you'}catch(e){return 'Near you'}
+}
+async function wxUseGps(){
   try{
-    const r=await fetch('https://geocoding-api.open-meteo.com/v1/search?count=1&language=en&name='+encodeURIComponent(v.trim()));
-    const j=await r.json(),g=j.results&&j.results[0];
-    if(!g){toast('Could not find that city');return}
+    const c=await wxGps(),lat=Math.round(c.latitude*100)/100,lon=Math.round(c.longitude*100)/100;
+    const n=await wxName(lat,lon);WXS={n:n,lat:lat,lon:lon,gps:1};wxSave();wxPaint();wxLoad(true);return true;
+  }catch(e){toast(e&&e.code===1?'Location is off for Rotation. Type a city instead.':'Could not get your location. Type a city instead.');return false}
+}
+async function wxCity(){
+  const v=prompt('City for the weather',WXS.gps?'':(WXS.n||''));if(!v||!v.trim())return;
+  try{
+    const r=await fetch('https://geocoding-api.open-meteo.com/v1/search?count=8&language=en&name='+encodeURIComponent(v.trim().split(',')[0]));
+    const j=await r.json(),rs=(j.results||[]).slice(0,5);
+    if(!rs.length){toast('Could not find that city');return}
+    let g=rs[0];
+    if(rs.length>1){
+      const lab=x=>x.name+', '+(x.admin1?x.admin1+', ':'')+(x.country_code||'');
+      const a=prompt('Which one? Type a number\n'+rs.map((x,k)=>(k+1)+'  '+lab(x)).join('\n'),'1');
+      if(a===null)return;g=rs[Math.min(rs.length,Math.max(1,parseInt(a,10)||1))-1];
+    }
     WXS={n:g.name,lat:g.latitude,lon:g.longitude};wxSave();wxPaint();wxLoad(true);
   }catch(e){toast('Could not look that up. Check your connection.')}
+}
+async function wxSet(){
+  if(!WXS.lat){if(await wxUseGps())return;return wxCity()}
+  if(confirm('Use your current location for the weather?\n\nOK: use my location\nCancel: type a city')){if(await wxUseGps())return}
+  wxCity();
 }
 
 /* ---------- closet ---------- */
