@@ -38,6 +38,11 @@ h1{font-size:clamp(46px,10.5vw,112px);margin:22px 0 22px;max-width:11em}
 .btn{display:inline-block;text-decoration:none;font:700 16px "Instrument Sans",sans-serif;padding:15px 24px;border-radius:14px;border:2px solid #fff}
 .btn.w{background:#fff;color:var(--blue)}.btn.o{color:#fff}
 .soon{margin-top:22px;font-size:15px;color:#cdd6ff}
+.shots{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 0 14px;margin:0 -20px;padding-left:20px;padding-right:20px;-webkit-overflow-scrolling:touch}
+.shots figure{flex:0 0 min(72vw,300px);margin:0;scroll-snap-align:start}
+.shots img{display:block;width:100%;height:auto;border-radius:22px;border:1px solid var(--line);background:var(--card)}
+.shots figcaption{margin-top:10px;font-size:14px;color:var(--ink2)}
+@media(min-width:900px){.shots{display:grid;grid-template-columns:repeat(4,1fr);align-items:start;overflow:visible;margin:0;padding:0}.shots figure{flex:none}}
 section{padding:64px 0;border-bottom:1px solid var(--line)}
 h2{font-size:clamp(30px,6vw,52px);margin:0 0 30px}
 .row{display:grid;grid-template-columns:1fr;gap:6px;padding:22px 0;border-top:1px solid var(--line)}
@@ -77,6 +82,16 @@ footer a{color:inherit}
 <div class="row"><h3>Share cards made to post</h3><p>Turn an outfit, a single piece or your monthly recap into an image for Instagram or X. Choose light or dark, square or story, and show names, brands, both or neither.</p></div>
 <div class="row"><h3>Know your closet</h3><p>See what you wear most, which pieces and shoes have been resting, and what each piece costs per wear. Prices and where you bought something are never shown on a share card.</p></div>
 <div class="row"><h3>Private by default</h3><p>No account, no sign-up. Your closet and photos stay on your device, and you can save a backup to iCloud or Files and load it anywhere.</p></div>
+</div></section>
+
+<section><div class="wrap">
+<h2 class="disp">See it</h2>
+<div class="shots">
+<figure><img src="shots/share.jpg" alt="Rotation outfit share card with jersey, jeans, Jordan 4s and cap" width="720" loading="lazy"><figcaption>Share card, ready to post</figcaption></figure>
+<figure><img src="shots/closet.jpg" alt="Rotation closet organized into outerwear, tops and bottoms" width="720" loading="lazy"><figcaption>Your closet, by section</figcaption></figure>
+<figure><img src="shots/calendar.jpg" alt="Rotation calendar with outfit photos on each day" width="720" loading="lazy"><figcaption>Calendar of what you wore</figcaption></figure>
+<figure><img src="shots/piece.jpg" alt="Rotation piece detail for a vintage Nautica windbreaker with front and back photos" width="720" loading="lazy"><figcaption>Every piece, front and back</figcaption></figure>
+</div>
 </div></section>
 
 <section id="beta"><div class="wrap"><div class="beta">
