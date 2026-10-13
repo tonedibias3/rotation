@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <script>try{var _s=JSON.parse(localStorage.getItem('rotation.settings')||'{}');if(_s.accent&&_s.accent!=='cobalt')document.documentElement.setAttribute('data-accent',_s.accent);if(_s.theme==='light'||_s.theme==='dark')document.documentElement.setAttribute('data-theme',_s.theme);if(_s.splash===false)document.documentElement.setAttribute('data-splash','off')}catch(e){}</script>
-<style>html,body{margin:0}img{max-width:100%}[hidden]{display:none!important}.wxc{display:flex;flex-direction:column;align-items:flex-end;text-align:right;gap:1px;background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:4px 6px;max-width:210px}
+<style>html,body{margin:0;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:text}img{-webkit-user-drag:none}.sw[data-v=multi],.vrow .dots i.multi{background:conic-gradient(#e23b32,#e6c53a,#3f8a5c,#3d6fd1,#7a55b8,#e23b32)}img{max-width:100%}[hidden]{display:none!important}.wxc{display:flex;flex-direction:column;align-items:flex-end;text-align:right;gap:1px;background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:4px 6px;max-width:210px}
 .wxc b{font-size:26px;line-height:1;font-weight:700}.wxc span{font-size:13px;opacity:.85}.wxc i{font-style:normal;font-size:11px;opacity:.6;white-space:nowrap}
 .cell.dim{opacity:.2}.ctags{margin:14px 0 4px}
 .det{margin-top:2px}.det summary{cursor:pointer;font-weight:600;list-style:none}.det summary i{font-style:normal;font-weight:400;opacity:.6;margin-left:6px}
@@ -1435,7 +1435,7 @@ function recapData(m){
   return {days:keys.length,top:top,tag:tg?tagLbl(tg):'',pieces:Object.keys(wm).length};
 }
 function openRecap(){
-  SH={mode:'recap',m:S.month,sel:new Set(),scent:false,hasScent:false,hasFeet:false,feet:false,d:S.month,k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:false,det:false,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:false,url:'',blob:null,seq:0};
+  SH={mode:'recap',m:S.month,sel:new Set(),scent:false,hasScent:false,hasFeet:false,feet:false,d:S.month,k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:false,det:false,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:false,hasBack:!!it.photo2,iside:it.photo2?'2':'f',url:'',blob:null,seq:0};
   renderShare();buildShare();
 }
 /* the Rotation wordmark and web address: on every picture the app makes, the person only chooses the corner */
@@ -1507,7 +1507,7 @@ function shOpt(key,label,opts,hide){
 }
 function syncShareOpts(){
   const e=$('#sh-o-side');if(e)e.hidden=!(SH.size==='sq'&&SH.hasPhoto);
-  ['size','theme','logo','side'].forEach(k=>document.querySelectorAll('#sh-o-'+k+' button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===SH[k]?'true':'false')));
+  ['size','theme','logo','side','iside'].forEach(k=>document.querySelectorAll('#sh-o-'+k+' button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===SH[k]?'true':'false')));
 }
 /* drag the preview to move the outfit photo, slider to zoom */
 let SHQ=0;
@@ -1545,6 +1545,7 @@ function renderShare(){
    +shOpt('theme','Look',[['light','Light'],['dark','Dark']])
    +shOpt('logo','Rotation watermark',[['tr','Top right'],['bl','Bottom left'],['br','Bottom right']])
    +shOpt('side','Outfit photo',[['l','Left'],['r','Right']],!(SH.size==='sq'&&SH.hasPhoto))
+   +shOpt('iside','Photo',[['f','Front'],['b','Back'],['2','Both']],!(SH.mode==='item'&&SH.hasBack))
    +(SH.hasPhoto?'<div class="sh-opt" id="sh-o-move"><span class="cap">Photo</span><p class="hint" style="margin:0 0 6px">Drag the preview to move your photo. Use the slider to zoom.</p><div style="display:flex;align-items:center;gap:12px"><input id="sh-zoom" type="range" min="100" max="300" step="5" value="'+Math.round((SH.zm||1)*100)+'" aria-label="Zoom photo" style="flex:1"><button type="button" class="link" data-act="share-reset">Reset</button></div></div>':'')
    +'</div>'
    +(SH.mode==='fit'?'<div class="sh-opt" style="margin-bottom:8px"><span class="cap">Pieces to show</span><div class="chips wrapc" id="sh-pcs">'+Array.from(SH.look?shLook().items:S.days[SH.d]&&(SH.k?S.days[SH.d].more[SH.k-1]:S.days[SH.d]).items||[]).filter(id=>M.has(id)).map(id=>'<button type="button" class="chip" data-act="share-piece" data-id="'+esc(id)+'" aria-pressed="'+SH.sel.has(id)+'">'+esc(M.get(id).nickname||M.get(id).name)+'</button>').join('')+'</div></div>':'')
@@ -1579,7 +1580,9 @@ async function drawShare(){
   const shoeMode=SH.mode==='shoe',sc=itemMode?M.get(SH.item):shoeMode?shoeOf(dd):(dd.scent&&M.get(dd.scent)),scentMode=SH.mode==='scent'||shoeMode||itemMode;
   const its=scentMode?(sc?[sc]:[]):o.items.filter(id=>SH.sel.has(id)).map(id=>M.get(id)).filter(Boolean).sort((a,b)=>catIdx(a.category)-catIdx(b.category));
   if(!scentMode&&SH.scent&&sc)its.push(sc);
-  const imgs=await Promise.all(its.map(i=>loadSrc(photoSrc(i.photo))));
+  const iside=(itemMode&&sc&&sc.photo2)?(SH.iside||'2'):'f';
+  const imgs=await Promise.all(its.map(i=>loadSrc(photoSrc(iside==='b'?i.photo2:i.photo))));
+  const img2=iside==='2'?await loadSrc(photoSrc(sc.photo2)):null;
   const fit=scentMode?null:await loadSrc(o.photo?photoSrc(o.photo):''),feetImg=(shoeMode&&SH.feet&&dd.shoePhoto)?await loadSrc(photoSrc(dd.shoePhoto)):null;
   x.fillStyle=BG;x.fillRect(0,0,W,H);
   const pad=72;
@@ -1638,6 +1641,27 @@ async function drawShare(){
     if(SH.names||brands){
       const showB=brands&&!!it.brand,showN=SH.names||(brands&&!it.brand);
       x.textAlign='center';let ly=top+ch-lab+44;
+      if(showB&&!showN){x.fillStyle=INK;x.font=F(700,40);x.fillText(fitText(x,it.brand.toUpperCase(),cw),W/2,ly)}
+      else{
+        if(showB){x.fillStyle=INK2;x.font=F(600,28);x.fillText(fitText(x,it.brand.toUpperCase(),cw),W/2,ly);ly+=44}
+        x.fillStyle=INK;x.font=F(700,40);x.fillText(fitText(x,it.nickname||it.name,cw),W/2,ly)}
+      x.textAlign='left';
+    }
+  }
+  else if(!fit&&img2&&imgs[0]&&its[0]){
+    /* a piece with a back photo: front and back together */
+    const it=its[0],gap=30,cap=44,lab=(SH.names||brands)?(SH.names&&brands&&it.brand?120:80):0,story=sz==='st';
+    const w=story?cw:Math.floor((cw-gap)/2),h=story?Math.min(Math.floor((ch-lab-2*cap-gap)/2),Math.round(cw*.9)):Math.min(Math.round(w*1.15),ch-lab-cap);
+    const total=story?2*h+gap+2*cap:h+cap,y0=top+Math.max(0,Math.round((ch-lab-total)/2));
+    const rects=story?[[imgs[0],pad,y0,'FRONT'],[img2,pad,y0+h+cap+gap,'BACK']]:[[imgs[0],pad,y0,'FRONT'],[img2,pad+w+gap,y0,'BACK']];
+    rects.forEach(r=>{
+      x.save();rr(x,r[1],r[2],w,h,36);x.clip();x.fillStyle=WELL;x.fillRect(r[1],r[2],w,h);
+      const k=Math.max(w/r[0].width,h/r[0].height),iw=r[0].width*k,ih=r[0].height*k;x.drawImage(r[0],r[1]+(w-iw)/2,r[2]+(h-ih)/2,iw,ih);x.restore();
+      x.fillStyle=INK2;x.font=F(600,24);x.textAlign='center';x.fillText(r[3],r[1]+w/2,r[2]+h+34);x.textAlign='left';
+    });
+    if(SH.names||brands){
+      const showB=brands&&!!it.brand,showN=SH.names||(brands&&!it.brand);
+      x.textAlign='center';let ly=y0+total+44;
       if(showB&&!showN){x.fillStyle=INK;x.font=F(700,40);x.fillText(fitText(x,it.brand.toUpperCase(),cw),W/2,ly)}
       else{
         if(showB){x.fillStyle=INK2;x.font=F(600,28);x.fillText(fitText(x,it.brand.toUpperCase(),cw),W/2,ly);ly+=44}
@@ -1778,7 +1802,7 @@ function viewItem(id){
    +'<div class="vbig">'+(it.photo2?'<img id="vback" src="'+esc(photoSrc(it.photo2))+'" alt="" hidden>':'')+(src?'<img id="vfront" src="'+esc(src)+'" alt="">':'<span class="ph" style="--c:'+(COLORS[it.color]||'#9a9ea6')+'">'+(ICONS[it.category]||ICONS.tops)+'</span>')+'</div>'
    +(Array.isArray(it.kinds)&&it.kinds.length?'<div class="vkinds">'+it.kinds.map(k=>'<span>'+esc(k)+'</span>').join('')+'</div>':'')
    +row('Brand',it.brand)+row('Nickname',it.nickname)+row('Type',(CATS[catIdx(it.category)]||{}).label)
-   +(cols.length?'<div class="vrow"><span>Colors</span><b class="dots">'+cols.map(c=>'<i style="background:'+(COLORS[c]||'#9a9ea6')+'" title="'+esc(c)+'"></i>').join('')+'</b></div>':'')
+   +(cols.length?'<div class="vrow"><span>Colors</span><b class="dots">'+cols.map(c=>'<i'+(c==='multi'?' class="multi"':' style="background:'+(COLORS[c]||'#9a9ea6')+'"')+' title="'+esc(c)+'"></i>').join('')+'</b></div>':'')
    +row('Worn',w?w+' time'+(w===1?'':'s')+' · last '+fmt(st.last[id],{month:'short',day:'numeric'}):'Not logged yet')
    +(typeof it.price==='number'?row('Paid',money(it.price))+(w?row('Cost per wear',money(Math.round(it.price/w*100)/100)):''):'')
    +row('Bought at',it.source)+row('Date bought',it.bought?fmt(it.bought,{year:'numeric',month:'short',day:'numeric'}):'')+row('Released',it.released)
@@ -2258,7 +2282,7 @@ document.addEventListener('click',e=>{
     case 'scent-set':setDayScent(S.dv,id);closeLooks();break;
     case 'scent-new':closeLooks();openItem(null,{cat:'scents',scentDay:S.dv});break;
     case 'scent-clear':setDayScent(S.dv,'');toast('Scent removed');break;
-    case 'share-opt':if(SH){const k=el.dataset.k,v=el.dataset.v;if(SH[k]!==v){SH[k]=v;SET['sh'+k]=v;saveSet();syncShareOpts();buildShare()}}break;
+    case 'share-opt':if(SH){const k=el.dataset.k,v=el.dataset.v;if(SH[k]!==v){SH[k]=v;if(k!=='iside'){SET['sh'+k]=v;saveSet()}syncShareOpts();buildShare()}}break;
     case 'share-det':if(SH){SH.det=SET.shdet=!SH.det;saveSet();renderShare();buildShare()}break;
     case 'share-tag':if(SH){SH.tag=SET.shtag=!SH.tag;saveSet();renderShare();buildShare()}break;
     case 'share-names':if(SH){SH.names=SET.shnames=!SH.names;saveSet();renderShare();buildShare()}break;
