@@ -1,0 +1,76 @@
+# Headless browser test: python3 scripts/e2e.py (needs playwright + chromium at /opt/pw-browsers/chromium). Screenshots go to a temp dir.
+import json, os, time
+from playwright.sync_api import sync_playwright
+URL='file://'+os.path.abspath(os.path.join(os.path.dirname(__file__),'..','app','index.html'))
+import tempfile; out=tempfile.mkdtemp(); res=[]
+def ok(n,c,e=''): res.append(('PASS' if c else 'FAIL',n,e))
+def boot(b,settings='{"splash":false}'):
+    ctx=b.new_context(viewport={'width':390,'height':844},accept_downloads=True,service_workers='block')
+    pg=ctx.new_page(); errs=[]
+    pg.on('pageerror',lambda e:errs.append(str(e)))
+    pg.route('**/*',lambda r: r.abort() if r.request.url.startswith('http') else r.continue_())
+    pg.goto(URL); pg.evaluate(f"localStorage.setItem('rotation.settings','{settings}')"); pg.reload(); pg.wait_for_timeout(1500)
+    return pg,errs
+def txt(pg): return pg.inner_text('#view').lower()
+now=int(time.time()*1000)
+def mk(n): return {'app':'rotation','v':2,'items':[{'id':f'i{k:02d}','name':f'Piece {k}','brand':'','category':'tops','color':'black','photo':'','createdAt':now} for k in range(n)],'days':{},'looks':[],'settings':{}}
+with sync_playwright() as p:
+    b=p.chromium.launch(executable_path='/opt/pw-browsers/chromium')
+    pg,errs=boot(b)
+    ok('empty closet shows Start your closet','start your closet' in txt(pg))
+    ok('no get-started duplicate on empty closet','get started' not in txt(pg))
+    pg.click('[data-act=seed]'); pg.wait_for_timeout(1200)
+    ok('get-started panel after starter list','get started' in txt(pg) and 'add 5 pieces' in txt(pg))
+    pg.screenshot(path=out+'/closet.png')
+    pg.click('#pill [data-tab=log]'); pg.wait_for_timeout(600)
+    ok('Get started also on Log','get started' in txt(pg))
+    ok('Share this fit button on Log',pg.locator('button:has-text("Share this fit")').count()==1)
+    pg.locator('button:has-text("Share this fit")').click(); pg.wait_for_timeout(400)
+    ok('share with nothing picked: no sheet',pg.locator('#sh-go').count()==0)
+    pg.locator('[data-act=pick]').first.click(); pg.wait_for_timeout(500)
+    pg.locator('button:has-text("Share this fit")').click(); pg.wait_for_timeout(2000)
+    ok('share sheet opens after picking a piece',pg.locator('#sh-go').count()==1)
+    pg.screenshot(path=out+'/share.png')
+    pg.click('[data-act=share-close]'); pg.wait_for_timeout(300)
+    ok('step 2 done after logging',pg.locator('.gs-r.done').count()>=1)
+    pg.click('[data-act=tab][data-tab=settings]'); pg.wait_for_timeout(500)
+    href=pg.locator('a:has-text("Send feedback")').get_attribute('href')
+    ok('feedback mailto to hello@rotation.fit',href.startswith('mailto:hello@rotation.fit?subject=Rotation%20feedback'))
+    ok('feedback body carries counts only, not item names','Jordan' not in href and 'Levi' not in href)
+    pg.screenshot(path=out+'/settings.png',full_page=False)
+    # import crafted 9-item backup -> nudge
+    pf=out+'/in9.json'; json.dump(mk(9),open(pf,'w'))
+    pg.set_input_files('#f-import',pf); pg.wait_for_timeout(1500)
+    pg.click('[data-act=tab][data-tab=closet]') if pg.locator('[data-act=tab][data-tab=closet]').count() else None
+    pg.wait_for_timeout(600)
+    pg.evaluate("document.querySelector('#pill [data-tab=closet]').click()"); pg.wait_for_timeout(600)
+    ok('backup nudge shows with 9+ items, never backed up','back up your closet' in txt(pg))
+    pg.screenshot(path=out+'/nudge.png')
+    with pg.expect_download() as d: pg.click('[data-act=export]')
+    bk=out+'/bk.json'; d.value.save_as(bk); j=json.load(open(bk)); pg.wait_for_timeout(500)
+    ok('export file valid and complete',j['app']=='rotation' and len(j['items'])>=9,str(len(j['items'])))
+    ok('nudge gone after export','back up your closet' not in txt(pg))
+    ok('lastBackup saved',pg.evaluate("JSON.parse(localStorage.getItem('rotation.settings')).lastBackup")>0)
+    pg.evaluate("(()=>{const s=JSON.parse(localStorage.getItem('rotation.settings'));s.lastBackup=Date.now()-20*864e5;localStorage.setItem('rotation.settings',JSON.stringify(s))})()")
+    ok('no page errors (device 1)',not errs,'; '.join(errs)[:200])
+    # fresh device import round trip
+    pg2,errs2=boot(b)
+    pg2.click('[data-act=tab][data-tab=settings]') if pg2.locator('[data-act=tab][data-tab=settings]').count() else None
+    pg2.wait_for_timeout(400)
+    pg2.set_input_files('#f-import',bk); pg2.wait_for_timeout(1500)
+    pg2.evaluate("document.querySelector('#pill [data-tab=closet]').click()"); pg2.wait_for_timeout(500)
+    n=pg2.locator('.card[data-id]').count()
+    ok('round trip: fresh device restores every piece',n==len(j['items']),f'{n} cards vs {len(j["items"])} items')
+    # reload persistence + hide
+    pg2.reload(); pg2.wait_for_timeout(1500)
+    ok('data survives reload',pg2.locator('.card[data-id]').count()==len(j['items']))
+    ok('Get started present before hide','get started' in txt(pg2))
+    pg2.click('[data-act=gs-hide]'); pg2.wait_for_timeout(300)
+    ok('Hide removes panel','get started' not in txt(pg2))
+    pg2.reload(); pg2.wait_for_timeout(1500)
+    ok('Hide persists after reload','get started' not in txt(pg2))
+    ok('no page errors (device 2)',not errs2,'; '.join(errs2)[:200])
+    b.close()
+w=max(len(r[1]) for r in res)
+for r in res: print(r[0],'|',r[1].ljust(w),'|',r[2])
+print(sum(r[0]=='PASS' for r in res),'/',len(res))
