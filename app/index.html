@@ -573,13 +573,29 @@ async function loadLocal(){
   }catch(e){}
   rebuild();
 }
-function exportData(){
+async function exportData(){
+  const name='rotation-backup-'+today()+'.json';
   const blob=new Blob([JSON.stringify({app:'rotation',v:2,items:S.items,days:S.days,looks:S.looks,settings:Object.assign({},SET)})],{type:'application/json'});
+  const done=()=>{SET.lastBackup=Date.now();saveSet();if(S.tab==='closet'||S.tab==='settings')render()};
+  /* inside the iOS app a download link does nothing, so write the file and open the share sheet (Save to Files, AirDrop, Mail) */
+  const C=window.Capacitor,P=C&&C.Plugins;
+  if(C&&C.isNativePlatform&&C.isNativePlatform()&&P&&P.Filesystem&&P.Share){
+    try{
+      const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(blob)});
+      const w=await P.Filesystem.writeFile({path:name,data:b64,directory:'CACHE'});
+      await P.Share.share({title:'Rotation backup',url:w.uri});
+      done();return;
+    }catch(e){if(e&&/cancel/i.test(String(e.message||e)))return}
+  }
+  try{
+    const file=new File([blob],name,{type:'application/json'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]});done();return}
+  }catch(e){if(e&&e.name==='AbortError')return}
   const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);a.download='rotation-backup-'+today()+'.json';
+  a.href=URL.createObjectURL(blob);a.download=name;
   document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-  SET.lastBackup=Date.now();saveSet();
+  done();
 }
 async function importData(file){
   try{
@@ -2240,7 +2256,7 @@ document.addEventListener('click',e=>{
     case 'qa-cat':if(QA){QA.cat=el.dataset.v;renderQA()}break;
     case 'qa-del':if(QA){const r=QA.rows.splice(+el.dataset.i,1)[0];if(r)try{URL.revokeObjectURL(r.url)}catch(e){}if(!QA.rows.length)closeQA();else renderQA()}break;
     case 'qa-save':qaSave();break;
-    case 'export':exportData();if(S.tab==='closet')render();break;
+    case 'export':exportData();break;
     case 'bk-later':SET.bkSnooze=Date.now()+7*864e5;saveSet();render();break;
     case 'gs-hide':SET.gsoff=true;saveSet();render();break;
     case 'log-go':S.tab='log';S.sel=today();S.mode='log';render();toTop();break;
