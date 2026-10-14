@@ -361,6 +361,20 @@ svg{width:18px;height:18px;flex:none}
 .day.today .n{text-decoration-color:var(--accent2,var(--accent))}
 .card[aria-pressed="true"] .check{background:var(--accent2,var(--accent))}
 .tile.add{border-color:color-mix(in srgb,var(--accent2,var(--ink)) 45%,transparent)}
+/* dark mode: the pale tile behind each photo was a frame on a dark screen. The tile is dark and the photo fills it, no multiply, no inset. */
+:root[data-theme="dark"] .tile,:root[data-theme="dark"] .thumb,:root[data-theme="dark"] .hero,:root[data-theme="dark"] .vbig{background:#1A1E25}
+:root[data-theme="dark"] .tile.add{background:transparent}
+:root[data-theme="dark"] .tile img,:root[data-theme="dark"] .thumb img,:root[data-theme="dark"] .hero img{mix-blend-mode:normal}
+:root[data-theme="dark"] .tile img{padding:0}
+:root[data-theme="dark"] .ph{background:color-mix(in srgb,var(--c) 30%,#1A1E25);color:color-mix(in srgb,var(--c) 70%,#fff)}
+@media (prefers-color-scheme: dark){
+:root:not([data-theme="light"]) .tile,:root:not([data-theme="light"]) .thumb,:root:not([data-theme="light"]) .hero,:root:not([data-theme="light"]) .vbig{background:#1A1E25}
+:root:not([data-theme="light"]) .tile.add{background:transparent}
+:root:not([data-theme="light"]) .tile img,:root:not([data-theme="light"]) .thumb img,:root:not([data-theme="light"]) .hero img{mix-blend-mode:normal}
+:root:not([data-theme="light"]) .tile img{padding:0}
+:root:not([data-theme="light"]) .ph{background:color-mix(in srgb,var(--c) 30%,#1A1E25);color:color-mix(in srgb,var(--c) 70%,#fff)}
+}
+
 details.det{margin:0 0 16px;border:1px solid var(--line);border-radius:14px;padding:0 14px}
 details.det summary{cursor:pointer;padding:13px 0;font:600 14px var(--f-body);list-style:none}details.det summary::-webkit-details-marker{display:none}
 details.det summary i{font:400 12px var(--f-body);font-style:normal;color:var(--ink2);margin-left:6px}
