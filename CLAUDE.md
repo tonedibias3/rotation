@@ -12,8 +12,8 @@ Passion project by Tone (Antonio Isaac): a closet + outfit-log + wear-calendar a
 
 ## Code map
 - app/index.html is the whole app (single file, vanilla JS, ~2400 lines). Edit this; it is the source of truth.
-- Data: IndexedDB `rotation` plus localStorage keys `rotation.settings`, `rotation.v1`, `rotation.wx`. Local only; export/import exists.
-- index.html (root) = redirect/launcher; landing/ is a redirect stub (real landing page lives in the separate rotation-site repo).
+- Data: IndexedDB `rotation` plus localStorage keys `rotation.settings`, `rotation.v1`, `rotation.wx`. Local only; export/import exists. The old Claude-artifact cloud sync (window.claude db/assets) was removed Oct 14; do not reintroduce it.
+- index.html (root) = public landing page (uses shots/); installed/standalone users are redirected to app/. landing/ is a tiny redirect stub to rotation.fit. The live rotation.fit site is built from the separate rotation-site repo.
 - ios/ = Capacitor wrapper. `npm run sync` copies app/ into www/ and syncs iOS. See IOS.md.
 - scripts/check.js = deterministic checks. scripts/make-www.js = iOS copy step.
 

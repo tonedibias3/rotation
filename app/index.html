@@ -494,12 +494,10 @@ const subsFor=c=>(SUBS[c]||[]).concat((SET.subs&&SET.subs[c])||[]);
 function saveSet(){try{localStorage.setItem('rotation.settings',JSON.stringify(SET))}catch(e){}}
 function applyTheme(){const r=document.documentElement;if(SET.accent==='cobalt')r.removeAttribute('data-accent');else r.setAttribute('data-accent',SET.accent);if(SET.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',SET.theme);const dark=SET.theme==='dark'||(SET.theme==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);document.querySelectorAll('meta[name=theme-color]').forEach(m=>{m.setAttribute('content',dark?'#0E1115':'#E7E9ED');m.removeAttribute('media')})}
 buildTags();
-const S={items:[],looks:[],days:{},tab:SET.start,filter:'all',cm:'pieces',q:'',sel:today(),mode:'log',opt:0,out:0,month:today().slice(0,7),sheet:null,vw:null,arr:false,kinds:[],dv:null,fo:0,loading:true,store:'local',saveText:'',gotItems:false,gotDays:false};
+const S={items:[],looks:[],days:{},tab:SET.start,filter:'all',cm:'pieces',q:'',sel:today(),mode:'log',opt:0,out:0,month:today().slice(0,7),sheet:null,vw:null,arr:false,kinds:[],dv:null,fo:0,loading:true,saveText:''};
 let M=new Map();
-let itemsCol=null,daysCol=null,ASSETS=null,lastSig='';
-const dirty=new Set(),timers={},vers={},chains={};
+const dirty=new Set(),timers={},vers={};
 const rebuild=()=>{M=new Map(S.items.map(i=>[i.id,i]))};
-const enqueue=(key,fn)=>{const p=(chains[key]||Promise.resolve()).then(fn);chains[key]=p.catch(()=>{});return p};
 
 const dt=(v,n)=>typeof v==='string'?v.slice(0,n):'';
 function normDay(r){
@@ -510,7 +508,6 @@ function normDay(r){
   return {cover:typeof r.cover==='string'?r.cover:'',items:Array.isArray(r.items)?r.items.slice():[],tag:r.tag||'',place:dt(r.place,30),wx:dt(r.wx,30),note:dt(r.note,140),rating:(typeof r.rating==='number'&&r.rating>0&&r.rating<=5)?Math.round(r.rating*2)/2:0,photo:typeof r.photo==='string'?r.photo:'',scent:typeof r.scent==='string'?r.scent:'',scentRating:(typeof r.scentRating==='number'&&r.scentRating>0&&r.scentRating<=5)?Math.round(r.scentRating*2)/2:0,shoe:typeof r.shoe==='string'?r.shoe:'',shoePhoto:typeof r.shoePhoto==='string'?r.shoePhoto:'',when:nw(r.when),plans:[mk(pl[0]),mk(pl[1]),mk(pl[2]),mk(pl[3])],more:mo};
 }
 const outDoc=p=>({cover:p.cover||'',items:p.items.slice(),tag:p.tag||'',place:p.place||'',wx:p.wx||'',note:p.note||'',when:p.when||'',photo:p.photo||'',rating:p.rating||0,locked:!!p.locked});
-const dayDoc=d=>({cover:d.cover||'',items:d.items.slice(),tag:d.tag||'',place:d.place||'',wx:d.wx||'',note:d.note||'',photo:d.photo||'',scent:d.scent||'',scentRating:d.scentRating||0,shoe:d.shoe||'',shoePhoto:d.shoePhoto||'',rating:d.rating||0,when:d.when||'',plans:d.plans.map(outDoc),more:d.more.filter(p=>p.items.length||p.photo).map(outDoc)});
 const dayEmpty=d=>!d||(!d.items.length&&!d.photo&&!d.scent&&!d.shoe&&!d.shoePhoto&&!d.plans.some(p=>p.items.length)&&!d.more.some(p=>p.items.length));
 const nw=v=>tlist(v).filter(w=>WR[w]!==undefined).sort((x,y)=>WR[x]-WR[y]).join(',');
 const WR={morning:0,afternoon:1,evening:2};
@@ -531,7 +528,7 @@ function coverOf(o){
   return pool.find(i=>i.category==='shoes')||pool[0];
 }
 function outCount(){const d=S.days[S.sel];return d?Math.max(1,1+d.more.length):1}
-const photoSrc=p=>!p?'':(p.indexOf('data:')===0||p.indexOf('blob:')===0)?p:'/_blob/'+p;
+const photoSrc=p=>p||'';
 
 /* ---------- storage ---------- */
 let dbP=null;
@@ -608,57 +605,14 @@ async function importData(file){
   }catch(e){toast('That file is not a Rotation backup')}
 }
 function backupRow(inSettings){
-  if(!inSettings||S.loading||S.store!=='local')return '';
+  if(!inSettings||S.loading)return '';
   return '<div class="panel"><h2>Backup</h2><p>Your closet is stored in this browser only. Export a copy now and then. Import it to restore or move to another device.</p><div class="btn-row"><button type="button" class="btn ghost" data-act="export">Export backup</button><label class="btn ghost" for="f-import">Import backup</label><input class="vh" id="f-import" type="file" accept="application/json,.json"></div></div>';
 }
-function sigOf(){
-  return JSON.stringify([
-    S.items,
-    Object.keys(S.days).sort().map(k=>[k,S.days[k].items,S.days[k].tag,S.days[k].plans,S.days[k].more]),
-    S.loading
-  ]);
-}
-function afterData(){
-  S.loading=!(S.gotItems&&S.gotDays);
-  rebuild();
-  if(!S.loading&&!S.settled){S.settled=true;settleDays()}
-  const s=sigOf();
-  if(s!==lastSig){lastSig=s;render()}
-}
-function dbErr(){toast('Sync stopped. Reload to reconnect.')}
-
 async function init(){
   renderNav();
   render();
-  let ok=false;
-  try{
-    const cl=window.claude;
-    if(cl&&cl.use){
-      const r=await Promise.all([cl.use('db'),cl.use('user'),cl.use('assets')]);
-      ASSETS=r[2]||null;
-      const uid=(r[0]&&r[1])?await r[1].id():null;
-      if(r[0]&&uid){
-        const root=r[0].doc('data/users/'+uid+'/profile');
-        itemsCol=root.collection('items');
-        daysCol=root.collection('days');
-        S.store='db';ok=true;
-        itemsCol.onSnapshot(snap=>{
-          S.items=snap.docs.map(d=>normItem(Object.assign({id:d.id},d.data())));
-          S.gotItems=true;afterData();
-        },dbErr);
-        daysCol.onSnapshot(snap=>{
-          const next={};
-          snap.docs.forEach(d=>{next[d.id]=normDay(d.data())});
-          dirty.forEach(k=>{if(S.days[k])next[k]=S.days[k];else delete next[k]});
-          S.days=next;S.gotDays=true;afterData();
-        },dbErr);
-      }
-    }
-  }catch(e){}
-  if(!ok){
-    try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
-    await loadLocal();settleDays();S.loading=false;S.store='local';lastSig='';render();
-  }
+  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+  await loadLocal();settleDays();S.loading=false;render();
 }
 
 async function putItem(id,doc){
@@ -667,11 +621,11 @@ async function putItem(id,doc){
   if(i>=0)S.items[i]=row;else S.items.push(row);
   S.items.sort((a,b)=>a.id<b.id?-1:1);
   rebuild();
-  if(itemsCol)await enqueue('i:'+id,()=>itemsCol.doc(id).set(doc));else persistLocal('items');
+  persistLocal('items');
 }
 async function removeItem(id){
   S.items=S.items.filter(x=>x.id!==id);rebuild();
-  if(itemsCol)await enqueue('i:'+id,()=>itemsCol.doc(id).delete());else persistLocal('items');
+  persistLocal('items');
 }
 function scheduleDay(date){
   dirty.add(date);vers[date]=(vers[date]||0)+1;
@@ -684,11 +638,7 @@ async function flushDay(date){
   const d=S.days[date];
   const empty=dayEmpty(d);
   if(empty)delete S.days[date];
-  if(daysCol){
-    try{
-      await enqueue('d:'+date,()=>empty?daysCol.doc(date).delete():daysCol.doc(date).set(dayDoc(d)));
-    }catch(e){toast('Could not sync that day')}
-  }else persistLocal('days');
+  persistLocal('days');
   if(vers[date]===v){dirty.delete(date);if(!dirty.size)setSave('Saved')}
 }
 let okT=null;
@@ -743,7 +693,7 @@ function fbHref(){
   const body='What do you like?\n\n\nWhat is confusing or broken?\n\n\nWhat is missing?\n\n\n---\nRotation web \u00b7 '+n+' pieces \u00b7 '+d+' days logged\n'+navigator.userAgent;
   return 'mailto:hello@rotation.fit?subject='+encodeURIComponent('Rotation feedback')+'&body='+encodeURIComponent(body);
 }
-function footText(){return S.loading?'':'<p class="sub foot"><b class="brand-f">Rotation</b> \u00b7 '+(S.store==='db'?'Stored privately in your account.':'Stored on this device only.')+' \u00b7 <a class="fb-l" href="'+esc(fbHref())+'">Feedback</a></p>'}
+function footText(){return S.loading?'':'<p class="sub foot"><b class="brand-f">Rotation</b> \u00b7 '+'Stored on this device only.'+' \u00b7 <a class="fb-l" href="'+esc(fbHref())+'">Feedback</a></p>'}
 function startHTML(){
   if(S.loading||SET.gsoff)return '';
   const t=today();
@@ -765,7 +715,7 @@ function refreshStart(){
   if(h)e.outerHTML=h;else e.remove();
 }
 function backupNudgeHTML(){
-  if(S.loading||S.store!=='local'||S.items.length<8)return '';
+  if(S.loading||S.items.length<8)return '';
   const now=Date.now(),age=now-(SET.lastBackup||0);
   if(SET.lastBackup&&age<14*864e5)return '';
   if(now<SET.bkSnooze)return '';
@@ -1296,7 +1246,7 @@ function viewSettings(){
    +(SET.occ.length?'<div class="occ">'+SET.occ.map((o,i)=>'<span class="chip" style="cursor:default"><i style="width:8px;height:8px;border-radius:50%;background:'+OCC_COL[i%4]+';opacity:1;margin:0 8px 0 0;display:inline-block"></i>'+esc(o.label)+'<button type="button" class="occx" data-act="occ-del" data-id="'+esc(o.id)+'" aria-label="Remove '+esc(o.label)+'">'+ico(P.x)+'</button></span>').join('')+'</div>':'')
    +(SET.occ.length<4?'<div class="field" style="margin:12px 0 0"><div style="display:flex;gap:8px"><input id="f-occ" placeholder="New outfit type" maxlength="16" autocomplete="off" style="flex:1"><button type="button" class="btn ghost" data-act="occ-add" style="min-height:46px">Add</button></div></div>':'<p class="hint" style="margin:10px 0 0">Four custom types is the limit.</p>')+'</div>'
    +backupRow(true)
-   +(S.store==='local'?'<div class="panel"><h2>Data</h2><p>Erase every piece and every logged day from this device. Export a backup first if you might want them back.</p><button type="button" class="btn danger" id="b-wipe" data-act="wipe">Erase everything</button></div>':'')
+   +'<div class="panel"><h2>Data</h2><p>Erase every piece and every logged day from this device. Export a backup first if you might want them back.</p><button type="button" class="btn danger" id="b-wipe" data-act="wipe">Erase everything</button></div>'
    +'<div class="panel"><h2>Feedback</h2><p>Tell me what works, what is confusing and what is missing. It goes to a real person, and every message gets read.</p><a class="btn primary" href="'+esc(fbHref())+'">Send feedback</a></div>'
    +'<div class="panel"><h2>About</h2><p style="margin:0">Rotation. Your closet, what you wore, and what is next.</p><p class="sub" style="margin:10px 0 0">&copy; 2026 Antonio Isaac. All rights reserved.</p></div>'
    +footText();
@@ -1386,9 +1336,7 @@ async function fitDone(){
   c.width=Math.max(1,Math.round(cb.w*sc));c.height=Math.max(1,Math.round(cb.h*sc));
   const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);
   paintCrop(x,1100,true);
-  let photo;
-  if(ASSETS){const blob=await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('b')),'image/jpeg',.82));photo=(await ASSETS.upload(blob,{type:'image/jpeg'})).id}
-  else photo=c.toDataURL('image/jpeg',.8);
+  const photo=c.toDataURL('image/jpeg',.8);
   if(f.look){const lk=S.looks.find(x=>x.id===f.look);if(lk){lk.photo=photo;persistLocal('looks')}closeCrop();if(S.tab==='closet'&&S.cm==='looks'){fillLooks();viewLook(f.look)}else renderLooks(true);return}
   const dd=S.days[f.d]||(S.days[f.d]=normDay({}));
   if(f.shoe){dd.shoePhoto=photo;scheduleDay(f.d);closeCrop();if(S.dv===f.d)renderDay();refreshCal();return}
@@ -1443,7 +1391,6 @@ function setDayScent(d,id){
 /* ---------- share an outfit as an image ---------- */
 let SH=null;
 const SIZES={sq:[1080,1080],st:[1080,1920]};
-const ACC={cobalt:'#2744E8',heritage:'#D4001F',peony:'#2E9E6B',graphite:'#16181C',ember:'#D9480F',dusk:'#5B3FD4'};
 function openShare(d,k,mode){
   const dd=S.days[d];if(!dd)return;
   const one=mode==='scent'||mode==='shoe',o=one?dd:(k?dd.more[k-1]:dd);if(!o)return;
@@ -1862,8 +1809,7 @@ async function qaSave(){
   try{
     const cat=QA.cat,base=S.items.filter(i=>i.category===cat).length,n=QA.rows.length;
     for(let i=0;i<n;i++){
-      const r=QA.rows[i];let photo=r.data;
-      if(ASSETS){const u=await ASSETS.upload(r.blob,{type:'image/jpeg'});photo=u.id}
+      const r=QA.rows[i],photo=r.data;
       await putItem(newId(),{name:(r.name||'').trim()||(SING[cat]+' '+(base+i+1)),brand:'',nickname:'',category:cat,color:'',colors:[],kinds:[],price:'',source:'',bought:'',released:'',photo:photo,photo2:'',createdAt:Date.now()+i});
     }
     S.filter='all';closeQA();render();toast('Added '+n+' piece'+(n===1?'':'s'));
@@ -2187,7 +2133,7 @@ async function cropDone(){
     const blob=await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('blob')),type,.85));
     const dr=S.sheet.draft,pk=PK(S.slot);
     if(dr[pk.pu]){try{URL.revokeObjectURL(dr[pk.pu])}catch(e){}}
-    dr[pk.bl]=blob;dr[pk.da]=ASSETS?'':c.toDataURL(type,.82);dr[pk.pu]=URL.createObjectURL(blob);
+    dr[pk.bl]=blob;dr[pk.da]=c.toDataURL(type,.82);dr[pk.pu]=URL.createObjectURL(blob);
     closeCrop();syncPhoto();
   }catch(e){toast('Could not crop that photo')}
 }
@@ -2207,16 +2153,8 @@ async function saveItem(){
   sh.busy=true;
   const b=$('#b-save');if(b){b.disabled=true;b.textContent='Saving'}
   try{
-    let photo=d.photo||'';
-    if(d.photoBlob){
-      if(ASSETS){const r=await ASSETS.upload(d.photoBlob,{type:d.photoBlob.type||'image/jpeg'});photo=r.id}
-      else photo=d.photoData;
-    }
-    let photo2=d.photo2||'';
-    if(d.photoBlob2){
-      if(ASSETS){const r2=await ASSETS.upload(d.photoBlob2,{type:d.photoBlob2.type||'image/jpeg'});photo2=r2.id}
-      else photo2=d.photoData2;
-    }
+    const photo=d.photoBlob?d.photoData:(d.photo||'');
+    const photo2=d.photoBlob2?d.photoData2:(d.photo2||'');
     const id=sh.id||newId(),ex=sh.id?M.get(sh.id):null;
     await putItem(id,{name:d.name.trim(),brand:d.brand.trim(),nickname:d.nickname.trim(),category:d.category,color:(d.category==='scents'?'':(d.colors[0]||'')),colors:(d.category==='scents'?[]:d.colors.slice()),kinds:d.kinds.filter(k=>subsFor(d.category).indexOf(k)>=0),price:parsePrice(d.price),source:(d.source||'').trim(),bought:d.bought||'',released:(d.released||'').trim(),photo:photo,photo2:photo2,createdAt:ex&&ex.createdAt||Date.now()});
     const wasNew=!sh.id,log=sh.addToLog,sd=sh.scentDay,shd=sh.shoeDay;
@@ -2446,7 +2384,7 @@ window.addEventListener('scroll',()=>{
 applyTheme();
 try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(SET.theme==='auto')applyTheme()})}catch(e){}
 (function(){const sp=document.getElementById('splash');if(!sp)return;if(SET.splash){setTimeout(()=>sp.remove(),3300);sp.addEventListener('click',()=>sp.remove())}else sp.remove()})();
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.store==='local'&&!S.loading&&settleDays())render()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!S.loading&&settleDays())render()});
 init();
 })();
 </script>
