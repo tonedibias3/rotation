@@ -1965,13 +1965,13 @@ function openCrop(img){
     if(!dr)return;
     const q=fp(e);
     if(dr.m==='resize'){
-      const MIN=40,qx=Math.max(0,Math.min(F,q[0])),qy=Math.max(0,Math.min(F,q[1]));
+      const MIN=40,ir=imgRect(),qx=Math.max(Math.max(0,ir.x0),Math.min(Math.min(F,ir.x1),q[0])),qy=Math.max(Math.max(0,ir.y0),Math.min(Math.min(F,ir.y1),q[1]));
       let x0=cb.x,y0=cb.y,x1=cb.x+cb.w,y1=cb.y+cb.h;
       if(dr.l)x0=Math.min(qx,x1-MIN);if(dr.r)x1=Math.max(qx,x0+MIN);
       if(dr.t)y0=Math.min(qy,y1-MIN);if(dr.b)y1=Math.max(qy,y0+MIN);
       cb.x=x0;cb.y=y0;cb.w=x1-x0;cb.h=y1-y0;drawCrop();
     }else if(dr.m==='move'){
-      cb.x=Math.max(0,Math.min(F-cb.w,q[0]-dr.ox));cb.y=Math.max(0,Math.min(F-cb.h,q[1]-dr.oy));drawCrop();
+      const ir=imgRect(),mx=Math.max(0,ir.x0),my=Math.max(0,ir.y0),Mx=Math.min(F,ir.x1),My=Math.min(F,ir.y1);cb.x=Math.max(mx,Math.min(Mx-cb.w,q[0]-dr.ox));cb.y=Math.max(my,Math.min(My-cb.h,q[1]-dr.oy));drawCrop();
     }else if(dr.m==='pan'){
       CR.cx-=(e.clientX-o[0])/CR.s;CR.cy-=(e.clientY-o[1])/CR.s;clampC();drawCrop();
     }
@@ -2051,10 +2051,14 @@ function setScale(v){
   clampC();drawCrop();
 }
 function clampC(){
-  const half=CR.box/2/CR.s;
-  /* keep at least a sliver of the photo in frame */
-  CR.cx=Math.max(0,Math.min(CR.w,CR.cx));CR.cy=Math.max(0,Math.min(CR.h,CR.cy));
-  void half;
+  /* the crop box may never include area outside the photo: shrink it to the photo, then stop the photo sliding off it */
+  const F=CR.box,r=imgRect(),cb=CR.cb,MIN=40;
+  const x0=Math.max(cb.x,r.x0,0),y0=Math.max(cb.y,r.y0,0),x1=Math.min(cb.x+cb.w,r.x1,F),y1=Math.min(cb.y+cb.h,r.y1,F);
+  if(x1-x0>=1&&y1-y0>=1){cb.x=x0;cb.y=y0;cb.w=x1-x0;cb.h=y1-y0}
+  const s=CR.s,lx=(F/2-cb.x)/s,hx=CR.w-(cb.x+cb.w-F/2)/s,ly=(F/2-cb.y)/s,hy=CR.h-(cb.y+cb.h-F/2)/s;
+  CR.cx=lx>hx?(lx+hx)/2:Math.max(lx,Math.min(hx,CR.cx));
+  CR.cy=ly>hy?(ly+hy)/2:Math.max(ly,Math.min(hy,CR.cy));
+  void MIN;
 }
 function handles(){
   const cb=CR.cb,o=[];
@@ -2092,7 +2096,7 @@ function drawCrop(){
   ctx.fillStyle='#fff';ctx.strokeStyle='rgba(8,10,14,.45)';ctx.lineWidth=1*dpr;
   handles().forEach(p=>{const corner=p.fx%1===0&&p.fy%1===0;ctx.beginPath();ctx.arc(p.x*k,p.y*k,(corner?9:6)*dpr,0,6.2832);ctx.fill();ctx.stroke()});
 }
-function cropReset(){if(!CR)return;CR.clean=false;applyClean();CR.cx=CR.w/2;CR.cy=CR.h/2;setScale(CR.min);fitBox();drawCrop()}
+function cropReset(){if(!CR)return;CR.clean=false;applyClean();CR.cx=CR.w/2;CR.cy=CR.h/2;CR.s=CR.min;fitBox();setScale(CR.min);drawCrop()}
 function closeCrop(){CR=null;const h=$('#crop');if(h)h.innerHTML=''}
 async function cropDone(){
   if(CR&&CR.fit){try{await fitDone()}catch(e){toast('Could not save that photo')}return}
