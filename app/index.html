@@ -1482,7 +1482,7 @@ async function drawRecap(){
     r.top.forEach((a,i)=>{
       const it=M.get(a[0]),tx=ox+i*(t+gap);
       x.save();rr(x,tx,y,t,t,Math.round(t*.14));x.clip();x.fillStyle=T.well;x.fillRect(tx,y,t,t);
-      if(imgs[i]){const im=imgs[i],p=t*.07,k=Math.min((t-2*p)/im.width,(t-2*p)/im.height),w=im.width*k,h=im.height*k;x.globalCompositeOperation='multiply';x.drawImage(im,tx+(t-w)/2,y+(t-h)/2,w,h);x.globalCompositeOperation='source-over'}
+      if(imgs[i]){const im=imgs[i],p=SH.theme==='dark'?0:t*.07,k=Math.min((t-2*p)/im.width,(t-2*p)/im.height),w=im.width*k,h=im.height*k;drawPiece(x,im,tx+(t-w)/2,y+(t-h)/2,w,h,t,SH.theme==='dark')}
       else{x.fillStyle=T.ph;x.font=F(700,Math.round(t*.4),DISP);x.textAlign='center';x.fillText((it.name||'?').charAt(0).toUpperCase(),tx+t/2,y+t/2+t*.14);x.textAlign='left'}
       x.restore();
       x.textAlign='center';let ly=y+t+40;
@@ -1521,6 +1521,9 @@ function syncShareOpts(){
 /* drag the preview to move the outfit photo, slider to zoom */
 let SHQ=0;
 function shFast(){if(SHQ)return;SHQ=requestAnimationFrame(()=>{SHQ=0;buildShare(true)})}
+/* a toggle: update the preview quickly, then make the full-quality picture once the taps stop (no flashing, no re-draw of the whole sheet) */
+let SHL=0;
+function shQueue(){const go=$('#sh-go'),sv=$('#sh-save');if(go)go.disabled=true;if(sv)sv.disabled=true;shFast();clearTimeout(SHL);SHL=setTimeout(()=>buildShare(),450)}
 function wireShare(){
   const im=$('#sh-img'),z=$('#sh-zoom');if(!SH)return;
   if(z)z.addEventListener('input',()=>{SH.zm=(+z.value||100)/100;shFast()}),z.addEventListener('change',()=>buildShare());
@@ -1573,9 +1576,14 @@ const IMC=new Map();
 const loadSrc=src=>new Promise(res=>{if(!src)return res(null);if(IMC.has(src))return res(IMC.get(src));const im=new Image();im.onload=()=>{if(IMC.size>40)IMC.clear();IMC.set(src,im);res(im)};im.onerror=()=>res(null);im.src=src});
 function rr(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath()}
 function fitText(x,t,w){t=String(t||'');if(x.measureText(t).width<=w)return t;while(t.length>1&&x.measureText(t+'…').width>w)t=t.slice(0,-1);return t+'…'}
+/* a closet photo inside its tile: on the light card it multiplies into the tile color; on the dark card the tile is dark and the photo sits on it with soft corners, so no pale frame shows */
+function drawPiece(x,im,a,b,w,h,t,dark){
+  if(dark){x.save();rr(x,a,b,w,h,Math.round(t*.08));x.clip();x.drawImage(im,a,b,w,h);x.restore();return}
+  x.globalCompositeOperation='multiply';x.drawImage(im,a,b,w,h);x.globalCompositeOperation='source-over';
+}
 const SHT={
   light:{bg:'#F4F3EF',ink:'#14171C',ink2:'#6A717C',well:'#E7E9ED',ph:'#6A717C',acc:{cobalt:'#2744E8',heritage:'#D4001F',peony:'#2E9E6B',graphite:'#16181C',ember:'#D9480F',dusk:'#5B3FD4'}},
-  dark:{bg:'#101216',ink:'#F2F3F5',ink2:'#98A0AC',well:'#E4E6EA',ph:'#6A717C',acc:{cobalt:'#8196FF',heritage:'#FF3B3B',peony:'#5FD39A',graphite:'#EDEDEE',ember:'#FF8A4C',dusk:'#9D82F5'}}
+  dark:{bg:'#101216',ink:'#F2F3F5',ink2:'#98A0AC',well:'#14171C',ph:'#6A717C',acc:{cobalt:'#8196FF',heritage:'#FF3B3B',peony:'#5FD39A',graphite:'#EDEDEE',ember:'#FF8A4C',dusk:'#9D82F5'}}
 };
 async function drawShare(){
   if(SH.mode==='recap')return drawRecap();
@@ -1624,7 +1632,7 @@ async function drawShare(){
       x.save();rr(x,tx,ty,t,t,Math.round(t*.14));x.clip();
       x.fillStyle=WELL;x.fillRect(tx,ty,t,t);
       if(imgs[i]&&scentMode&&!shoeMode){const im=imgs[i],k=Math.max(t/im.width,t/im.height),w=im.width*k,h=im.height*k;x.drawImage(im,tx+(t-w)/2,ty+(t-h)/2,w,h)}
-      else if(imgs[i]){const im=imgs[i],p=t*.07,k=Math.min((t-2*p)/im.width,(t-2*p)/im.height),w=im.width*k,h=im.height*k;x.globalCompositeOperation='multiply';x.drawImage(im,tx+(t-w)/2,ty+(t-h)/2,w,h);x.globalCompositeOperation='source-over'}
+      else if(imgs[i]){const im=imgs[i],p=SH.theme==='dark'?0:t*.07,k=Math.min((t-2*p)/im.width,(t-2*p)/im.height),w=im.width*k,h=im.height*k;drawPiece(x,im,tx+(t-w)/2,ty+(t-h)/2,w,h,t,SH.theme==='dark')}
       else{x.fillStyle=T.ph;x.font=F(700,Math.round(t*.4),DISP);x.textAlign='center';x.fillText((it.name||'?').charAt(0).toUpperCase(),tx+t/2,ty+t/2+t*.14);x.textAlign='left'}
       x.restore();
       if(!lnames&&!brands)return;
@@ -1703,7 +1711,7 @@ async function buildShare(fast){
     const c=await drawShare();
     const blob=await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('blob')),fast?'image/jpeg':'image/png',fast?.7:undefined));
     if(!SH||my!==SH.seq)return;
-    if(SH.url){try{URL.revokeObjectURL(SH.url)}catch(e){}}
+    const oldU=SH.url;if(oldU)setTimeout(()=>{try{URL.revokeObjectURL(oldU)}catch(e){}},2000);
     SH.blob=blob;SH.url=URL.createObjectURL(blob);
     const im=$('#sh-img'),w=$('#sh-wait');
     if(im){im.src=SH.url;im.hidden=false}if(w)w.hidden=true;
@@ -2284,8 +2292,8 @@ document.addEventListener('click',e=>{
     case 'share-open':openShare(S.dv,+el.dataset.o||0);break;
     case 'share-close':closeShare();break;
     case 'share-scent-open':openShare(S.dv,0,'scent');break;
-    case 'share-piece':if(SH){const pid=el.dataset.id;if(SH.sel.has(pid))SH.sel.delete(pid);else SH.sel.add(pid);el.setAttribute('aria-pressed',SH.sel.has(pid)?'true':'false');buildShare()}break;
-    case 'share-scent':if(SH){SH.scent=!SH.scent;el.setAttribute('aria-pressed',SH.scent?'true':'false');buildShare()}break;
+    case 'share-piece':if(SH){const pid=el.dataset.id;if(SH.sel.has(pid))SH.sel.delete(pid);else SH.sel.add(pid);el.setAttribute('aria-pressed',SH.sel.has(pid)?'true':'false');shQueue()}break;
+    case 'share-scent':if(SH){SH.scent=!SH.scent;el.setAttribute('aria-pressed',SH.scent?'true':'false');shQueue()}break;
     case 'set-cover':{const dd=S.days[S.dv];const o=dd&&(+el.dataset.o?dd.more[(+el.dataset.o)-1]:dd);if(o){o.cover=id;scheduleDay(S.dv);renderDay();refreshCal()}break}
     case 'shoe-day-pick':openShoePick(S.dv);break;
     case 'shoe-log':openShoePick(S.sel);break;
@@ -2297,16 +2305,16 @@ document.addEventListener('click',e=>{
     case 'share-item-open':if(S.vw)openShareItem(S.vw);break;
     case 'share-shoe-open':openShare(S.dv,0,'shoe');break;
     case 'share-reset':if(SH){SH.fx=.5;SH.fy=.5;SH.zm=1;const z=$('#sh-zoom');if(z)z.value=100;buildShare()}break;
-    case 'share-feet':if(SH){SH.feet=!SH.feet;el.setAttribute('aria-pressed',SH.feet?'true':'false');buildShare()}break;
+    case 'share-feet':if(SH){SH.feet=!SH.feet;el.setAttribute('aria-pressed',SH.feet?'true':'false');shQueue()}break;
     case 'scent-pick':openScentPick();break;
     case 'scent-set':setDayScent(S.dv,id);closeLooks();break;
     case 'scent-new':closeLooks();openItem(null,{cat:'scents',scentDay:S.dv});break;
     case 'scent-clear':setDayScent(S.dv,'');toast('Scent removed');break;
-    case 'share-opt':if(SH){const k=el.dataset.k,v=el.dataset.v;if(SH[k]!==v){SH[k]=v;if(k!=='iside'){SET['sh'+k]=v;saveSet()}syncShareOpts();buildShare()}}break;
-    case 'share-det':if(SH){SH.det=SET.shdet=!SH.det;saveSet();renderShare();buildShare()}break;
-    case 'share-tag':if(SH){SH.tag=SET.shtag=!SH.tag;saveSet();renderShare();buildShare()}break;
-    case 'share-names':if(SH){SH.names=SET.shnames=!SH.names;saveSet();renderShare();buildShare()}break;
-    case 'share-brands':if(SH){SH.brands=SET.shbrand=!SH.brands;saveSet();el.setAttribute('aria-pressed',SH.brands?'true':'false');buildShare()}break;
+    case 'share-opt':if(SH){const k=el.dataset.k,v=el.dataset.v;if(SH[k]!==v){SH[k]=v;if(k!=='iside'){SET['sh'+k]=v;saveSet()}syncShareOpts();shQueue()}}break;
+    case 'share-det':if(SH){SH.det=SET.shdet=!SH.det;saveSet();el.setAttribute('aria-pressed',SH.det?'true':'false');shQueue()}break;
+    case 'share-tag':if(SH){SH.tag=SET.shtag=!SH.tag;saveSet();el.setAttribute('aria-pressed',SH.tag?'true':'false');shQueue()}break;
+    case 'share-names':if(SH){SH.names=SET.shnames=!SH.names;saveSet();el.setAttribute('aria-pressed',SH.names?'true':'false');shQueue()}break;
+    case 'share-brands':if(SH){SH.brands=SET.shbrand=!SH.brands;saveSet();el.setAttribute('aria-pressed',SH.brands?'true':'false');shQueue()}break;
     case 'share-go':doShare();break;
     case 'share-save':saveToPhotos();break;
     case 'view-close':closeView();break;
