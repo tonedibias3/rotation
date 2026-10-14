@@ -301,7 +301,6 @@ svg{width:18px;height:18px;flex:none}
 .pal button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--accent)}
 .pal i{display:flex;flex:none;width:34px;height:20px;border-radius:999px;overflow:hidden;border:1px solid var(--line)}
 .pal i b{flex:1}
-.find{max-height:88vh;overflow:auto}
 .tray-done{flex:none;min-height:42px;padding:8px 18px}
 .stk{font-weight:700;white-space:nowrap}.stk .sl{display:none}@media(min-width:430px){.stk .sl{display:inline}}.stk::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent,#2744E8);margin-right:6px;vertical-align:1px}.stk.risk::before{background:#E8890C}
 .ins{display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px 14px;border-radius:16px;background:var(--surface);box-shadow:var(--shadow)}
@@ -327,10 +326,13 @@ svg{width:18px;height:18px;flex:none}
 .occ{display:flex;flex-wrap:wrap;gap:8px}
 .occx{border:0;background:none;padding:0;margin-left:8px;display:inline-grid;place-items:center;cursor:pointer;color:var(--ink2)}
 .occx svg{width:14px;height:14px}
-.fr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.fr button{padding:0;border:1px solid var(--line);border-radius:14px;background:#fff;aspect-ratio:1;overflow:hidden;cursor:pointer}
-.fr img{display:block;width:100%;height:100%;object-fit:contain}
-.crop-s:has(.find){z-index:70}
+.qa{max-height:88vh;overflow:auto}
+.crop-s:has(.qa){z-index:70}
+.qa-l{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.qa-r{display:flex;align-items:center;gap:10px}
+.qa-t{flex:none;width:56px;height:56px;border-radius:12px;overflow:hidden;background:#fff;border:1px solid var(--line)}
+.qa-t img{display:block;width:100%;height:100%;object-fit:contain}
+.qa-r input{flex:1;min-width:0;font:400 16px var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
 .stars{display:inline-flex;gap:2px;color:var(--accent)}
 .st{position:relative;display:block;width:30px;height:30px}
 .st svg{position:absolute;inset:0;width:100%;height:100%}
@@ -420,7 +422,7 @@ details.det[open] summary{border-bottom:1px solid var(--line);margin-bottom:14px
 <div id="dayv"></div>
 <div id="sheet"></div>
 <div id="crop"></div>
-<div id="find"></div>
+<div id="qa"></div><input class="vh" id="f-qa" type="file" accept="image/*" multiple>
 <div id="looks"></div>
 <div id="share"></div>
 <div id="splash" aria-hidden="true"><div class="in"></div><div class="door dl"></div><div class="door dr"></div><div class="mark"><b>Rotation</b><span>Your closet</span></div></div>
@@ -484,7 +486,7 @@ const daysSince=s=>Math.round((parse(today())-parse(s))/864e5);
 const newId=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
 /* ---------- state ---------- */
-const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,gkey:typeof o.gkey==='string'?o.gkey:'',gcx:typeof o.gcx==='string'?o.gcx:'',occ:Array.isArray(o.occ)?o.occ.filter(x=>x&&x.id&&x.label).slice(0,4):[],accent:['cobalt','heritage','peony','graphite','ember','dusk'].indexOf(o.accent)>=0?o.accent:'cobalt',start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:'',order:Array.isArray(o.order)?o.order.filter(x=>typeof x==='string'):[],cview:o.cview==='swipe'?'swipe':'grid',subs:(o.subs&&typeof o.subs==='object')?o.subs:{},shsize:o.shsize==='st'?'st':'sq',shbrand:o.shbrand!==false,shnames:o.shnames!==false,shtag:o.shtag!==false,shdet:o.shdet!==false,shtheme:o.shtheme==='dark'?'dark':'light',shlogo:['tr','bl','br'].indexOf(o.shlogo)>=0?o.shlogo:'tr',shside:o.shside==='r'?'r':'l',lastBackup:+o.lastBackup||0,bkSnooze:+o.bkSnooze||0,gsoff:o.gsoff===true,shared:o.shared===true}})();
+const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,occ:Array.isArray(o.occ)?o.occ.filter(x=>x&&x.id&&x.label).slice(0,4):[],accent:['cobalt','heritage','peony','graphite','ember','dusk'].indexOf(o.accent)>=0?o.accent:'cobalt',start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:'',order:Array.isArray(o.order)?o.order.filter(x=>typeof x==='string'):[],cview:o.cview==='swipe'?'swipe':'grid',subs:(o.subs&&typeof o.subs==='object')?o.subs:{},shsize:o.shsize==='st'?'st':'sq',shbrand:o.shbrand!==false,shnames:o.shnames!==false,shtag:o.shtag!==false,shdet:o.shdet!==false,shtheme:o.shtheme==='dark'?'dark':'light',shlogo:['tr','bl','br'].indexOf(o.shlogo)>=0?o.shlogo:'tr',shside:o.shside==='r'?'r':'l',lastBackup:+o.lastBackup||0,bkSnooze:+o.bkSnooze||0,gsoff:o.gsoff===true,shared:o.shared===true}})();
 function applyOrder(){const o=SET.order;CATS.sort((a,b)=>{const ia=o.indexOf(a.id),ib=o.indexOf(b.id);return (ia<0?99:ia)-(ib<0?99:ib)})}
 applyOrder();
 const SUBS={tops:['Short sleeve','Long sleeve','T-shirt','Polo','Dress shirt','Collared','Sweater','Hoodie','Tank'],bottoms:['Jeans','Pants','Slacks','Shorts','Joggers'],shoes:['Sneakers','Boots','Dress','Loafers','Sandals'],outerwear:['Jacket','Coat','Vest','Blazer','Hoodie'],accessories:['Hat','Watch','Belt','Chain','Bag','Sunglasses'],scents:['Fresh','Woody','Sweet','Spicy']};
@@ -575,7 +577,7 @@ async function loadLocal(){
   rebuild();
 }
 function exportData(){
-  const blob=new Blob([JSON.stringify({app:'rotation',v:2,items:S.items,days:S.days,looks:S.looks,settings:Object.assign({},SET,{gkey:'',gcx:''})})],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({app:'rotation',v:2,items:S.items,days:S.days,looks:S.looks,settings:Object.assign({},SET)})],{type:'application/json'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download='rotation-backup-'+today()+'.json';
   document.body.appendChild(a);a.click();a.remove();
@@ -747,7 +749,7 @@ function startHTML(){
   const t=today();
   const logged=Object.keys(S.days).some(k=>k<=t&&hasFit(k));
   const st=[
-    [S.items.length>=5,'Add 5 pieces','Shoes, tops, bottoms. A photo makes your share card look right.','new-item','Add a piece'],
+    [S.items.filter(i=>i.photo).length>=5,'Add 5 pieces with photos','Pick several photos at once. Photos are what make your share card look right.','qa-open','Add photos'],
     [logged,'Log today\u2019s fit','Open Log, tap what you are wearing, add a fit photo.','log-go','Open Log'],
     [!!SET.shared,'Share it','Your share card carries the ROTATION.fit mark, so friends can find the app.','share-today','Share today\u2019s fit']
   ];
@@ -890,7 +892,7 @@ function fillGrid(){
   const g=$('#grid');if(!g)return;
   if(S.loading){g.innerHTML='<div class="grid">'+'<div class="skel"></div>'.repeat(6)+'</div>';return}
   if(!S.items.length){
-    g.innerHTML='<div class="panel empty"><h2>Start your closet</h2><p>Add each piece with a photo, a name and a type. Shoes, tops, bottoms and layers each get their own section, and everything you add shows up in the daily log.</p><div class="btn-row"><button type="button" class="btn primary" data-act="new-item">Add a piece</button><button type="button" class="btn ghost" data-act="seed">Load starter list</button></div><p class="sub" style="margin:14px 0 0">The starter list adds '+SEED.length+' pieces without photos. Add photos as you go.</p></div>';
+    g.innerHTML='<div class="panel empty"><h2>Start your closet</h2><p>Add each piece with a photo, a name and a type. Shoes, tops, bottoms and layers each get their own section, and everything you add shows up in the daily log.</p><div class="btn-row"><button type="button" class="btn primary" data-act="qa-open">Add from photos</button><button type="button" class="btn ghost" data-act="new-item">Add one piece</button><button type="button" class="btn ghost" data-act="seed">Load starter list</button></div><p class="sub" style="margin:14px 0 0">The starter list adds '+SEED.length+' pieces without photos. Add photos as you go.</p></div>';
     return;
   }
   const q=S.q.trim().toLowerCase();
@@ -1293,10 +1295,6 @@ function viewSettings(){
    +'<div class="panel"><h2>Outfit types</h2><p>Work, Casual, Mixed and Going out are built in. Add your own, like Gym, Church or Date night.</p>'
    +(SET.occ.length?'<div class="occ">'+SET.occ.map((o,i)=>'<span class="chip" style="cursor:default"><i style="width:8px;height:8px;border-radius:50%;background:'+OCC_COL[i%4]+';opacity:1;margin:0 8px 0 0;display:inline-block"></i>'+esc(o.label)+'<button type="button" class="occx" data-act="occ-del" data-id="'+esc(o.id)+'" aria-label="Remove '+esc(o.label)+'">'+ico(P.x)+'</button></span>').join('')+'</div>':'')
    +(SET.occ.length<4?'<div class="field" style="margin:12px 0 0"><div style="display:flex;gap:8px"><input id="f-occ" placeholder="New outfit type" maxlength="16" autocomplete="off" style="flex:1"><button type="button" class="btn ghost" data-act="occ-add" style="min-height:46px">Add</button></div></div>':'<p class="hint" style="margin:10px 0 0">Four custom types is the limit.</p>')+'</div>'
-   +'<div class="panel"><h2>Photo search</h2><p>Lets you search the web for a product photo when adding a piece. It uses your own free Google search key, so nothing is shared with anyone else.</p>'
-   +'<div class="field"><label for="f-gk">Google API key</label><input id="f-gk" data-sf="gkey" value="'+esc(SET.gkey)+'" placeholder="AIza..." autocomplete="off" autocapitalize="off" spellcheck="false"></div>'
-   +'<div class="field"><label for="f-gc">Search engine ID</label><input id="f-gc" data-sf="gcx" value="'+esc(SET.gcx)+'" placeholder="a1b2c3..." autocomplete="off" autocapitalize="off" spellcheck="false"></div>'
-   +'<p class="hint" style="margin:0">One-time setup, about 5 minutes. 1) At programmablesearchengine.google.com create a search engine that searches the entire web and turn on Image search. Copy its ID. 2) At console.cloud.google.com turn on the Custom Search API and create an API key. Free for 100 searches a day.</p></div>'
    +backupRow(true)
    +(S.store==='local'?'<div class="panel"><h2>Data</h2><p>Erase every piece and every logged day from this device. Export a backup first if you might want them back.</p><button type="button" class="btn danger" id="b-wipe" data-act="wipe">Erase everything</button></div>':'')
    +'<div class="panel"><h2>Feedback</h2><p>Tell me what works, what is confusing and what is missing. It goes to a real person, and every message gets read.</p><a class="btn primary" href="'+esc(fbHref())+'">Send feedback</a></div>'
@@ -1814,57 +1812,66 @@ function saveShare(){
   document.body.appendChild(a);a.click();a.remove();
 }
 
-/* ---------- find photo online ---------- */
-let FD=null;
-function openFind(){
-  S.slot='f';
-  const sh=S.sheet;if(!sh)return;
-  const d=sh.draft,q=((d.brand||'')+' '+(d.name||'')).trim();
-  FD={q:q,res:[],busy:false,msg:'',did:false};
-  renderFind();
-  if(SET.gkey&&SET.gcx&&q)runFind();
+
+/* ---------- quick add: many photos at once ---------- */
+let QA=null;
+const SING={tops:'Top',bottoms:'Bottom',shoes:'Shoe',outerwear:'Layer',accessories:'Accessory',scents:'Scent'};
+async function qaPrep(file){
+  let src;
+  try{src=await createImageBitmap(file,{imageOrientation:'from-image'})}catch(e){src=await loadImg(file)}
+  const w=src.width||src.naturalWidth,h=src.height||src.naturalHeight,side=Math.max(1,Math.round(Math.min(720,Math.max(w,h)))),k=side/Math.max(w,h);
+  const c=document.createElement('canvas');c.width=c.height=side;
+  const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,side,side);
+  x.drawImage(src,(side-w*k)/2,(side-h*k)/2,w*k,h*k);
+  if(src.close)try{src.close()}catch(e){}
+  const blob=await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('blob')),'image/jpeg',.85));
+  return {data:c.toDataURL('image/jpeg',.82),blob:blob,url:URL.createObjectURL(blob),name:''};
 }
-function closeFind(){FD=null;const h=$('#find');if(h)h.innerHTML=''}
-function renderFind(){
-  const h=$('#find');if(!FD){h.innerHTML='';return}
-  const ready=SET.gkey&&SET.gcx;
-  let body;
-  if(!ready)body='<p class="hint">Photo search needs a free Google key first. Open Settings, then Photo search, and follow the steps there. It is a one-time setup.</p>';
-  else body='<div class="field" style="margin-bottom:10px"><div style="display:flex;gap:8px"><input id="fd-q" value="'+esc(FD.q)+'" placeholder="Brand and name" autocomplete="off" enterkeyhint="search" style="flex:1"><button type="button" class="btn primary" data-act="find-go" style="min-height:46px">Search</button></div></div>'
-    +(FD.busy?'<p class="hint">Searching</p>':FD.msg?'<p class="hint">'+esc(FD.msg)+'</p>':'')
-    +'<div class="fr">'+FD.res.map((r,i)=>'<button type="button" data-act="find-pick" data-i="'+i+'" aria-label="Use photo '+(i+1)+'"><img src="'+esc(r.th)+'" alt="" referrerpolicy="no-referrer" loading="lazy"></button>').join('')+'</div>'
-    +(FD.res.length?'<p class="hint" style="margin-top:10px">Tap the best match. You can move and crop it next.</p>':'');
-  h.innerHTML='<div class="crop-s"><div class="crop find" role="dialog" aria-modal="true" aria-label="Find photo online"><div class="sheet-h" style="margin-bottom:10px"><h2 style="margin:0">Find photo</h2><button type="button" class="x" data-act="find-close" aria-label="Close">'+ico(P.x)+'</button></div>'+body+'</div></div>';
+async function qaFiles(list){
+  const files=Array.from(list||[]).slice(0,40);
+  if(!files.length)return;
+  toast('Preparing '+files.length+' photo'+(files.length===1?'':'s'));
+  const rows=[];
+  for(const f of files){try{rows.push(await qaPrep(f))}catch(e){}}
+  if(!rows.length){toast('Could not read those photos');return}
+  if(QA){QA.rows=QA.rows.concat(rows).slice(0,40)}
+  else QA={cat:(S.tab==='closet'&&S.filter!=='all')?S.filter:'tops',rows:rows,busy:false};
+  renderQA();
 }
-async function runFind(){
-  if(!FD)return;
-  const qi=$('#fd-q');if(qi)FD.q=qi.value.trim();
-  if(!FD.q)return;
-  FD.busy=true;FD.msg='';FD.res=[];renderFind();
+function renderQA(){
+  const h=$('#qa');if(!h)return;
+  if(!QA){h.innerHTML='';document.body.style.overflow='';return}
+  const n=QA.rows.length;
+  h.innerHTML='<div class="crop-s"><div class="crop qa" role="dialog" aria-modal="true" aria-label="Quick add">'
+   +'<div class="sheet-h" style="margin-bottom:10px"><h2 style="margin:0">Quick add</h2><button type="button" class="x" data-act="qa-close" aria-label="Close">'+ico(P.x)+'</button></div>'
+   +'<p class="hint" style="margin-bottom:12px">Pick the type for this batch, then name each piece. Names are optional. You can edit everything later.</p>'
+   +'<div class="field"><span class="lbl">Type</span><div class="seg wrap" role="group" aria-label="Type">'+CATS.map(c=>'<button type="button" data-act="qa-cat" data-v="'+c.id+'" aria-pressed="'+(QA.cat===c.id)+'">'+c.label+'</button>').join('')+'</div></div>'
+   +'<div class="qa-l">'+QA.rows.map((r,i)=>'<div class="qa-r"><span class="qa-t"><img src="'+r.url+'" alt=""></span><input data-qn="'+i+'" value="'+esc(r.name)+'" placeholder="'+SING[QA.cat]+' '+(i+1)+'" maxlength="60" autocomplete="off" aria-label="Name for photo '+(i+1)+'"><button type="button" class="rb" data-act="qa-del" data-i="'+i+'" aria-label="Remove photo '+(i+1)+'">'+ico(P.x)+'</button></div>').join('')+'</div>'
+   +'<div class="btn-row" style="margin-top:14px"><button type="button" class="btn primary" id="qa-save" data-act="qa-save" style="flex:1">Save '+n+' piece'+(n===1?'':'s')+'</button><label class="btn ghost" for="f-qa">Add more</label></div>'
+   +'</div></div>';
+  document.body.style.overflow='hidden';
+}
+function closeQA(){
+  if(QA)QA.rows.forEach(r=>{try{URL.revokeObjectURL(r.url)}catch(e){}});
+  QA=null;renderQA();
+}
+async function qaSave(){
+  if(!QA||QA.busy||!QA.rows.length)return;
+  QA.busy=true;
+  const b=$('#qa-save');if(b){b.disabled=true;b.textContent='Saving'}
   try{
-    const u='https://www.googleapis.com/customsearch/v1?key='+encodeURIComponent(SET.gkey)+'&cx='+encodeURIComponent(SET.gcx)+'&q='+encodeURIComponent(FD.q+' product')+'&searchType=image&num=9&imgType=photo&safe=active';
-    const r=await fetch(u),j=await r.json();
-    if(!FD)return;
-    if(j.error){FD.msg=r.status===429||/quota|limit/i.test(j.error.message||'')?'Daily search limit reached. Try again tomorrow.':'Search failed: '+(j.error.message||r.status);FD.res=[]}
-    else{FD.res=(j.items||[]).map(it=>({full:it.link,th:(it.image&&it.image.thumbnailLink)||it.link})).slice(0,9);if(!FD.res.length)FD.msg='No results. Try fewer words.'}
-  }catch(e){if(FD)FD.msg='Could not reach search. Check your connection.'}
-  if(FD){FD.busy=false;renderFind();const qi2=$('#fd-q');if(qi2)qi2.value=FD.q}
-}
-function loadCors(url){
-  return new Promise((res,rej)=>{
-    const im=new Image();im.crossOrigin='anonymous';im.referrerPolicy='no-referrer';
-    im.onload=()=>res(im);im.onerror=()=>rej(new Error('img'));im.src=url;
-  });
-}
-async function pickFind(i){
-  if(!FD||!FD.res[i])return;
-  const r=FD.res[i];
-  toast('Loading photo');
-  const prox=u=>'https://images.weserv.nl/?url='+encodeURIComponent(u.replace(/^https?:\/\//,''))+'&w=1000&output=jpg&bg=white';
-  let im=null;
-  try{im=await loadCors(prox(r.full))}catch(e){try{im=await loadCors(prox(r.th))}catch(e2){}}
-  if(!im){toast('That photo would not load. Try another.');return}
-  closeFind();openCrop(im);
+    const cat=QA.cat,base=S.items.filter(i=>i.category===cat).length,n=QA.rows.length;
+    for(let i=0;i<n;i++){
+      const r=QA.rows[i];let photo=r.data;
+      if(ASSETS){const u=await ASSETS.upload(r.blob,{type:'image/jpeg'});photo=u.id}
+      await putItem(newId(),{name:(r.name||'').trim()||(SING[cat]+' '+(base+i+1)),brand:'',nickname:'',category:cat,color:'',colors:[],kinds:[],price:'',source:'',bought:'',released:'',photo:photo,photo2:'',createdAt:Date.now()+i});
+    }
+    S.filter='all';closeQA();render();toast('Added '+n+' piece'+(n===1?'':'s'));
+  }catch(e){
+    if(QA)QA.busy=false;
+    const b2=$('#qa-save');if(b2){b2.disabled=false;b2.textContent='Save'}
+    toast('Could not save. Try again.');
+  }
 }
 /* ---------- sheet: add / edit piece ---------- */
 const parsePrice=v=>{const n=parseFloat(String(v==null?'':v).replace(/[^0-9.]/g,''));return isFinite(n)&&n>=0&&String(v).trim()!==''?Math.round(n*100)/100:''};
@@ -1922,7 +1929,7 @@ function renderSheet(){
   if(it){const w=st.wears[it.id]||0;line=w?'Worn '+w+' time'+(w===1?'':'s')+' · last '+fmt(st.last[it.id],{month:'short',day:'numeric'}):'Not logged yet';if(typeof it.price==='number'){line+=' · '+money(it.price)+(w?' · '+money(Math.round(it.price/w*100)/100)+' per wear':'')}}
   host.innerHTML='<div class="scrim" data-act="sheet-bg"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t" tabindex="-1">'
    +'<div class="sheet-h"><h2 id="sh-t">'+(it?'Edit piece':'New piece')+'</h2><button type="button" class="x" data-act="sheet-close" aria-label="Close">'+ico(P.x)+'</button></div>'
-   +'<div class="photo-row"><div class="tile" id="pv" data-act="pv-tap"></div><div class="photo-side"><label class="btn ghost" for="f-file">'+ico(P.cam)+'<span id="pv-l">Add photo</span></label><input class="vh" id="f-file" type="file" accept="image/*"><button type="button" class="btn ghost" data-act="find-open">'+ico(P.search)+'Find photo online</button><button type="button" class="btn ghost" id="pv-a" data-act="photo-adjust" hidden>Move and crop</button><button type="button" class="btn ghost danger" id="pv-c" data-act="photo-clear" data-slot="f" hidden>Remove photo</button></div></div>'
+   +'<div class="photo-row"><div class="tile" id="pv" data-act="pv-tap"></div><div class="photo-side"><label class="btn ghost" for="f-file">'+ico(P.cam)+'<span id="pv-l">Add photo</span></label><input class="vh" id="f-file" type="file" accept="image/*"><button type="button" class="btn ghost" id="pv-a" data-act="photo-adjust" hidden>Move and crop</button><button type="button" class="btn ghost danger" id="pv-c" data-act="photo-clear" data-slot="f" hidden>Remove photo</button></div></div>'
    +'<div class="photo-row bk"><div class="tile" id="pv2" data-act="pv-tap2"></div><div class="photo-side"><label class="btn ghost" for="f-file2">'+ico(P.cam)+'<span id="pv-l2">Add back photo</span></label><input class="vh" id="f-file2" type="file" accept="image/*"><button type="button" class="btn ghost" id="pv-a2" data-act="photo-adjust" data-slot="b" hidden>Move and crop</button><button type="button" class="btn ghost danger" id="pv-c2" data-act="photo-clear" data-slot="b" hidden>Remove back photo</button><p class="hint">Optional. Shown when you view the piece.</p></div></div>'
    +'<div class="field"><label for="f-name">Name</label><input id="f-name" data-f="name" value="'+esc(d.name)+'" placeholder="Union Jordan 4" autocomplete="off"></div>'
    +'<div class="two"><div class="field"><label for="f-brand">Brand</label><input id="f-brand" data-f="brand" list="brands" value="'+esc(d.brand)+'" placeholder="Jordan" autocomplete="off"></div><div class="field"><label for="f-nick">Nickname</label><input id="f-nick" data-f="nickname" value="'+esc(d.nickname)+'" placeholder="Optional" autocomplete="off"></div></div>'
@@ -2290,6 +2297,11 @@ document.addEventListener('click',e=>{
     case 'set':{const k=el.dataset.k,v=el.dataset.v;SET[k]=k==='splash'?v==='true':v;saveSet();if(k==='theme'||k==='accent')applyTheme();render();break}
     case 'wipe':wipeAll();break;
     case 'seed':seed();break;
+    case 'qa-open':{const f=$('#f-qa');if(f)f.click();break}
+    case 'qa-close':closeQA();break;
+    case 'qa-cat':if(QA){QA.cat=el.dataset.v;renderQA()}break;
+    case 'qa-del':if(QA){const r=QA.rows.splice(+el.dataset.i,1)[0];if(r)try{URL.revokeObjectURL(r.url)}catch(e){}if(!QA.rows.length)closeQA();else renderQA()}break;
+    case 'qa-save':qaSave();break;
     case 'export':exportData();if(S.tab==='closet')render();break;
     case 'bk-later':SET.bkSnooze=Date.now()+7*864e5;saveSet();render();break;
     case 'gs-hide':SET.gsoff=true;saveSet();render();break;
@@ -2393,10 +2405,6 @@ document.addEventListener('click',e=>{
     case 'view-edit':{const id2=S.vw;closeView();openItem(id2);break}
     case 'occ-add':{const i=$('#f-occ'),v=i&&i.value.trim();if(!v)break;if(SET.occ.length>=4)break;if(BASE_TAGS.concat(SET.occ).some(t=>t.label.toLowerCase()===v.toLowerCase())){toast('You already have that one');break}SET.occ.push({id:'c'+Date.now().toString(36),label:v});saveSet();buildTags();render();break}
     case 'occ-del':SET.occ=SET.occ.filter(o=>o.id!==id);saveSet();buildTags();render();break;
-    case 'find-open':openFind();break;
-    case 'find-go':runFind();break;
-    case 'find-close':closeFind();break;
-    case 'find-pick':pickFind(+el.dataset.i);break;
     case 'photo-adjust':adjustPhoto(el.dataset.slot||'f');break;
     case 'crop-remove':{const sl=S.slot||'f';closeCrop();clearPhoto(sl);toast('Photo removed. Tap Save to keep the change.');break}
     case 'pv-tap':adjustPhoto('f');break;
@@ -2413,12 +2421,13 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('input',e=>{
   const t=e.target;
-  if(t.dataset&&t.dataset.sf){SET[t.dataset.sf]=t.value.trim();saveSet()}
+  if(t.dataset&&t.dataset.qn!==undefined&&QA&&QA.rows[+t.dataset.qn])QA.rows[+t.dataset.qn].name=t.value;
   if(t.dataset&&t.dataset.f&&S.sheet)S.sheet.draft[t.dataset.f]=t.value;
   if(t.id==='q'){S.q=t.value;fillGrid()}
   if(t.dataset&&t.dataset.act==='share-caption'&&SH){SH.caption=t.value;buildShare()}
 });
 document.addEventListener('change',e=>{
+  if(e.target.id==='f-qa'){qaFiles(e.target.files);e.target.value=''}
   if(e.target.id==='f-file'){const f=e.target.files&&e.target.files[0];if(f)onFile(f,'f');e.target.value=''}
   if(e.target.id==='f-file2'){const f=e.target.files&&e.target.files[0];if(f)onFile(f,'b');e.target.value=''}
   if(e.target.id==='f-shoe'){const f=e.target.files&&e.target.files[0];if(f)onShoeFile(f);e.target.value=''}

@@ -38,10 +38,12 @@ check("manifest valid + icons exist", () => {
 
 check("no external trackers or unexpected hosts in app", () => {
   const hosts = new Set([...app.matchAll(/https?:\/\/([a-z0-9.-]+)/gi)].map((m) => m[1].toLowerCase()));
-  const allowed = ["api.open-meteo.com", "geocoding-api.open-meteo.com", "api.bigdatacloud.net", "www.w3.org", "w3.org", "rotation.fit", "tonedibias3.github.io", "fonts.googleapis.com", "fonts.gstatic.com", "www.googleapis.com", "github.com", "images.weserv.nl"];
+  const allowed = ["api.open-meteo.com", "geocoding-api.open-meteo.com", "api.bigdatacloud.net", "www.w3.org", "w3.org", "rotation.fit", "tonedibias3.github.io", "fonts.googleapis.com", "fonts.gstatic.com", "github.com"];
   const extra = [...hosts].filter((h) => !allowed.some((a) => h === a || h.endsWith("." + a)));
   return extra.length ? "unreviewed hosts: " + extra.join(", ") : true;
 });
+
+check("web photo search removed (own photos only)", () => /customsearch|weserv|gkey/.test(app) ? "photo search code still present" : true);
 
 check("ios build script runs (www/ ready)", () => {
   require("child_process").execFileSync("node", [path.join(root, "scripts/make-www.js")], { stdio: "pipe" });

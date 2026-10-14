@@ -1,10 +1,10 @@
 # Progress (updated Oct 14, 2026)
-Plan: Stage 1 steps 1-4 done. Stage 2 (App Store) waits on Tone's Mac storage/new Mac. Stage 3 leftovers not started.
-Outputs: app/index.html (Get started checklist, Share this fit button, Send feedback in Settings + footer, 14-day backup nudge), scripts/check.js (7 checks), scripts/e2e.py (21 headless checks).
-Decisions: feedback = email to hello@rotation.fit only, no usage tracking (Tone, Oct 14). App should be fully fleshed out before the App Store push; Tone is not in a rush.
+Plan: Stage 1 done. Own-photos-only decision made and built. Stage 2 (App Store) waits on Xcode space (USB-A to C adapter + external drive, or M3 Mac).
+Outputs: app/index.html (Get started checklist, Share this fit, Send feedback, backup nudge, Quick add many photos, Google photo search removed), scripts/check.js (8 checks), scripts/e2e.py (28 headless checks), privacy.html (photo-search section removed).
+Decisions: feedback = email only, no tracking. Own photos only; Google/online photo search removed (Tone, Oct 14). Fully flesh out the app before the App Store push; no rush.
 Open issues:
-- Photo search needs the user's own Google API key (5-min setup). Normal users will never do this; adding pieces without it means taking own photos. Biggest onboarding wall. Needs a decision.
 - Backup export uses a browser download (a[download]); likely does nothing inside the iOS wrapper. Needs Capacitor Filesystem + Share before TestFlight.
-- images.weserv.nl proxy sees product image URLs; disclose in privacy.html.
-- Export/import round trip tested for closet pieces; logged days and looks not yet covered by e2e.
-Next action: Tone decides on photo search (see final message), then next feature batch. Mac: check free space / get adapter, or order M3.
+- No background removal on photos; Quick add fits each photo on a white square. Real background removal needs an on-device model (heavy) - decide later.
+- Export/import round trip tested for closet pieces; logged days and looks not covered by e2e yet.
+- Real new-user timing (first logged outfit under 60s) still unmeasured; needs watching 3-5 real people.
+Next action: Tone picks the next batch (ideas: photo cleanup/auto-trim, share card polish, calendar/stats depth, iOS-native export).
