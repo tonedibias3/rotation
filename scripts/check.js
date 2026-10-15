@@ -36,9 +36,15 @@ check("manifest valid + icons exist", () => {
   return missing.length ? "missing icons: " + missing.join(", ") : true;
 });
 
+check("fonts ship inside the app (no Google Fonts call)", () => {
+  if (/fonts\.(googleapis|gstatic)\.com/.test(app)) return "app still loads fonts from Google";
+  const need = ["archivo-var", "instrument-sans-var", "dm-mono-400", "dm-mono-500"].filter((f) => !fs.existsSync(path.join(root, "app/fonts", f + ".woff2")));
+  return need.length ? "missing font files: " + need.join(", ") : true;
+});
+
 check("no external trackers or unexpected hosts in app", () => {
   const hosts = new Set([...app.matchAll(/https?:\/\/([a-z0-9.-]+)/gi)].map((m) => m[1].toLowerCase()));
-  const allowed = ["api.open-meteo.com", "geocoding-api.open-meteo.com", "api.bigdatacloud.net", "www.w3.org", "w3.org", "rotation.fit", "tonedibias3.github.io", "fonts.googleapis.com", "fonts.gstatic.com", "github.com"];
+  const allowed = ["api.open-meteo.com", "geocoding-api.open-meteo.com", "api.bigdatacloud.net", "www.w3.org", "w3.org", "rotation.fit", "tonedibias3.github.io", "github.com"];
   const extra = [...hosts].filter((h) => !allowed.some((a) => h === a || h.endsWith("." + a)));
   return extra.length ? "unreviewed hosts: " + extra.join(", ") : true;
 });

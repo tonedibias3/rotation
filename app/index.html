@@ -17,20 +17,24 @@
 <style>html,body{margin:0;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:text}img{-webkit-user-drag:none}.sw[data-v=multi],.vrow .dots i.multi{background:conic-gradient(#e23b32,#e6c53a,#3f8a5c,#3d6fd1,#7a55b8,#e23b32)}img{max-width:100%}[hidden]{display:none!important}.wxc{display:flex;flex-direction:column;align-items:flex-end;text-align:right;gap:1px;background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:4px 6px;max-width:210px}
 .wxc b{font-size:26px;line-height:1;font-weight:700}.wxc span{font-size:13px;opacity:.85}.wxc i{font-style:normal;font-size:11px;opacity:.6;white-space:nowrap}
 .cell.dim{opacity:.2}.ctags{margin:14px 0 4px}
-.det{margin-top:2px}.det summary{cursor:pointer;font-weight:600;list-style:none}.det summary i{font-style:normal;font-weight:400;opacity:.6;margin-left:6px}
+.det{margin-top:2px}.det summary{cursor:pointer;font-weight:600;list-style:none}.det summary i{font-style:normal;font-weight:400;color:var(--ink2);margin-left:6px}
 .det-g{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.det label{display:flex;flex-direction:column;gap:4px;font-size:13px;opacity:.9}.det-n{margin-top:10px}
 .det input{font:inherit;padding:10px 12px;border-radius:12px;border:1px solid color-mix(in srgb,currentColor 18%,transparent);background:transparent;color:inherit}
 .det-v{margin:0 0 10px;font-size:14px;line-height:1.4}
 </style>
 <!-- Copyright (c) 2026 Antonio Isaac. All rights reserved. See LICENSE. -->
 <title>Rotation</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..900&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400..700&display=swap">
+<link rel="preload" href="fonts/archivo-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/instrument-sans-var.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+/* fonts ship inside the app (SIL Open Font License): nothing is fetched from Google, and the app looks the same offline */
+@font-face{font-family:"Archivo";src:url(fonts/archivo-var.woff2) format("woff2");font-weight:100 900;font-stretch:62% 125%;font-display:swap}
+@font-face{font-family:"Instrument Sans";src:url(fonts/instrument-sans-var.woff2) format("woff2");font-weight:400 700;font-stretch:75% 100%;font-display:swap}
+@font-face{font-family:"DM Mono";src:url(fonts/dm-mono-400.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"DM Mono";src:url(fonts/dm-mono-500.woff2) format("woff2");font-weight:500;font-display:swap}
 /* Layout: floating pill nav over a single column; 3-up grid of floating square tiles; sheets slide up for editing. */
 :root{
-  --bg:#E7E9ED; --surface:#F7F8FA; --ink:#13161B; --ink2:#59616D; --line:rgba(19,22,27,.12);
+  --bg:#E7E9ED; --surface:#F7F8FA; --ink:#13161B; --ink2:#525A66; --line:rgba(19,22,27,.12);
   --well:#F2F3F5; --on-well:#13161B;
   --accent:#2744E8; --accent-ink:#FFFFFF; --danger:#C4352B;
   --shadow:0 1px 2px rgba(19,22,27,.06),0 12px 24px -10px rgba(19,22,27,.22);
@@ -102,7 +106,7 @@ svg{width:18px;height:18px;flex:none}
 .search input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:400 16px var(--f-body);outline:none}
 .chips{display:flex;gap:8px;overflow-x:auto;margin-inline:-16px;padding:2px 16px 14px;scrollbar-width:none}
 .chips::-webkit-scrollbar,.days::-webkit-scrollbar{display:none}
-.chip{flex:none;font:600 13px var(--f-body);padding:9px 15px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.chip{flex:none;font:600 13px var(--f-body);padding:11px 15px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:transparent}
 .chip i{font:500 11px var(--f-mono);font-style:normal;opacity:.6;margin-left:7px}
 .seg{display:flex;gap:4px;padding:4px;border-radius:14px;background:color-mix(in srgb,var(--ink) 8%,transparent)}
@@ -116,11 +120,11 @@ svg{width:18px;height:18px;flex:none}
 .btn:disabled{opacity:.4;cursor:default}
 .btn-row{display:flex;gap:10px;flex-wrap:wrap}
 .rb{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:grid;place-items:center;cursor:pointer}
-.link{background:none;border:0;color:var(--ink2);font:500 13px var(--f-body);padding:8px 0;text-decoration:underline;cursor:pointer;text-align:left}
+.link{background:none;border:0;color:var(--ink2);font:500 13px var(--f-body);padding:13px 0;text-decoration:underline;cursor:pointer;text-align:left}
 .rail{display:flex;gap:12px;overflow-x:auto;margin-inline:-16px;padding:6px 16px 22px;margin-bottom:-10px;scroll-snap-type:x proximity;scroll-padding-inline:16px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .rail::-webkit-scrollbar{display:none}
 .rail .card{flex:0 0 clamp(104px,29vw,150px);width:auto;scroll-snap-align:start}
-.seeall{font:500 12px var(--f-mono);letter-spacing:.04em;color:var(--accent);text-decoration:none;padding:4px 0}
+.seeall{font:500 12px var(--f-mono);letter-spacing:.04em;color:var(--accent);text-decoration:none;padding:13px 0}
 #grid>.grp:first-child{margin-top:6px}
 .seg.wrap{flex-wrap:wrap}
 .seg.wrap button{flex:1 1 calc(33.33% - 4px)}
@@ -396,7 +400,7 @@ details.det[open] summary{border-bottom:1px solid var(--line);margin-bottom:14px
 .photo-row.bk{margin-top:0}.bk-e{display:grid;gap:6px;justify-items:center;font:500 12px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}.bk-e svg{width:24px;height:24px}.bk-e i{font-style:normal}
 .field{min-width:0}.field input[type=date]{min-height:46px;display:block;width:100%;min-width:0;max-width:100%;-webkit-appearance:none;appearance:none;text-align:left}.field input[type=date]::-webkit-date-and-time-value{text-align:left;min-width:0}.two{align-items:end}
 .ctl{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-4px 0 10px}
-.seg.mini{padding:3px;border-radius:11px;flex:none}.seg.mini button{padding:7px 14px;font-size:12.5px;border-radius:8px}
+.seg.mini{padding:3px;border-radius:11px;flex:none}.seg.mini button{padding:10px 14px;font-size:12.5px;border-radius:8px}
 .chips i{font-style:normal;font:500 11px var(--f-mono);opacity:.6;margin-left:6px}
 .chips.wrapc{flex-wrap:wrap;overflow:visible;margin-inline:0;padding:2px 0 8px}
 .addk{display:flex;gap:8px}.addk input{flex:1;min-width:0;font:400 16px var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
@@ -425,7 +429,7 @@ details.det[open] summary{border-bottom:1px solid var(--line);margin-bottom:14px
 <div id="dayv"></div>
 <div id="sheet"></div>
 <div id="crop"></div>
-<div id="qa"></div><input class="vh" id="f-qa" type="file" accept="image/*" multiple>
+<div id="qa"></div><input class="vh" id="f-qa" aria-label="Choose photos to add" type="file" accept="image/*" multiple>
 <div id="looks"></div>
 <div id="share"></div>
 <div id="splash" aria-hidden="true"><div class="in"></div><div class="door dl"></div><div class="door dr"></div><div class="mark"><b>Rotation</b><span>Your closet</span></div></div>
@@ -626,12 +630,13 @@ async function importData(file){
 }
 function backupRow(inSettings){
   if(!inSettings||S.loading)return '';
-  return '<div class="panel"><h2>Backup</h2><p>Your closet is stored in this browser only. Export a copy now and then. Import it to restore or move to another device.</p><div class="btn-row"><button type="button" class="btn ghost" data-act="export">Export backup</button><label class="btn ghost" for="f-import">Import backup</label><input class="vh" id="f-import" type="file" accept="application/json,.json"></div></div>';
+  return '<div class="panel"><h2>Backup</h2><p>Your closet is stored in this browser only. Export a copy now and then. Import it to restore or move to another device.</p><div class="btn-row"><button type="button" class="btn ghost" data-act="export">Export backup</button><label class="btn ghost" for="f-import">Import backup</label><input class="vh" id="f-import" aria-label="Choose a backup file to import" type="file" accept="application/json,.json"></div></div>';
 }
 async function init(){
   renderNav();
   render();
   try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+  try{if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
   await loadLocal();settleDays();S.loading=false;render();
 }
 
@@ -737,7 +742,9 @@ function refreshStart(){
 function backupNudgeHTML(){
   if(S.loading||S.items.length<8)return '';
   const now=Date.now(),age=now-(SET.lastBackup||0);
-  if(SET.lastBackup&&age<14*864e5)return '';
+  /* Safari can clear a website's data after 7 days unused, so people in a browser tab (not the installed app) get the reminder sooner */
+  const inApp=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true||location.protocol==='capacitor:';
+  if(SET.lastBackup&&age<(inApp?14:5)*864e5)return '';
   if(now<SET.bkSnooze)return '';
   return '<div class="panel gs"><div class="gs-h"><h2>Back up your closet</h2></div><p style="margin:0 0 12px">'+(SET.lastBackup?'It has been a while since your last backup. ':'')+'Your closet lives only on this device. If the phone is lost or reset, it is gone. Save a copy now.</p><div class="btn-row"><button type="button" class="btn primary" data-act="export">Export backup</button><button type="button" class="btn ghost" data-act="bk-later">Remind me later</button></div></div>';
 }
@@ -852,7 +859,7 @@ function viewLook(id){
    +(l.photo?'<div class="lkv-p"><img src="'+esc(photoSrc(l.photo))+'" alt="Photo of this look"></div>':'')
    +'<div class="lkv-l">'+its.map(i=>'<div class="ri"><span class="thumb">'+tileInner(i)+'</span><span class="ri-t"><b>'+esc(dn(i))+'</b><i>'+esc(i.brand||'')+'</i></span></div>').join('')+'</div>'
    +'<div class="btn-row" style="margin-top:14px"><button type="button" class="btn primary" data-act="look-wear" data-id="'+esc(id)+'">Wear today</button><button type="button" class="btn ghost" data-act="look-share" data-id="'+esc(id)+'">Share</button><button type="button" class="btn ghost" data-act="look-photo2" data-id="'+esc(id)+'">'+(l.photo?'Change photo':'Add photo')+'</button><button type="button" class="btn danger" data-act="look-del2" data-id="'+esc(id)+'">Delete</button></div>'
-   +'<input class="vh" id="f-look" type="file" accept="image/*"></div></div>';
+   +'<input class="vh" id="f-look" aria-label="Choose a photo for this look" type="file" accept="image/*"></div></div>';
 }
 function wearLook(id){
   const l=S.looks.find(x=>x.id===id);if(!l)return;
@@ -931,7 +938,7 @@ function outSegHTML(){
 function fitRowHTML(){
   if(S.mode==='plan')return '';
   const dd=S.days[S.sel],o=dd&&(S.out?dd.more[S.out-1]:dd),ph=o&&o.photo;
-  return '<div><span class="cap">Outfit photo</span><div class="fit-l">'+(ph?'<span class="fit-t"><img src="'+esc(photoSrc(ph))+'" alt="Outfit photo"></span>':'')+'<div class="btn-row"><button type="button" class="btn ghost" data-act="log-photo">'+ico(P.cam)+(ph?'Replace':'Add a photo')+'</button>'+(ph?'<button type="button" class="btn ghost" data-act="log-crop">Crop</button><button type="button" class="btn danger" data-act="log-clear">Remove</button>':'')+'</div></div><input class="vh" id="f-fitl" type="file" accept="image/*"></div>';
+  return '<div><span class="cap">Outfit photo</span><div class="fit-l">'+(ph?'<span class="fit-t"><img src="'+esc(photoSrc(ph))+'" alt="Outfit photo"></span>':'')+'<div class="btn-row"><button type="button" class="btn ghost" data-act="log-photo">'+ico(P.cam)+(ph?'Replace':'Add a photo')+'</button>'+(ph?'<button type="button" class="btn ghost" data-act="log-crop">Crop</button><button type="button" class="btn danger" data-act="log-clear">Remove</button>':'')+'</div></div><input class="vh" id="f-fitl" aria-label="Choose an outfit photo" type="file" accept="image/*"></div>';
 }
 function viewLog(){
   const t=today(),sel=S.sel;
@@ -1168,7 +1175,7 @@ function renderLooks(open){
       const tg=TAGS.find(t=>t.id===x.l.tag);
       return '<div class="look"><button type="button" class="look-b" data-act="look-use" data-id="'+esc(x.l.id)+'"><span class="look-t">'+(x.l.photo?'<span class="look-p"><img src="'+esc(photoSrc(x.l.photo))+'" alt="Photo of this look"></span>':'')+x.its.slice(0,5).map(i=>'<span class="thumb">'+tileInner(i)+'</span>').join('')+(x.its.length>5?'<b>+'+(x.its.length-5)+'</b>':'')+'</span><span class="look-n">'+esc(lookLabel(x.l))+(tg?'<i>'+esc(tg.label)+'</i>':'')+'</span></button><div class="look-side"><button type="button" class="chip" data-act="look-photo" data-id="'+esc(x.l.id)+'">'+(x.l.photo?'Change photo':'Add photo')+'</button><button type="button" class="x" data-act="look-del" data-id="'+esc(x.l.id)+'" aria-label="Delete saved look">'+ico(P.x)+'</button></div></div>'}).join('')
     :'<p class="hint">Nothing saved yet. Build an outfit and tap Save look. It keeps the pieces so you can load it on another day, no naming needed.</p>')
-   +'<input class="vh" id="f-look" type="file" accept="image/*">'
+   +'<input class="vh" id="f-look" aria-label="Choose a photo for this look" type="file" accept="image/*">'
    +'</div></div>';
 }
 function useLook(id){
@@ -1320,7 +1327,7 @@ function renderDay(){
   let body='',total=0;
   body+='<h3 class="dv-h" style="margin-top:0">Scent of the day</h3>'+(sc?'<div class="sc-row"><span class="thumb lg">'+tileInner(sc)+'</span><span class="ri-t"><b>'+esc(dn(sc))+'</b><i>'+esc(sc.brand||'')+'</i></span></div><span class="cap">Rate this scent</span><div class="rate-row" id="sc-rate" style="margin:2px 0 6px">'+scRateHTML(dd.scentRating||0,'rate-scent')+'</div><div class="btn-row" style="margin:8px 0 2px"><button type="button" class="btn ghost" data-act="share-scent-open">Share scent</button><button type="button" class="btn ghost" data-act="scent-pick">Change</button><button type="button" class="btn danger" data-act="scent-clear">Remove</button></div>':'<div class="btn-row" style="margin:0 0 2px"><button type="button" class="btn ghost" data-act="scent-pick">Add a scent</button></div>');
   {const sh=shoeOf(dd);
-   body+='<h3 class="dv-h">Shoe of the day</h3>'+(sh?'<div class="sc-row"><span class="thumb lg">'+(dd.shoePhoto?'<img src="'+esc(photoSrc(dd.shoePhoto))+'" alt="" decoding="async">':tileInner(sh))+'</span><span class="ri-t"><b>'+esc(dn(sh))+'</b><i>'+esc(sh.brand||'')+'</i></span></div><div class="btn-row" style="margin:8px 0 2px"><button type="button" class="btn ghost" data-act="share-shoe-open">Share shoe</button><button type="button" class="btn ghost" data-act="shoe-day-pick">Change</button>'+(dd.shoe?'<button type="button" class="btn danger" data-act="shoe-clear" data-d="'+d+'">Remove</button>':'')+'</div><div class="btn-row" style="margin:8px 0 2px"><button type="button" class="btn ghost" data-act="shoe-photo">'+(dd.shoePhoto?'Change on-feet photo':'Add on-feet photo')+'</button>'+(dd.shoePhoto?'<button type="button" class="btn danger" data-act="shoe-photo-clear">Remove photo</button>':'')+'</div><input class="vh" id="f-shoe" type="file" accept="image/*">':'<div class="btn-row" style="margin:0 0 2px"><button type="button" class="btn ghost" data-act="shoe-day-pick">Add a shoe</button></div>');}
+   body+='<h3 class="dv-h">Shoe of the day</h3>'+(sh?'<div class="sc-row"><span class="thumb lg">'+(dd.shoePhoto?'<img src="'+esc(photoSrc(dd.shoePhoto))+'" alt="" decoding="async">':tileInner(sh))+'</span><span class="ri-t"><b>'+esc(dn(sh))+'</b><i>'+esc(sh.brand||'')+'</i></span></div><div class="btn-row" style="margin:8px 0 2px"><button type="button" class="btn ghost" data-act="share-shoe-open">Share shoe</button><button type="button" class="btn ghost" data-act="shoe-day-pick">Change</button>'+(dd.shoe?'<button type="button" class="btn danger" data-act="shoe-clear" data-d="'+d+'">Remove</button>':'')+'</div><div class="btn-row" style="margin:8px 0 2px"><button type="button" class="btn ghost" data-act="shoe-photo">'+(dd.shoePhoto?'Change on-feet photo':'Add on-feet photo')+'</button>'+(dd.shoePhoto?'<button type="button" class="btn danger" data-act="shoe-photo-clear">Remove photo</button>':'')+'</div><input class="vh" id="f-shoe" aria-label="Choose an on-feet photo" type="file" accept="image/*">':'<div class="btn-row" style="margin:0 0 2px"><button type="button" class="btn ghost" data-act="shoe-day-pick">Add a shoe</button></div>');}
   shown.forEach((x,xi)=>{
     total+=x.l.length;
     const tl=tagLbl(x.o.tag);
@@ -1344,7 +1351,7 @@ function renderDay(){
    +'<div class="sheet-h"><div><h2 id="dv-t">'+esc(fmt(d,{weekday:'long',month:'short',day:'numeric'}))+'</h2><div class="sub" style="margin-top:4px">'+(total?total+' piece'+(total===1?'':'s'):(sc?'Scent only':shoeOf(dd)?'Shoe only':''))+(multi?' · '+shown.length+' outfits':'')+(tag0?(total?' · ':'')+tag0:'')+'</div></div><button type="button" class="x" data-act="day-close" aria-label="Close">'+ico(P.x)+'</button></div>'
    +body
    +'<div class="btn-row" style="margin-top:16px"><button type="button" class="btn primary" data-act="day-edit" data-o="0">Edit this day</button></div>'
-   +'<input class="vh" id="f-fit" type="file" accept="image/*">'
+   +'<input class="vh" id="f-fit" aria-label="Choose an outfit photo" type="file" accept="image/*">'
    +'</div></div>';
   document.body.style.overflow='hidden';
   const dlg=host.querySelector('.sheet');if(dlg)dlg.focus();
@@ -2014,8 +2021,8 @@ function renderSheet(){
   if(it){const w=st.wears[it.id]||0;line=w?'Worn '+w+' time'+(w===1?'':'s')+' · last '+fmt(st.last[it.id],{month:'short',day:'numeric'}):'Not logged yet';if(typeof it.price==='number'){line+=' · '+money(it.price)+(w?' · '+money(Math.round(it.price/w*100)/100)+' per wear':'')}}
   host.innerHTML='<div class="scrim" data-act="sheet-bg"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t" tabindex="-1">'
    +'<div class="sheet-h"><h2 id="sh-t">'+(it?'Edit piece':'New piece')+'</h2><button type="button" class="x" data-act="sheet-close" aria-label="Close">'+ico(P.x)+'</button></div>'
-   +'<div class="photo-row"><div class="tile" id="pv" data-act="pv-tap"></div><div class="photo-side"><label class="btn ghost" for="f-file">'+ico(P.cam)+'<span id="pv-l">Add photo</span></label><input class="vh" id="f-file" type="file" accept="image/*"><button type="button" class="btn ghost" id="pv-a" data-act="photo-adjust" hidden>Move and crop</button><button type="button" class="btn ghost danger" id="pv-c" data-act="photo-clear" data-slot="f" hidden>Remove photo</button></div></div>'
-   +'<div class="photo-row bk"><div class="tile" id="pv2" data-act="pv-tap2"></div><div class="photo-side"><label class="btn ghost" for="f-file2">'+ico(P.cam)+'<span id="pv-l2">Add back photo</span></label><input class="vh" id="f-file2" type="file" accept="image/*"><button type="button" class="btn ghost" id="pv-a2" data-act="photo-adjust" data-slot="b" hidden>Move and crop</button><button type="button" class="btn ghost danger" id="pv-c2" data-act="photo-clear" data-slot="b" hidden>Remove back photo</button><p class="hint">Optional. Shown when you view the piece.</p></div></div>'
+   +'<div class="photo-row"><div class="tile" id="pv" data-act="pv-tap"></div><div class="photo-side"><label class="btn ghost" for="f-file">'+ico(P.cam)+'<span id="pv-l">Add photo</span></label><input class="vh" id="f-file" aria-label="Choose a photo for this piece" type="file" accept="image/*"><button type="button" class="btn ghost" id="pv-a" data-act="photo-adjust" hidden>Move and crop</button><button type="button" class="btn ghost danger" id="pv-c" data-act="photo-clear" data-slot="f" hidden>Remove photo</button></div></div>'
+   +'<div class="photo-row bk"><div class="tile" id="pv2" data-act="pv-tap2"></div><div class="photo-side"><label class="btn ghost" for="f-file2">'+ico(P.cam)+'<span id="pv-l2">Add back photo</span></label><input class="vh" id="f-file2" aria-label="Choose a back photo for this piece" type="file" accept="image/*"><button type="button" class="btn ghost" id="pv-a2" data-act="photo-adjust" data-slot="b" hidden>Move and crop</button><button type="button" class="btn ghost danger" id="pv-c2" data-act="photo-clear" data-slot="b" hidden>Remove back photo</button><p class="hint">Optional. Shown when you view the piece.</p></div></div>'
    +'<div class="set-row" style="margin-bottom:12px"><span><b>Favorite</b><i>Shows first in the Log and on your Wall.</i></span><button type="button" class="sw-t" data-act="draft-fav" aria-pressed="'+!!d.fav+'" aria-label="Favorite"></button></div>'
    +'<div class="field"><label for="f-name">Name</label><input id="f-name" data-f="name" value="'+esc(d.name)+'" placeholder="Union Jordan 4" autocomplete="off"></div>'
    +'<div class="two"><div class="field"><label for="f-brand">Brand</label><input id="f-brand" data-f="brand" list="brands" value="'+esc(d.brand)+'" placeholder="Jordan" autocomplete="off"></div><div class="field"><label for="f-nick">Nickname</label><input id="f-nick" data-f="nickname" value="'+esc(d.nickname)+'" placeholder="Optional" autocomplete="off"></div></div>'
