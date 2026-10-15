@@ -37,3 +37,4 @@ Oct 15 phone calendar (Tone's iPhone vs iPad screenshots): on phones (<=520px) d
 - Checks: check.js and e2e.py pass.
 - Share cards: every layout (square with pieces, story, on-feet) now scales the whole photo to fit instead of cropping. Zoom/drag still crops on purpose.
 - Landing page (root index.html): nav and footer wordmark now ROTATION.fit (caps ROTATION, lowercase .fit). Live app link is /rotation/app/, root is the landing page.
+- Saved looks sheet: tiles wrap inside the card (no overlap with Change photo / delete), piece-name text removed (tag label kept). Share photo hint now says whole photo shows by default, zoom then drag to move.
