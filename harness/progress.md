@@ -31,3 +31,7 @@ Oct 15 phone calendar (Tone's iPhone vs iPad screenshots): on phones (<=520px) d
 - Decision: calendar mode action is `calmode` (`cmode` already used by closet view toggle).
 - Checks: check.js 9/9, e2e 28/28, no overflow at 375/402, no page errors.
 - Next: none open.
+
+## Oct 15: share card fixes
+- Done: no pieces selected now shows the whole outfit photo (fitted, not cropped to the square box). Scent/shoe cards lead with "SCENT OF THE DAY" / "SHOE OF THE DAY" as the title, date + rating underneath.
+- Checks: check.js and e2e.py pass.

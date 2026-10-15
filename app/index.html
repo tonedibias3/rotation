@@ -1845,10 +1845,10 @@ async function drawShare(){
   /* header: the date is always top left */
   x.textBaseline='alphabetic';x.textAlign='left';x.fillStyle=INK;x.font=F(700,40);
   const lnames=itemMode?false:SH.names;
-  const hdTxt=wallMode?'FAVORITES':itemMode?(SH.names&&sc?fitText(x,String(sc.nickname||sc.name||'').toUpperCase(),W-pad*2-(SH.logo==='tr'?380:0)):''):SH.caption?SH.caption.toUpperCase():(SH.look?'':fmt(SH.d,{weekday:'long',month:'long',day:'numeric'}).toUpperCase());
+  const hdTxt=wallMode?'FAVORITES':itemMode?(SH.names&&sc?fitText(x,String(sc.nickname||sc.name||'').toUpperCase(),W-pad*2-(SH.logo==='tr'?380:0)):''):scentMode?(shoeMode?'SHOE OF THE DAY':'SCENT OF THE DAY'):SH.caption?SH.caption.toUpperCase():(SH.look?'':fmt(SH.d,{weekday:'long',month:'long',day:'numeric'}).toUpperCase());
   if(hdTxt)x.fillText(hdTxt,pad,pad+40);
   const tg={label:tagLbl(o.tag)};
-  const meta=(itemMode||wallMode)?'':scentMode?(shoeMode?'Shoe of the day':['Scent of the day',dd.scentRating?'★ '+dd.scentRating.toFixed(1):''].filter(Boolean).join('  ·  ')):[SH.tag&&tg&&tg.label,SH.det&&o.place,SH.det&&o.wx,o.when&&whenLbl(o.when),o.rating?'\u2605 '+o.rating.toFixed(1):''].filter(Boolean).join('  \u00b7  ');
+  const meta=(itemMode||wallMode)?'':scentMode?[fmt(SH.d,{weekday:'long',month:'long',day:'numeric'}),(!shoeMode&&dd.scentRating)?'★ '+dd.scentRating.toFixed(1):''].filter(Boolean).join('  ·  '):[SH.tag&&tg&&tg.label,SH.det&&o.place,SH.det&&o.wx,o.when&&whenLbl(o.when),o.rating?'\u2605 '+o.rating.toFixed(1):''].filter(Boolean).join('  \u00b7  ');
   if(meta){x.fillStyle=INK2;x.font=F(500,30);x.fillText(meta,pad,pad+88)}
   let noteTxt=(!itemMode&&!scentMode&&SH.det&&o.note)?o.note:'';
   if(noteTxt){x.font=F(500,28);while(noteTxt.length>3&&x.measureText(noteTxt).width>W-pad*2){noteTxt=noteTxt.slice(0,-2)}if(noteTxt!==o.note)noteTxt=noteTxt.trim()+'\u2026';x.fillStyle=INK;x.fillText(noteTxt,pad,pad+(meta?132:88))}
@@ -1927,7 +1927,7 @@ async function drawShare(){
     }
   }
   else if(!fit){tiles(pad,top,cw,ch,its.length<=2?1:its.length<=4?2:its.length<=9?3:4)}
-  else if(!its.length){cover(pad,top,cw,ch)}
+  else if(!its.length){const k0=Math.min(cw/fit.width,ch/fit.height),bw=Math.round(fit.width*k0),bh=Math.round(fit.height*k0);cover(pad+Math.round((cw-bw)/2),top+Math.round((ch-bh)/2),bw,bh)}
   else if(sz==='st'){
     let ph=Math.min(860,Math.round(ch*.56));
     if(fit.width<fit.height*.95)ph=Math.max(ph,Math.min(Math.round(ch*.64),Math.round(cw*fit.height/fit.width)));
