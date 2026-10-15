@@ -420,6 +420,21 @@ details.det[open] summary{border-bottom:1px solid var(--line);margin-bottom:14px
 .dow.wk{color:var(--accent2,var(--accent))}
 .day.wk:not([aria-pressed="true"]) .w{color:var(--accent2,var(--accent))}
 .day.wk:not([aria-pressed="true"]){background:color-mix(in srgb,var(--accent) 7%,var(--surface))}
+.cell .hero.none{background:transparent!important}
+@media (max-width:520px){
+.head{flex-wrap:wrap}
+.mnav{gap:6px;margin-left:auto}
+.mnav .rb{width:36px;height:36px}
+.cal{gap:4px;margin-inline:-6px}
+.cell{aspect-ratio:1/1.3;border-radius:10px}
+.cell.ph{padding:0;position:relative;gap:0}
+.cell.ph .hero{position:absolute;inset:0;border-radius:0;flex:none}
+.cell.ph.planned .hero{inset:2px;border-radius:8px}
+.cell.ph .hero:not(.fit) img{padding:16% 10%}
+.cell.ph .n{position:relative;z-index:2;align-self:flex-start;margin:3px 0 0 3px;padding:3px 4px;border-radius:6px;background:color-mix(in srgb,var(--surface) 78%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.cell.ph .hero b{top:auto;right:3px;bottom:17px;padding:2px 4px;border-radius:5px;background:color-mix(in srgb,var(--surface) 78%,transparent);color:var(--ink)}
+.cell.ph .bars{position:absolute;left:3px;right:3px;bottom:3px;z-index:2;padding:2px;border-radius:5px;background:color-mix(in srgb,var(--surface) 78%,transparent)}
+}
 </style>
 
 </head>
@@ -1240,7 +1255,7 @@ function viewCalendar(){
     const sOnly=(!ids.length&&!planned&&dd&&((dd.shoe&&M.get(dd.shoe))||(dd.scent&&M.get(dd.scent))))||null,hero=coverOf(pl||outfitsOf(dd)[0])||picks[0]||sOnly||undefined,fo=(!planned&&dd)?outfitsOf(dd).find(o=>o.photo):null,fit=!!fo;
     const dimmed=S.ctag&&!(dd&&outfitsOf(dd).some(o=>thas(o.tag,S.ctag))),bars=(!planned&&dd&&ids.length)?outfitsOf(dd).map(o=>tagBar(o.tag)).join(''):'';
     const lbl=fmt(ds,{weekday:'long',month:'long',day:'numeric'})+(planned?(lockedP?', locked in':', planned'):outs.length>1?', '+outs.length+' outfits logged':ids.length?', '+ids.length+' pieces logged':'');
-    cells.push('<button type="button" class="cell'+(dimmed?' dim':'')+(([0,6].indexOf(new Date(y,m-1,d).getDay())>=0)?' wk':'')+(ds===t?' today':'')+(planned?' planned':'')+(lockedP?' locked':'')+'" data-act="open-day" data-d="'+ds+'" aria-label="'+lbl+'"><span class="n">'+d+'</span><span class="hero'+(fit?' fit':hero?'':' none')+'">'+(sOnly&&!sOnly.photo?'<span class="sn">'+esc(dn(sOnly))+'</span>':fit?'<img src="'+esc(photoSrc(fo.photo))+'" alt="" decoding="async">'+(outs.length>1?'<b>'+outs.length+' fits</b>':''):hero?tileInner(hero)+(sOnly?'':outs.length>1?'<b>'+outs.length+' fits</b>':ids.length>1?'<b>+'+(ids.length-1)+'</b>':''):'')+'</span><span class="bars">'+(bars||'<span class="bar"></span>')+'</span></button>');
+    cells.push('<button type="button" class="cell'+(dimmed?' dim':'')+(([0,6].indexOf(new Date(y,m-1,d).getDay())>=0)?' wk':'')+(ds===t?' today':'')+((fit||hero)?' ph':'')+(planned?' planned':'')+(lockedP?' locked':'')+'" data-act="open-day" data-d="'+ds+'" aria-label="'+lbl+'"><span class="n">'+d+'</span><span class="hero'+(fit?' fit':hero?'':' none')+'">'+(sOnly&&!sOnly.photo?'<span class="sn">'+esc(dn(sOnly))+'</span>':fit?'<img src="'+esc(photoSrc(fo.photo))+'" alt="" decoding="async">'+(outs.length>1?'<b>'+outs.length+' fits</b>':''):hero?tileInner(hero)+(sOnly?'':outs.length>1?'<b>'+outs.length+' fits</b>':ids.length>1?'<b>+'+(ids.length-1)+'</b>':''):'')+'</span><span class="bars">'+(bars||'<span class="bar"></span>')+'</span></button>');
   }
   return '<div class="head"><div><div class="brand">Rotation</div><h1 class="h1">Calendar</h1><div class="sub">'+fmt(S.month+'-01',{month:'long',year:'numeric'})+'</div></div><div class="mnav"><button type="button" class="rb" data-act="month" data-v="-1" aria-label="Previous month">'+ico(P.left)+'</button><button type="button" class="rb" data-act="month" data-v="1" aria-label="Next month">'+ico(P.right)+'</button>'+statsBtn()+gearBtn()+'</div></div>'
    +'<div class="cal" role="group" aria-label="Month">'+(SET.week==='1'?['M','T','W','T','F','S','S']:['S','M','T','W','T','F','S']).map((d,i)=>'<span class="dow'+((SET.week==='1'?i>=5:(i===0||i===6))?' wk':'')+'">'+d+'</span>').join('')+cells.join('')+'</div>'
