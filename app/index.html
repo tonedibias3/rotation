@@ -1984,9 +1984,10 @@ function viewItem(id){
 }
 async function toggleFav(){
   const it=M.get(S.vw);if(!it)return;
-  await putItem(it.id,Object.assign({},it,{fav:!it.fav}));
-  const b=document.querySelector('.fvx');if(b)b.setAttribute('aria-pressed',!it.fav?'true':'false');
-  toast(it.fav?'Added to favorites':'Removed from favorites');
+  const nf=!it.fav;
+  await putItem(it.id,Object.assign({},it,{fav:nf}));
+  const b=document.querySelector('.fvx');if(b)b.setAttribute('aria-pressed',nf?'true':'false');
+  toast(nf?'Added to favorites':'Removed from favorites');
   const y=window.scrollY;render();window.scrollTo(0,y);
 }
 function closeView(){S.vw=null;$('#sheet').innerHTML='';document.body.style.overflow=''}
