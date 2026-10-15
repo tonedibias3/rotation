@@ -142,6 +142,9 @@ svg{width:18px;height:18px;flex:none}
 .card img{pointer-events:none;-webkit-user-drag:none}
 .brand{display:block;margin-top:10px;font:500 10px/1.2 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .name{display:-webkit-box;margin-top:3px;font:600 12.5px/1.25 var(--f-body);-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fv{position:absolute;top:8px;left:8px;z-index:2;width:22px;height:22px;display:grid;place-items:center;color:var(--accent);pointer-events:none}.fv svg{width:16px;height:16px;fill:currentColor}
+.fvx[aria-pressed="true"]{color:var(--accent)}.fvx[aria-pressed="true"] svg{fill:currentColor}.sh-fx{display:flex;gap:8px;align-items:center}
+.wall{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:16px}@media (min-width:700px){.wall{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}}.wl{display:block;padding:0;border:0;background:none;cursor:pointer;color:inherit}.wl .tile{border-radius:22px}.wall-t{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 12px}.chip svg{width:14px;height:14px;vertical-align:-2px;margin-right:5px}.chip[aria-pressed="true"] svg{fill:currentColor}
 .check{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;transform:scale(0);transition:transform .18s cubic-bezier(.3,1.5,.5,1)}
 .check svg{width:14px;height:14px}
 .card[aria-pressed="true"] .tile{box-shadow:0 0 0 3px var(--accent),var(--shadow)}
@@ -448,6 +451,7 @@ const SEED=[
   ['Air Force 1 White','Nike','shoes','white','']
 ];
 const P={
+  heart:'<path d="M12 20.3s-7.6-4.5-7.6-10.2A4.3 4.3 0 0 1 12 7.5a4.3 4.3 0 0 1 7.6 2.6c0 5.7-7.6 10.2-7.6 10.2z"/>',
   shoes:'<path d="M3 16.5v-3.4c0-.5.3-1 .8-1.2l3.4-1.2 2.3 2c.5.4 1.1.7 1.8.8l5.1.6c1.7.2 3 1.4 3 2.9v1.5c0 .5-.4.9-.9.9H3.9a.9.9 0 0 1-.9-.9z"/><path d="M3 18.5h18"/>',
   tops:'<path d="M8.5 3.5 3.5 6l1.7 3.8L8 8.7V20h8V8.7l2.8 1.1L20.5 6l-5-2.5c-.4 1.3-1.9 2.2-3.5 2.2S8.9 4.8 8.5 3.5z"/>',
   bottoms:'<path d="M7 3.5h10l1.2 17h-4.4L12 10.5l-1.8 10H5.8z"/>',
@@ -471,7 +475,7 @@ const statsBtn=()=>'<button type="button" class="rb" data-act="tab" data-tab="st
 const gearBtn=()=>'<button type="button" class="rb" data-act="tab" data-tab="settings" aria-label="Settings">'+ico(P.gear,1.7)+'</button>';
 const ico=(p,w)=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="'+(w||1.7)+'" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>';
 const ICONS={}; CATS.forEach(c=>{ICONS[c.id]=ico(P[c.id],1.5)});
-const normItem=i=>{if(i.category==='layers')i.category='outerwear';return i};
+const normItem=i=>{if(i.category==='layers')i.category='outerwear';if(i.fav!==undefined)i.fav=i.fav===true;return i};
 
 /* ---------- helpers ---------- */
 const $=s=>document.querySelector(s);
@@ -494,7 +498,7 @@ const subsFor=c=>(SUBS[c]||[]).concat((SET.subs&&SET.subs[c])||[]);
 function saveSet(){try{localStorage.setItem('rotation.settings',JSON.stringify(SET))}catch(e){}}
 function applyTheme(){const r=document.documentElement;if(SET.accent==='cobalt')r.removeAttribute('data-accent');else r.setAttribute('data-accent',SET.accent);if(SET.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',SET.theme);const dark=SET.theme==='dark'||(SET.theme==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);document.querySelectorAll('meta[name=theme-color]').forEach(m=>{m.setAttribute('content',dark?'#0E1115':'#E7E9ED');m.removeAttribute('media')})}
 buildTags();
-const S={items:[],looks:[],days:{},tab:SET.start,filter:'all',cm:'pieces',q:'',sel:today(),mode:'log',opt:0,out:0,month:today().slice(0,7),sheet:null,vw:null,arr:false,kinds:[],dv:null,fo:0,loading:true,saveText:''};
+const S={items:[],looks:[],days:{},tab:SET.start,filter:'all',fav:false,cm:'pieces',q:'',sel:today(),mode:'log',opt:0,out:0,month:today().slice(0,7),sheet:null,vw:null,arr:false,kinds:[],dv:null,fo:0,loading:true,saveText:''};
 let M=new Map();
 const dirty=new Set(),timers={},vers={};
 const rebuild=()=>{M=new Map(S.items.map(i=>[i.id,i]))};
@@ -702,7 +706,7 @@ function tileInner(it){
   return '<span class="ph" style="--c:'+(COLORS[it.color]||'#9a9ea6')+'">'+(ICONS[it.category]||ICONS.tops)+'<i class="cam">'+ico(P.cam,1.8)+'</i></span>';
 }
 function card(it,attrs){
-  return '<button type="button" class="card" '+attrs+'><span class="tile">'+tileInner(it)+'<span class="check">'+ico(P.check,2.6)+'</span></span><span class="brand">'+esc(it.brand||'No brand')+'</span><span class="name">'+esc(dn(it))+'</span></button>';
+  return '<button type="button" class="card" '+attrs+'><span class="tile">'+tileInner(it)+(it.fav?'<span class="fv">'+ico(P.heart,2)+'</span>':'')+'<span class="check">'+ico(P.check,2.6)+'</span></span><span class="brand">'+esc(it.brand||'No brand')+'</span><span class="name">'+esc(dn(it))+'</span></button>';
 }
 function fbHref(){
   const n=S.items.length,d=Object.keys(S.days).filter(k=>S.days[k].items&&S.days[k].items.length).length;
@@ -805,16 +809,26 @@ async function wxSet(){
   wxCity();
 }
 
+/* ---------- favorites ---------- */
+function favList(){
+  const w=stats().wears;
+  return S.items.filter(i=>i.fav).sort((a,b)=>(w[b.id]||0)-(w[a.id]||0)||catIdx(a.category)-catIdx(b.category)||(a.brand||'').localeCompare(b.brand||'')||a.name.localeCompare(b.name));
+}
+function wallHTML(fl){
+  if(!fl.length)return '<div class="panel empty"><h2>Your wall is empty</h2><p>Tap the heart on a piece to put it here. Your hero pieces, all in one place, ready to show off.</p><div class="btn-row"><button type="button" class="btn primary" data-act="cmode" data-v="pieces">Go to pieces</button></div></div>';
+  return '<div class="wall-t"><p class="hint" style="margin:0">Your favorites, most worn first. Tap one to open it.</p><button type="button" class="btn primary" data-act="wall-share">Share</button></div><div class="wall">'+fl.map(i=>'<button type="button" class="wl" data-act="wall-view" data-id="'+esc(i.id)+'" aria-label="'+esc(dn(i))+'"><span class="tile">'+tileInner(i)+'</span></button>').join('')+'</div>';
+}
 /* ---------- closet ---------- */
 function viewCloset(){
   const n=S.items.length;
-  const modeSeg='<div class="seg mini cm" role="group" aria-label="Closet view"><button type="button" data-act="cmode" data-v="pieces" aria-pressed="'+(S.cm!=='looks')+'">Pieces</button><button type="button" data-act="cmode" data-v="looks" aria-pressed="'+(S.cm==='looks')+'">Looks'+(S.looks.length?' ('+S.looks.length+')':'')+'</button></div>';
+  const modeSeg='<div class="seg mini cm" role="group" aria-label="Closet view"><button type="button" data-act="cmode" data-v="pieces" aria-pressed="'+(S.cm!=='looks'&&S.cm!=='wall')+'">Pieces</button><button type="button" data-act="cmode" data-v="looks" aria-pressed="'+(S.cm==='looks')+'">Looks'+(S.looks.length?' ('+S.looks.length+')':'')+'</button><button type="button" data-act="cmode" data-v="wall" aria-pressed="'+(S.cm==='wall')+'">Wall</button></div>';
+  if(S.cm==='wall'){const fl=favList();return '<div class="head"><div><div class="brand">Rotation</div><h1 class="h1">Closet</h1><div class="sub">'+fl.length+' favorite'+(fl.length===1?'':'s')+'</div></div><div class="hr"><div id="wxbox">'+wxHTML()+'</div>'+gearBtn()+'</div></div>'+modeSeg+wallHTML(fl)+footText()}
   if(S.cm==='looks')return '<div class="head"><div><div class="brand">Rotation</div><h1 class="h1">Closet</h1><div class="sub">'+S.looks.length+' saved look'+(S.looks.length===1?'':'s')+'</div></div><div class="hr"><div id="wxbox">'+wxHTML()+'</div>'+gearBtn()+'</div></div>'+modeSeg+'<div id="lookgrid"></div>'+footText();
   const chip=(id,label,c)=>'<button type="button" class="chip" data-act="filter" data-v="'+id+'" aria-pressed="'+(S.filter===id)+'">'+label+'<i>'+c+'</i></button>';
   return '<div class="head"><div><div class="brand">Rotation</div><h1 class="h1">Closet</h1><div class="sub">'+(S.loading?'Loading':n+' piece'+(n===1?'':'s'))+'</div></div><div class="hr"><div id="wxbox">'+wxHTML()+'</div>'+gearBtn()+'</div></div>'
    +modeSeg
    +'<label class="search">'+ico(P.search)+'<input id="q" type="search" placeholder="Search name, brand or nickname" value="'+esc(S.q)+'" autocomplete="off" aria-label="Search closet"></label>'
-   +'<div class="chips" role="group" aria-label="Filter by type">'+chip('all','All',n)+CATS.map(c=>chip(c.id,c.label,count(c.id))).join('')+'</div>'
+   +'<div class="chips" role="group" aria-label="Filter by type">'+chip('all','All',n)+'<button type="button" class="chip" data-act="fav-filter" aria-pressed="'+S.fav+'">'+ico(P.heart,1.8)+'Favorites<i>'+S.items.filter(i=>i.fav).length+'</i></button>'+CATS.map(c=>chip(c.id,c.label,count(c.id))).join('')+'</div>'
    +'<div class="ctl">'+(S.filter!=='all'?'<div class="seg mini" role="group" aria-label="Layout"><button type="button" data-act="cview" data-v="grid" aria-pressed="'+(SET.cview==='grid')+'">Grid</button><button type="button" data-act="cview" data-v="swipe" aria-pressed="'+(SET.cview==='swipe')+'">Swipe</button></div>':'')+'<button type="button" class="link" data-act="arrange">Arrange sections</button></div>'
    +(S.filter!=='all'?'<div class="chips" id="kinds" role="group" aria-label="Filter by style"></div>':'')
    +(!S.loading&&S.items.length?'<p class="hint" style="margin-bottom:4px">Tap a piece to edit it. Press and hold to view it.</p>':'')
@@ -862,15 +876,16 @@ function fillGrid(){
     return;
   }
   const q=S.q.trim().toLowerCase();
-  const list=S.items.filter(i=>(S.filter==='all'||i.category===S.filter)&&(S.filter==='all'||S.kinds.every(k=>(i.kinds||[]).indexOf(k)>=0))&&(!q||[i.name,i.brand,i.nickname,i.color].concat(i.colors||[],i.kinds||[]).join(' ').toLowerCase().indexOf(q)>=0)).sort(SET.sort==='worn'?(w=>(a,b)=>catIdx(a.category)-catIdx(b.category)||(w[b.id]||0)-(w[a.id]||0)||byCat(a,b))(stats().wears):byCat);
+  const list=S.items.filter(i=>(S.filter==='all'||i.category===S.filter)&&(S.filter==='all'||S.kinds.every(k=>(i.kinds||[]).indexOf(k)>=0))&&(!S.fav||i.fav)&&(!q||[i.name,i.brand,i.nickname,i.color].concat(i.colors||[],i.kinds||[]).join(' ').toLowerCase().indexOf(q)>=0)).sort(SET.sort==='worn'?(w=>(a,b)=>catIdx(a.category)-catIdx(b.category)||(w[b.id]||0)-(w[a.id]||0)||byCat(a,b))(stats().wears):byCat);
   const open=i=>card(i,'data-act="open-item" data-id="'+esc(i.id)+'"');
   const plus=c=>'<button type="button" class="card" data-act="new-item" data-cat="'+c.id+'" aria-label="Add a new '+c.label.toLowerCase()+' piece"><span class="tile add">'+ico(P.plus,1.6)+'</span><span class="brand">New</span><span class="name">Add to '+c.label.toLowerCase()+'</span></button>';
   if(!list.length&&q){g.innerHTML='<p class="empty-note">Nothing matches that search.</p>';return}
-  if(S.filter!=='all'){const c=CATS[catIdx(S.filter)];g.innerHTML='<div class="grid'+(SET.cview==='swipe'?' hz':'')+'">'+(q?'':plus(c))+list.map(open).join('')+'</div>';return}
+  if(!list.length&&S.fav){g.innerHTML='<p class="empty-note">No favorites here yet. Open a piece and tap the heart.</p>';return}
+  if(S.filter!=='all'){const c=CATS[catIdx(S.filter)];g.innerHTML='<div class="grid'+(SET.cview==='swipe'?' hz':'')+'">'+(q||S.fav?'':plus(c))+list.map(open).join('')+'</div>';return}
   g.innerHTML=CATS.map(c=>{
     const l=list.filter(i=>i.category===c.id);
-    if(!l.length&&q)return '';
-    return '<section class="grp"><div class="grp-h"><h2>'+c.label+'</h2><button type="button" class="link seeall" data-act="filter" data-v="'+c.id+'">See all '+l.length+'</button></div><div class="rail">'+(q?'':plus(c))+l.map(open).join('')+'</div></section>';
+    if(!l.length&&(q||S.fav))return '';
+    return '<section class="grp"><div class="grp-h"><h2>'+c.label+'</h2><button type="button" class="link seeall" data-act="filter" data-v="'+c.id+'">See all '+l.length+'</button></div><div class="rail">'+(q||S.fav?'':plus(c))+l.map(open).join('')+'</div></section>';
   }).join('');
 }
 async function seed(){
@@ -941,11 +956,13 @@ function viewLog(){
   const canRepeat=!!(y&&y.items.some(id=>M.has(id)));
   const groups=CATS.map(c=>{
     const isSc=c.id==='scents';
-    const list=S.items.filter(i=>i.category===c.id).sort((a,b)=>{
+    const list=S.items.filter(i=>i.category===c.id&&(!S.fav||i.fav||(isSc&&false))).sort((a,b)=>{
+      if(!!a.fav!==!!b.fav)return a.fav?-1:1;
       const la=st.last[a.id]||'',lb=st.last[b.id]||'';
       return la===lb?a.name.localeCompare(b.name):(la<lb?1:-1);
     });
     const n=isSc?(dd&&dd.scent?1:0):list.filter(i=>on.has(i.id)).length;
+    if(S.fav&&!list.length)return '';
     return '<section class="grp"><div class="grp-h"><h2>'+(isSc?'Scent of the day':c.label)+'</h2><span class="sub" id="cnt-'+c.id+'">'+(n?n+' selected · ':'')+list.length+'</span>'+(c.id==='shoes'?'<button type="button" class="chip" data-act="shoe-log" aria-pressed="'+(!!dd&&!!dd.shoe)+'">Shoe of the day</button>':'')+'</div><div class="rail">'
       +'<button type="button" class="card" data-act="new-item" data-cat="'+c.id+'" aria-label="Add a new '+c.label.toLowerCase()+' piece"><span class="tile add">'+ico(P.plus,1.6)+'</span><span class="brand">New</span><span class="name">Add to '+c.label.toLowerCase()+'</span></button>'
       +list.map(i=>isSc?card(i,'data-act="scent" data-id="'+esc(i.id)+'" aria-pressed="'+(!!dd&&dd.scent===i.id)+'"'):card(i,'data-act="pick" data-id="'+esc(i.id)+'" aria-pressed="'+on.has(i.id)+'"')).join('')
@@ -963,7 +980,7 @@ function viewLog(){
    +'<div class="btn-row"><button type="button" class="btn ghost" data-act="repeat"'+(canRepeat?'':' disabled')+'>'+(sel===t?'Repeat yesterday':'Repeat day before')+'</button><button type="button" class="btn ghost" data-act="clear">Clear</button><button type="button" class="btn ghost" data-act="look-save"'+(tgt.items.length?'':' disabled')+'>Save look</button><button type="button" class="btn ghost" data-act="looks-open">Saved looks'+(S.looks.length?' ('+S.looks.length+')':'')+'</button>'+(S.mode==='log'&&S.out>0?'<button type="button" class="btn ghost" id="rm-out" data-act="rm-out">Remove outfit</button>':'')
    +(S.mode==='plan'?'<button type="button" class="btn primary" id="lock" data-act="lock"'+(tgt.items.length?'':' disabled')+'>'+(sel>t?(tgt.locked?'Locked in. Tap to unlock':'Lock in option '+'ABCD'[S.opt]):'Wear option '+'ABCD'[S.opt])+'</button>':'')
    +'</div></div>'
-   +'<p class="hint" style="margin-top:18px">Tap to select. Press and hold a piece to view it.</p>'
+   +'<div class="fv-row" style="display:flex;align-items:center;gap:10px;margin-top:18px"><button type="button" class="chip" data-act="fav-filter" aria-pressed="'+S.fav+'">'+ico(P.heart,1.8)+'Favorites only</button><p class="hint" style="margin:0">Tap to select. Press and hold a piece to view it.</p></div>'
    +(S.loading?'<div class="grid">'+'<div class="skel"></div>'.repeat(6)+'</div>':groups)
    +'<div class="tray" id="tray"></div>'+footText();
 }
@@ -1120,6 +1137,18 @@ function removeOutfit(){
 
 /* ---------- saved looks ---------- */
 const sameSet=(a,b)=>a.length===b.length&&a.every(x=>b.indexOf(x)>=0);
+function dayLook(k){
+  const dd=S.days[S.dv];if(!dd)return;
+  const t=k>0?(dd.more||[])[k-1]:dd;if(!t)return;
+  const ids=t.items.filter(id=>M.has(id));if(ids.length<2)return;
+  const ex=S.looks.find(l=>sameSet(l.items,ids));
+  if(ex){
+    if(t.photo&&!ex.photo){ex.photo=t.photo;persistLocal('looks');toast('Photo added to that saved look');return}
+    viewLook(ex.id);return;
+  }
+  S.looks.unshift({id:newId(),items:ids.slice(),tag:t.tag||'',photo:t.photo||'',createdAt:Date.now()});
+  persistLocal('looks');toast('Saved to your looks');renderDay();
+}
 function saveLook(){
   const t=target(false),ids=t.items.filter(id=>M.has(id));
   if(!ids.length){toast('Pick some pieces first');return}
@@ -1303,7 +1332,7 @@ function renderDay(){
       if(x.o.photo||x.l.length<2)body+=grid(x.l);
       else{const cv=coverOf(x.o);body+='<p class="hint" style="margin:4px 0 10px">No outfit photo yet. Tap the piece that should show on the calendar.</p><div class="grid dv">'+x.l.map(i=>card(i,'data-act="set-cover" data-o="'+x.k+'" data-id="'+esc(i.id)+'" aria-pressed="'+(!!cv&&cv.id===i.id)+'"')).join('')+'</div>'}
     }
-    body+='<div class="btn-row" style="margin:14px 0 8px"><button type="button" class="btn ghost" data-act="fit-pick" data-o="'+x.k+'">'+ico(P.cam)+(x.o.photo?'Replace photo':'Add outfit photo')+'</button>'+(x.l.length?'<button type="button" class="btn primary" data-act="share-open" data-o="'+x.k+'">Share</button>':'')+'</div>'+(x.o.photo?'<div class="btn-row" style="margin:0 0 6px"><button type="button" class="btn ghost" data-act="fit-adjust" data-o="'+x.k+'">Crop</button><button type="button" class="btn danger" data-act="fit-clear" data-o="'+x.k+'">Remove photo</button></div>':'');
+    body+='<div class="btn-row" style="margin:14px 0 8px"><button type="button" class="btn ghost" data-act="fit-pick" data-o="'+x.k+'">'+ico(P.cam)+(x.o.photo?'Replace photo':'Add outfit photo')+'</button>'+(x.l.length>1?'<button type="button" class="btn ghost" data-act="day-look" data-o="'+x.k+'">'+(S.looks.some(l=>sameSet(l.items,x.l.map(i=>i.id)))?'In your looks':'Save look')+'</button>':'')+(x.l.length?'<button type="button" class="btn primary" data-act="share-open" data-o="'+x.k+'">Share</button>':'')+'</div>'+(x.o.photo?'<div class="btn-row" style="margin:0 0 6px"><button type="button" class="btn ghost" data-act="fit-adjust" data-o="'+x.k+'">Crop</button><button type="button" class="btn danger" data-act="fit-clear" data-o="'+x.k+'">Remove photo</button></div>':'');
   });
   if(!shown.length&&!dd.plans.some(p=>p.items.length))body+='<p class="hint" style="margin:0 0 4px">Nothing logged for this day.</p>';
   dd.plans.map((p,k)=>({p:p,k:k})).sort((a,b)=>wr(a.p)-wr(b.p)||a.k-b.k).forEach(z=>{
@@ -1528,6 +1557,11 @@ function openShareItem(id){
   SH={mode:'item',item:id,sel:new Set(),scent:false,hasScent:false,hasFeet:false,feet:false,d:'',k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:SET.shtag,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:false,url:'',blob:null,seq:0};
   renderShare();buildShare();
 }
+function openShareWall(){
+  if(!favList().length)return;
+  SH={mode:'wall',sel:new Set(),scent:false,hasScent:false,hasFeet:false,feet:false,d:'',k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:false,det:false,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:false,url:'',blob:null,seq:0};
+  renderShare();buildShare();
+}
 function closeShare(){
   if(SH&&SH.url){try{URL.revokeObjectURL(SH.url)}catch(e){}}
   SH=null;const h=$('#share');if(h)h.innerHTML='';if(!S.sheet&&!S.vw&&!QA)document.body.style.overflow='';
@@ -1690,7 +1724,7 @@ function shPaint(x,W,H,T){
 async function drawShare(){
   if(SH.mode==='recap')return drawRecap();
   const sz=SH.size,brands=SH.brands,T=shPal();
-  const itemMode=SH.mode==='item',dd=(itemMode||SH.look)?{}:S.days[SH.d],o=SH.look?shLook():(itemMode||SH.mode==='scent'||SH.mode==='shoe')?dd:(SH.k?dd.more[SH.k-1]:dd);
+  const itemMode=SH.mode==='item',wallMode=SH.mode==='wall',dd=(itemMode||wallMode||SH.look)?{}:S.days[SH.d],o=SH.look?shLook():(itemMode||wallMode||SH.mode==='scent'||SH.mode==='shoe')?dd:(SH.k?dd.more[SH.k-1]:dd);
   const W=SIZES[sz][0],H=SIZES[sz][1],c=document.createElement('canvas');c.width=W;c.height=H;
   const x=c.getContext('2d');
   try{await document.fonts.ready}catch(e){}
@@ -1698,7 +1732,7 @@ async function drawShare(){
   const F=(w,px,fam)=>w+' '+px+'px '+(fam||'"Instrument Sans",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif');
   const DISP='"Archivo","Helvetica Neue",Arial,sans-serif';
   const shoeMode=SH.mode==='shoe',sc=itemMode?M.get(SH.item):shoeMode?shoeOf(dd):(dd.scent&&M.get(dd.scent)),scentMode=SH.mode==='scent'||shoeMode||itemMode;
-  const its=scentMode?(sc?[sc]:[]):o.items.filter(id=>SH.sel.has(id)).map(id=>M.get(id)).filter(Boolean).sort((a,b)=>catIdx(a.category)-catIdx(b.category));
+  const its=wallMode?favList().slice(0,sz==='st'?12:9):scentMode?(sc?[sc]:[]):o.items.filter(id=>SH.sel.has(id)).map(id=>M.get(id)).filter(Boolean).sort((a,b)=>catIdx(a.category)-catIdx(b.category));
   if(!scentMode&&SH.scent&&sc)its.push(sc);
   const iside=(itemMode&&sc&&sc.photo2)?(SH.iside||'2'):'f';
   const imgs=await Promise.all(its.map(i=>loadSrc(photoSrc(iside==='b'?i.photo2:i.photo))));
@@ -1709,10 +1743,10 @@ async function drawShare(){
   /* header: the date is always top left */
   x.textBaseline='alphabetic';x.textAlign='left';x.fillStyle=INK;x.font=F(700,40);
   const lnames=itemMode?false:SH.names;
-  const hdTxt=itemMode?(SH.names&&sc?fitText(x,String(sc.nickname||sc.name||'').toUpperCase(),W-pad*2-(SH.logo==='tr'?380:0)):''):SH.caption?SH.caption.toUpperCase():(SH.look?'':fmt(SH.d,{weekday:'long',month:'long',day:'numeric'}).toUpperCase());
+  const hdTxt=wallMode?'FAVORITES':itemMode?(SH.names&&sc?fitText(x,String(sc.nickname||sc.name||'').toUpperCase(),W-pad*2-(SH.logo==='tr'?380:0)):''):SH.caption?SH.caption.toUpperCase():(SH.look?'':fmt(SH.d,{weekday:'long',month:'long',day:'numeric'}).toUpperCase());
   if(hdTxt)x.fillText(hdTxt,pad,pad+40);
   const tg={label:tagLbl(o.tag)};
-  const meta=itemMode?'':scentMode?(shoeMode?'Shoe of the day':['Scent of the day',dd.scentRating?'★ '+dd.scentRating.toFixed(1):''].filter(Boolean).join('  ·  ')):[SH.tag&&tg&&tg.label,SH.det&&o.place,SH.det&&o.wx,o.when&&whenLbl(o.when),o.rating?'\u2605 '+o.rating.toFixed(1):''].filter(Boolean).join('  \u00b7  ');
+  const meta=(itemMode||wallMode)?'':scentMode?(shoeMode?'Shoe of the day':['Scent of the day',dd.scentRating?'★ '+dd.scentRating.toFixed(1):''].filter(Boolean).join('  ·  ')):[SH.tag&&tg&&tg.label,SH.det&&o.place,SH.det&&o.wx,o.when&&whenLbl(o.when),o.rating?'\u2605 '+o.rating.toFixed(1):''].filter(Boolean).join('  \u00b7  ');
   if(meta){x.fillStyle=INK2;x.font=F(500,30);x.fillText(meta,pad,pad+88)}
   let noteTxt=(!itemMode&&!scentMode&&SH.det&&o.note)?o.note:'';
   if(noteTxt){x.font=F(500,28);while(noteTxt.length>3&&x.measureText(noteTxt).width>W-pad*2){noteTxt=noteTxt.slice(0,-2)}if(noteTxt!==o.note)noteTxt=noteTxt.trim()+'\u2026';x.fillStyle=INK;x.fillText(noteTxt,pad,pad+(meta?132:88))}
@@ -1820,9 +1854,9 @@ async function buildShare(fast){
     if(!fast){if(go)go.disabled=false;if(sv)sv.disabled=false}
   }catch(e){const w=$('#sh-wait');if(w){w.hidden=false;w.textContent='Could not build the image. Try again.'}}
 }
-const shareName=()=>SH.mode==='recap'?'rotation-recap-'+SH.m+'.png':SH.mode==='item'?'rotation-piece-'+String((M.get(SH.item)||{}).name||'piece').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'.png':'rotation-'+(SH.mode==='scent'?'scent-':SH.mode==='shoe'?'shoe-':'fit-')+SH.d+(SH.k&&SH.mode==='fit'?'-'+(SH.k+1):'')+'.png';
+const shareName=()=>SH.mode==='recap'?'rotation-recap-'+SH.m+'.png':SH.mode==='wall'?'rotation-favorites.png':SH.mode==='item'?'rotation-piece-'+String((M.get(SH.item)||{}).name||'piece').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'.png':'rotation-'+(SH.mode==='scent'?'scent-':SH.mode==='shoe'?'shoe-':'fit-')+SH.d+(SH.k&&SH.mode==='fit'?'-'+(SH.k+1):'')+'.png';
 /* the caption that goes with a shared picture: one hashtag for the kind of post, the app tag, then the handle (a real @ so it is tappable) */
-const shareTags=()=>{const m=SH?SH.mode:'fit',t=m==='scent'?'#SOTD':m==='shoe'?'#KOTD':m==='item'?'#closetcheck':m==='recap'?'#monthinreview':'#OOTD';return t+' #rotationapp @rotationfit'};
+const shareTags=()=>{const m=SH?SH.mode:'fit',t=m==='wall'?'#favorites':m==='scent'?'#SOTD':m==='shoe'?'#KOTD':m==='item'?'#closetcheck':m==='recap'?'#monthinreview':'#OOTD';return t+' #rotationapp @rotationfit'};
 async function doShare(){
   if(!SH||!SH.blob)return;
   const file=new File([SH.blob],shareName(),{type:'image/png'});
@@ -1928,7 +1962,7 @@ function viewItem(id){
   const row=(k,v)=>v?'<div class="vrow"><span>'+k+'</span><b>'+esc(v)+'</b></div>':'';
   const host=$('#sheet');
   host.innerHTML='<div class="scrim" data-act="view-bg"><div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(it.name)+'" tabindex="-1">'
-   +'<div class="sheet-h"><h2>'+esc(it.name)+'</h2><button type="button" class="x" data-act="view-close" aria-label="Close">'+ico(P.x)+'</button></div>'
+   +'<div class="sheet-h"><h2>'+esc(it.name)+'</h2><div class="sh-fx"><button type="button" class="x fvx" data-act="view-fav" aria-pressed="'+!!it.fav+'" aria-label="Favorite">'+ico(P.heart,1.8)+'</button><button type="button" class="x" data-act="view-close" aria-label="Close">'+ico(P.x)+'</button></div></div>'
    +(it.photo2?'<div class="seg mini" id="vside" role="group" aria-label="Side" style="margin-bottom:10px;width:max-content"><button type="button" data-act="view-side" data-v="f" aria-pressed="true">Front</button><button type="button" data-act="view-side" data-v="b" aria-pressed="false">Back</button><button type="button" data-act="view-side" data-v="2" aria-pressed="false">Both</button></div>':'')
    +'<div class="vbig">'+(it.photo2?'<img id="vback" src="'+esc(photoSrc(it.photo2))+'" alt="" hidden>':'')+(src?'<img id="vfront" src="'+esc(src)+'" alt="">':'<span class="ph" style="--c:'+(COLORS[it.color]||'#9a9ea6')+'">'+(ICONS[it.category]||ICONS.tops)+'</span>')+'</div>'
    +(Array.isArray(it.kinds)&&it.kinds.length?'<div class="vkinds">'+it.kinds.map(k=>'<span>'+esc(k)+'</span>').join('')+'</div>':'')
@@ -1940,6 +1974,13 @@ function viewItem(id){
    +'<div class="btn-row" style="margin-top:18px"><button type="button" class="btn primary" data-act="view-edit">Edit</button><button type="button" class="btn ghost" data-act="share-item-open">Share</button><button type="button" class="btn ghost" data-act="view-close">Close</button></div>'
    +'</div></div>';
   document.body.style.overflow='hidden';
+}
+async function toggleFav(){
+  const it=M.get(S.vw);if(!it)return;
+  await putItem(it.id,Object.assign({},it,{fav:!it.fav}));
+  const b=document.querySelector('.fvx');if(b)b.setAttribute('aria-pressed',!it.fav?'true':'false');
+  toast(it.fav?'Added to favorites':'Removed from favorites');
+  const y=window.scrollY;render();window.scrollTo(0,y);
 }
 function closeView(){S.vw=null;$('#sheet').innerHTML='';document.body.style.overflow=''}
 function renderArrange(){
@@ -1958,7 +1999,7 @@ function openItem(id,preset){
   const it=id?M.get(id):null;
   if(id&&!it)return;
   S.slot='';S.sheet={scentDay:(preset&&preset.scentDay)||'',shoeDay:(preset&&preset.shoeDay)||'',id:id||null,confirm:false,busy:false,addToLog:!!(preset&&preset.log),draft:{
-    name:it?it.name:'',brand:it?it.brand||'':'',nickname:it?it.nickname||'':'',
+    fav:!!(it&&it.fav),name:it?it.name:'',brand:it?it.brand||'':'',nickname:it?it.nickname||'':'',
     category:it?it.category:(preset&&preset.cat)||(S.tab==='closet'&&S.filter!=='all'?S.filter:'shoes'),
     color:it?it.color||'':'',colors:it?(Array.isArray(it.colors)&&it.colors.length?it.colors.slice():(it.color?[it.color]:[])):[],kinds:it&&Array.isArray(it.kinds)?it.kinds.slice():[],price:(it&&typeof it.price==='number')?String(it.price):'',source:it?it.source||'':'',photo:it?it.photo||'':'',photoBlob:null,photoData:'',previewUrl:'',photo2:it?it.photo2||'':'',photoBlob2:null,photoData2:'',previewUrl2:'',bought:it?it.bought||'':'',released:it?it.released||'':''
   }};
@@ -1975,6 +2016,7 @@ function renderSheet(){
    +'<div class="sheet-h"><h2 id="sh-t">'+(it?'Edit piece':'New piece')+'</h2><button type="button" class="x" data-act="sheet-close" aria-label="Close">'+ico(P.x)+'</button></div>'
    +'<div class="photo-row"><div class="tile" id="pv" data-act="pv-tap"></div><div class="photo-side"><label class="btn ghost" for="f-file">'+ico(P.cam)+'<span id="pv-l">Add photo</span></label><input class="vh" id="f-file" type="file" accept="image/*"><button type="button" class="btn ghost" id="pv-a" data-act="photo-adjust" hidden>Move and crop</button><button type="button" class="btn ghost danger" id="pv-c" data-act="photo-clear" data-slot="f" hidden>Remove photo</button></div></div>'
    +'<div class="photo-row bk"><div class="tile" id="pv2" data-act="pv-tap2"></div><div class="photo-side"><label class="btn ghost" for="f-file2">'+ico(P.cam)+'<span id="pv-l2">Add back photo</span></label><input class="vh" id="f-file2" type="file" accept="image/*"><button type="button" class="btn ghost" id="pv-a2" data-act="photo-adjust" data-slot="b" hidden>Move and crop</button><button type="button" class="btn ghost danger" id="pv-c2" data-act="photo-clear" data-slot="b" hidden>Remove back photo</button><p class="hint">Optional. Shown when you view the piece.</p></div></div>'
+   +'<div class="set-row" style="margin-bottom:12px"><span><b>Favorite</b><i>Shows first in the Log and on your Wall.</i></span><button type="button" class="sw-t" data-act="draft-fav" aria-pressed="'+!!d.fav+'" aria-label="Favorite"></button></div>'
    +'<div class="field"><label for="f-name">Name</label><input id="f-name" data-f="name" value="'+esc(d.name)+'" placeholder="Union Jordan 4" autocomplete="off"></div>'
    +'<div class="two"><div class="field"><label for="f-brand">Brand</label><input id="f-brand" data-f="brand" list="brands" value="'+esc(d.brand)+'" placeholder="Jordan" autocomplete="off"></div><div class="field"><label for="f-nick">Nickname</label><input id="f-nick" data-f="nickname" value="'+esc(d.nickname)+'" placeholder="Optional" autocomplete="off"></div></div>'
    +'<details class="det"'+((d.price||d.source||d.bought||d.released)?' open':'')+'><summary>Details <i>all optional</i></summary>'
@@ -2259,7 +2301,7 @@ async function saveItem(){
     const photo=d.photoBlob?d.photoData:(d.photo||'');
     const photo2=d.photoBlob2?d.photoData2:(d.photo2||'');
     const id=sh.id||newId(),ex=sh.id?M.get(sh.id):null;
-    await putItem(id,{name:d.name.trim(),brand:d.brand.trim(),nickname:d.nickname.trim(),category:d.category,color:(d.category==='scents'?'':(d.colors[0]||'')),colors:(d.category==='scents'?[]:d.colors.slice()),kinds:d.kinds.filter(k=>subsFor(d.category).indexOf(k)>=0),price:parsePrice(d.price),source:(d.source||'').trim(),bought:d.bought||'',released:(d.released||'').trim(),photo:photo,photo2:photo2,createdAt:ex&&ex.createdAt||Date.now()});
+    await putItem(id,{name:d.name.trim(),brand:d.brand.trim(),nickname:d.nickname.trim(),category:d.category,color:(d.category==='scents'?'':(d.colors[0]||'')),colors:(d.category==='scents'?[]:d.colors.slice()),kinds:d.kinds.filter(k=>subsFor(d.category).indexOf(k)>=0),price:parsePrice(d.price),source:(d.source||'').trim(),bought:d.bought||'',released:(d.released||'').trim(),photo:photo,photo2:photo2,fav:!!d.fav,createdAt:ex&&ex.createdAt||Date.now()});
     const wasNew=!sh.id,log=sh.addToLog,sd=sh.scentDay,shd=sh.shoeDay;
     closeSheet();
     render();
@@ -2306,7 +2348,7 @@ function render(){
     const h=v.querySelector('.head'),np=(S.tab==='closet'&&!S.items.length)?'':startHTML(),bk=S.tab==='closet'?backupNudgeHTML():'';
     if(h&&(np||bk))h.insertAdjacentHTML('afterend',np+bk);
   }
-  if(S.tab==='closet'){if(S.cm==='looks')fillLooks();else{fillKinds();fillGrid()}wxLoad()}
+  if(S.tab==='closet'){if(S.cm==='looks')fillLooks();else if(S.cm!=='wall'){fillKinds();fillGrid()}wxLoad()}
   if(S.tab==='log')afterLogRender();
 }
 
@@ -2363,7 +2405,13 @@ document.addEventListener('click',e=>{
     case 'tag':setTag(el.dataset.v);break;
     case 'look-save':saveLook();break;
     case 'looks-open':openLooks();break;
-    case 'cmode':S.cm=el.dataset.v==='looks'?'looks':'pieces';render();toTop();break;
+    case 'cmode':S.cm=el.dataset.v==='looks'?'looks':el.dataset.v==='wall'?'wall':'pieces';render();toTop();break;
+    case 'fav-filter':S.fav=!S.fav;{const y=window.scrollY;render();window.scrollTo(0,y)}break;
+    case 'wall-view':viewItem(id);break;
+    case 'wall-share':openShareWall();break;
+    case 'view-fav':toggleFav();break;
+    case 'draft-fav':if(S.sheet){S.sheet.draft.fav=!S.sheet.draft.fav;el.setAttribute('aria-pressed',S.sheet.draft.fav?'true':'false')}break;
+    case 'day-look':dayLook(+el.dataset.o||0);break;
     case 'look-view':viewLook(id);break;
     case 'recap-open':openRecap();break;
     case 'look-share':openShareLook(id);break;

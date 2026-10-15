@@ -19,3 +19,5 @@ Oct 15: Settings > Sort closet by (Brand | Most worn), within each section; pers
 Oct 15: Added plan step 6b (CloudKit iCloud sync, native only, after Mac). Tone likes the idea; nothing built yet.
 
 Oct 15: Share-card patterns added: Camo, Duck camo, Paisley (Checker renamed Checkerboard); presets Olive/tan, Black/red, Red/white. check.js 8/8.
+
+Oct 15 favorites + calendar save look: items get `fav` (heart toggle in piece view and Edit piece; small heart badge on cards). Closet: Favorites filter chip (combines with type), new Wall tab (photo grid of favorites, most worn first, Share button -> share card mode 'wall', up to 9 square / 12 story, header FAVORITES, caption #favorites). Log: Favorites only chip, favorites sort first. Calendar day view: Save look button per outfit (2+ pieces) that becomes "In your looks" (opens the existing look; adds the outfit photo to it if missing); same duplicate rule as the Log button. check.js 8/8; headless test of all flows passed. Open: Tone to judge look of Wall and heart badge; cost-per-wear already exists in piece view.
