@@ -486,7 +486,7 @@ const daysSince=s=>Math.round((parse(today())-parse(s))/864e5);
 const newId=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
 /* ---------- state ---------- */
-const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,occ:Array.isArray(o.occ)?o.occ.filter(x=>x&&x.id&&x.label).slice(0,4):[],accent:['cobalt','heritage','peony','graphite','ember','dusk'].indexOf(o.accent)>=0?o.accent:'cobalt',start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:'',order:Array.isArray(o.order)?o.order.filter(x=>typeof x==='string'):[],cview:o.cview==='swipe'?'swipe':'grid',subs:(o.subs&&typeof o.subs==='object')?o.subs:{},shsize:o.shsize==='st'?'st':'sq',shbrand:o.shbrand!==false,shnames:o.shnames!==false,shtag:o.shtag!==false,shdet:o.shdet!==false,shtheme:['light','dark','color','pattern'].indexOf(o.shtheme)>=0?o.shtheme:'light',shcol:/^#[0-9a-f]{6}$/i.test(o.shcol)?o.shcol:'#2744e8',shlt:Math.max(-40,Math.min(40,+o.shlt||0)),shpat:['hound','dots','check','gingham','herring','stripe','tartan'].indexOf(o.shpat)>=0?o.shpat:'hound',shpa:/^#[0-9a-f]{6}$/i.test(o.shpa)?o.shpa:'#111111',shpb:/^#[0-9a-f]{6}$/i.test(o.shpb)?o.shpb:'#ffffff',shps:Math.max(20,Math.min(100,+o.shps||75)),shpin:o.shpin==='l'?'l':'d',shlogo:['tr','bl','br'].indexOf(o.shlogo)>=0?o.shlogo:'tr',shside:o.shside==='r'?'r':'l',lastBackup:+o.lastBackup||0,bkSnooze:+o.bkSnooze||0,gsoff:o.gsoff===true,shared:o.shared===true}})();
+const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,occ:Array.isArray(o.occ)?o.occ.filter(x=>x&&x.id&&x.label).slice(0,4):[],accent:['cobalt','heritage','peony','graphite','ember','dusk'].indexOf(o.accent)>=0?o.accent:'cobalt',start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:'',order:Array.isArray(o.order)?o.order.filter(x=>typeof x==='string'):[],cview:o.cview==='swipe'?'swipe':'grid',sort:o.sort==='worn'?'worn':'brand',subs:(o.subs&&typeof o.subs==='object')?o.subs:{},shsize:o.shsize==='st'?'st':'sq',shbrand:o.shbrand!==false,shnames:o.shnames!==false,shtag:o.shtag!==false,shdet:o.shdet!==false,shtheme:['light','dark','color','pattern'].indexOf(o.shtheme)>=0?o.shtheme:'light',shcol:/^#[0-9a-f]{6}$/i.test(o.shcol)?o.shcol:'#2744e8',shlt:Math.max(-40,Math.min(40,+o.shlt||0)),shpat:['hound','dots','check','gingham','herring','stripe','tartan'].indexOf(o.shpat)>=0?o.shpat:'hound',shpa:/^#[0-9a-f]{6}$/i.test(o.shpa)?o.shpa:'#111111',shpb:/^#[0-9a-f]{6}$/i.test(o.shpb)?o.shpb:'#ffffff',shps:Math.max(20,Math.min(100,+o.shps||75)),shpin:o.shpin==='l'?'l':'d',shlogo:['tr','bl','br'].indexOf(o.shlogo)>=0?o.shlogo:'tr',shside:o.shside==='r'?'r':'l',lastBackup:+o.lastBackup||0,bkSnooze:+o.bkSnooze||0,gsoff:o.gsoff===true,shared:o.shared===true}})();
 function applyOrder(){const o=SET.order;CATS.sort((a,b)=>{const ia=o.indexOf(a.id),ib=o.indexOf(b.id);return (ia<0?99:ia)-(ib<0?99:ib)})}
 applyOrder();
 const SUBS={tops:['Short sleeve','Long sleeve','T-shirt','Polo','Dress shirt','Collared','Sweater','Hoodie','Tank'],bottoms:['Jeans','Pants','Slacks','Shorts','Joggers'],shoes:['Sneakers','Boots','Dress','Loafers','Sandals'],outerwear:['Jacket','Coat','Vest','Blazer','Hoodie'],accessories:['Hat','Watch','Belt','Chain','Bag','Sunglasses'],scents:['Fresh','Woody','Sweet','Spicy']};
@@ -613,7 +613,7 @@ async function importData(file){
       if(o.subs&&typeof o.subs==='object')SET.subs=o.subs;
       if(Array.isArray(o.occ))SET.occ=o.occ.filter(x=>x&&x.id&&x.label).slice(0,4);
       if(['cobalt','heritage','peony','graphite','ember','dusk'].indexOf(o.accent)>=0)SET.accent=o.accent;
-      if(o.cview==='swipe'||o.cview==='grid')SET.cview=o.cview;
+      if(o.cview==='swipe'||o.cview==='grid')SET.cview=o.cview;if(o.sort==='worn'||o.sort==='brand')SET.sort=o.sort;
       saveSet();applyOrder();buildTags();applyTheme();
     }
     rebuild();persistLocal();render();
@@ -862,7 +862,7 @@ function fillGrid(){
     return;
   }
   const q=S.q.trim().toLowerCase();
-  const list=S.items.filter(i=>(S.filter==='all'||i.category===S.filter)&&(S.filter==='all'||S.kinds.every(k=>(i.kinds||[]).indexOf(k)>=0))&&(!q||[i.name,i.brand,i.nickname,i.color].concat(i.colors||[],i.kinds||[]).join(' ').toLowerCase().indexOf(q)>=0)).sort(byCat);
+  const list=S.items.filter(i=>(S.filter==='all'||i.category===S.filter)&&(S.filter==='all'||S.kinds.every(k=>(i.kinds||[]).indexOf(k)>=0))&&(!q||[i.name,i.brand,i.nickname,i.color].concat(i.colors||[],i.kinds||[]).join(' ').toLowerCase().indexOf(q)>=0)).sort(SET.sort==='worn'?(w=>(a,b)=>catIdx(a.category)-catIdx(b.category)||(w[b.id]||0)-(w[a.id]||0)||byCat(a,b))(stats().wears):byCat);
   const open=i=>card(i,'data-act="open-item" data-id="'+esc(i.id)+'"');
   const plus=c=>'<button type="button" class="card" data-act="new-item" data-cat="'+c.id+'" aria-label="Add a new '+c.label.toLowerCase()+' piece"><span class="tile add">'+ico(P.plus,1.6)+'</span><span class="brand">New</span><span class="name">Add to '+c.label.toLowerCase()+'</span></button>';
   if(!list.length&&q){g.innerHTML='<p class="empty-note">Nothing matches that search.</p>';return}
@@ -1256,6 +1256,7 @@ function viewSettings(){
    +'<div class="set-row"><span><b>Opening animation</b><i>The closet doors when the app starts.</i></span><button type="button" class="sw-t" data-act="set" data-k="splash" data-v="'+(!SET.splash)+'" aria-pressed="'+SET.splash+'" aria-label="Opening animation"></button></div>'
    +'<div class="set-row"><span><b>Opens on</b><i>The first screen you see.</i></span>'+seg('start',[['closet','Closet'],['log','Log'],['calendar','Cal']])+'</div></div>'
       +'<div class="panel"><h2>Defaults</h2>'
+   +'<div class="set-row"><span><b>Sort closet by</b><i>Within each section. Most worn counts logged days.</i></span>'+seg('sort',[['brand','Brand'],['worn','Most worn']])+'</div>'
    +'<div class="set-row"><span><b>Week starts on</b><i>Calendar layout.</i></span>'+seg('week',[['0','Sun'],['1','Mon']])+'</div>'
    +'<div class="set-row"><span><b>Default tag</b><i>Applied when you log your first piece of a day.</i></span>'+seg('dtag',[['','None'],['work','Work'],['casual','Casual'],['mixed','Mixed']])+'</div></div>'
    +'<div class="panel"><h2>Outfit types</h2><p>Work, Casual, Mixed and Going out are built in. Add your own, like Gym, Church or Date night.</p>'
