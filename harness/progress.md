@@ -25,3 +25,9 @@ Oct 15 favorites + calendar save look: items get `fav` (heart toggle in piece vi
 Oct 15 quality audit (harness/quality.md): bundled fonts (no Google call), offline service worker, accessibility fixes (labels, contrast, touch targets), 5-day backup nudge for browser-tab users. check.js 9/9, e2e 28/28, axe clean on Closet and Log. Open: real first-run observation, iPad picker bug notes, HEIC/VoiceOver/large-text tests, landing page fonts.
 
 Oct 15 phone calendar (Tone's iPhone vs iPad screenshots): on phones (<=520px) day cells with a photo are now full-bleed portrait (1/1.3), date as a small chip top-left, badge (+N / N fits) above the bars, occasion bars as a chip along the bottom; gutters tighter. Empty days no longer show a dark pill in dark mode (`.hero.none` was losing to the dark `.hero` rule; fixed for all sizes). Calendar header buttons shrink to 36px and the header wraps, so the page no longer scrolls sideways at 375px. iPad/desktop layout unchanged. check.js 9/9, e2e 28/28. Next: Month/Week toggle (big photos per day) and a Fits/Shoes/Scents filter on the calendar.
+
+## Oct 15: calendar week view + kind filter
+- Done: Month/Week toggle (SET.cmode), All/Fits/Shoes/Scents filter (SET.ckind), week list rows with photo, filter-aware empty hint.
+- Decision: calendar mode action is `calmode` (`cmode` already used by closet view toggle).
+- Checks: check.js 9/9, e2e 28/28, no overflow at 375/402, no page errors.
+- Next: none open.
