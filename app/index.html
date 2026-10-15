@@ -407,7 +407,7 @@ details.det[open] summary{border-bottom:1px solid var(--line);margin-bottom:14px
 .vrow .dots{display:flex;gap:6px}.vrow .dots i{width:20px;height:20px;border-radius:50%;border:1px solid var(--line)}
 .arr-r{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font:600 15px var(--f-body)}.arr-r div{display:flex;gap:8px}.arr-r .rb:disabled{opacity:.3}
 .sh-prev{display:grid;place-items:center;background:rgba(127,127,127,.16);border-radius:16px;padding:10px;margin-bottom:12px;min-height:180px}
-.sh-opts{display:grid;gap:8px;margin-bottom:8px}.sh-opt .cap{margin-bottom:4px}.sh-actions{position:sticky;bottom:-1px;background:var(--surface);padding:12px 0 4px;margin-top:8px}.sh-prev img{max-width:100%;max-height:30vh;border-radius:8px;box-shadow:var(--shadow)}
+.sh-opts{display:grid;gap:8px;margin-bottom:8px}.sh-sub{display:grid;gap:8px}.sh-sub[hidden]{display:none}.sh-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.sh-row input[type=color]{width:46px;height:40px;padding:0;border:0;border-radius:10px;background:none}.sh-row input[type=text]{width:112px;font-size:15px}.sh-pre{width:30px;height:30px;border-radius:50%;border:2px solid var(--line,#8884);padding:0}#sh-o-pat .seg{flex-wrap:wrap}#sh-o-pat .seg button{flex:1 1 auto;white-space:nowrap}.sh-opt .cap{margin-bottom:4px}.sh-actions{position:sticky;bottom:-1px;background:var(--surface);padding:12px 0 4px;margin-top:8px}.sh-prev img{max-width:100%;max-height:30vh;border-radius:8px;box-shadow:var(--shadow)}
 .cell.wk{background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
 .cell.wk .n{color:var(--accent2,var(--accent))}
 .dow.wk{color:var(--accent2,var(--accent))}
@@ -486,7 +486,7 @@ const daysSince=s=>Math.round((parse(today())-parse(s))/864e5);
 const newId=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
 /* ---------- state ---------- */
-const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,occ:Array.isArray(o.occ)?o.occ.filter(x=>x&&x.id&&x.label).slice(0,4):[],accent:['cobalt','heritage','peony','graphite','ember','dusk'].indexOf(o.accent)>=0?o.accent:'cobalt',start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:'',order:Array.isArray(o.order)?o.order.filter(x=>typeof x==='string'):[],cview:o.cview==='swipe'?'swipe':'grid',subs:(o.subs&&typeof o.subs==='object')?o.subs:{},shsize:o.shsize==='st'?'st':'sq',shbrand:o.shbrand!==false,shnames:o.shnames!==false,shtag:o.shtag!==false,shdet:o.shdet!==false,shtheme:o.shtheme==='dark'?'dark':'light',shlogo:['tr','bl','br'].indexOf(o.shlogo)>=0?o.shlogo:'tr',shside:o.shside==='r'?'r':'l',lastBackup:+o.lastBackup||0,bkSnooze:+o.bkSnooze||0,gsoff:o.gsoff===true,shared:o.shared===true}})();
+const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,occ:Array.isArray(o.occ)?o.occ.filter(x=>x&&x.id&&x.label).slice(0,4):[],accent:['cobalt','heritage','peony','graphite','ember','dusk'].indexOf(o.accent)>=0?o.accent:'cobalt',start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:'',order:Array.isArray(o.order)?o.order.filter(x=>typeof x==='string'):[],cview:o.cview==='swipe'?'swipe':'grid',subs:(o.subs&&typeof o.subs==='object')?o.subs:{},shsize:o.shsize==='st'?'st':'sq',shbrand:o.shbrand!==false,shnames:o.shnames!==false,shtag:o.shtag!==false,shdet:o.shdet!==false,shtheme:['light','dark','color','pattern'].indexOf(o.shtheme)>=0?o.shtheme:'light',shcol:/^#[0-9a-f]{6}$/i.test(o.shcol)?o.shcol:'#2744e8',shlt:Math.max(-40,Math.min(40,+o.shlt||0)),shpat:['hound','dots','check','gingham','herring','stripe','tartan'].indexOf(o.shpat)>=0?o.shpat:'hound',shpa:/^#[0-9a-f]{6}$/i.test(o.shpa)?o.shpa:'#111111',shpb:/^#[0-9a-f]{6}$/i.test(o.shpb)?o.shpb:'#ffffff',shps:Math.max(20,Math.min(100,+o.shps||75)),shpin:o.shpin==='l'?'l':'d',shlogo:['tr','bl','br'].indexOf(o.shlogo)>=0?o.shlogo:'tr',shside:o.shside==='r'?'r':'l',lastBackup:+o.lastBackup||0,bkSnooze:+o.bkSnooze||0,gsoff:o.gsoff===true,shared:o.shared===true}})();
 function applyOrder(){const o=SET.order;CATS.sort((a,b)=>{const ia=o.indexOf(a.id),ib=o.indexOf(b.id);return (ia<0?99:ia)-(ib<0?99:ib)})}
 applyOrder();
 const SUBS={tops:['Short sleeve','Long sleeve','T-shirt','Polo','Dress shirt','Collared','Sweater','Hoodie','Tank'],bottoms:['Jeans','Pants','Slacks','Shorts','Joggers'],shoes:['Sneakers','Boots','Dress','Loafers','Sandals'],outerwear:['Jacket','Coat','Vest','Blazer','Hoodie'],accessories:['Hat','Watch','Belt','Chain','Bag','Sunglasses'],scents:['Fresh','Woody','Sweet','Spicy']};
@@ -1476,14 +1476,14 @@ function drawMark(x,W,H,pad,pos,INK,INK2,F,DISP){
   x.restore();
 }
 async function drawRecap(){
-  const sz=SH.size,T=SHT[SH.theme]||SHT.light,W=SIZES[sz][0],H=SIZES[sz][1],c=document.createElement('canvas');c.width=W;c.height=H;
+  const sz=SH.size,T=shPal(),W=SIZES[sz][0],H=SIZES[sz][1],c=document.createElement('canvas');c.width=W;c.height=H;
   const x=c.getContext('2d');try{await document.fonts.ready}catch(e){}
   const INK=T.ink,INK2=T.ink2,ACCENT=T.acc[SET.accent]||T.acc.cobalt,pad=72;
   const F=(w,px,fam)=>w+' '+px+'px '+(fam||'"Instrument Sans",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif');
   const DISP='"Archivo","Helvetica Neue",Arial,sans-serif';
   const r=recapData(SH.m),sk=streakInfo();
   const imgs=await Promise.all(r.top.map(a=>loadSrc(photoSrc((M.get(a[0])||{}).photo))));
-  x.fillStyle=T.bg;x.fillRect(0,0,W,H);x.textBaseline='alphabetic';x.textAlign='left';
+  shPaint(x,W,H,T);x.textBaseline='alphabetic';x.textAlign='left';
   x.fillStyle=INK;x.font=F(700,40);x.fillText(fmt(SH.m+'-01',{month:'long',year:'numeric'}).toUpperCase()+' RECAP',pad,pad+40);
   x.fillStyle=ACCENT;rr(x,pad,pad+70,72,8,4);x.fill();
   x.fillStyle=INK;x.font=F(800,44,DISP);
@@ -1502,7 +1502,7 @@ async function drawRecap(){
     r.top.forEach((a,i)=>{
       const it=M.get(a[0]),tx=ox+i*(t+gap);
       x.save();rr(x,tx,y,t,t,Math.round(t*.14));x.clip();x.fillStyle=T.well;x.fillRect(tx,y,t,t);
-      if(imgs[i]){const im=imgs[i],p=SH.theme==='dark'?0:t*.07,k=Math.min((t-2*p)/im.width,(t-2*p)/im.height),w=im.width*k,h=im.height*k;drawPiece(x,im,tx+(t-w)/2,y+(t-h)/2,w,h,t,SH.theme==='dark')}
+      if(imgs[i]){const im=imgs[i],p=T.dk?0:t*.07,k=Math.min((t-2*p)/im.width,(t-2*p)/im.height),w=im.width*k,h=im.height*k;drawPiece(x,im,tx+(t-w)/2,y+(t-h)/2,w,h,t,T.dk)}
       else{x.fillStyle=T.ph;x.font=F(700,Math.round(t*.4),DISP);x.textAlign='center';x.fillText((it.name||'?').charAt(0).toUpperCase(),tx+t/2,y+t/2+t*.14);x.textAlign='left'}
       x.restore();
       x.textAlign='center';let ly=y+t+40;
@@ -1536,7 +1536,8 @@ function shOpt(key,label,opts,hide){
 }
 function syncShareOpts(){
   const e=$('#sh-o-side');if(e)e.hidden=!(SH.size==='sq'&&SH.hasPhoto);
-  ['size','theme','logo','side','iside'].forEach(k=>document.querySelectorAll('#sh-o-'+k+' button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===SH[k]?'true':'false')));
+  const bc=$('#sh-bg-color'),bp=$('#sh-bg-pat');if(bc)bc.hidden=SH.theme!=='color';if(bp)bp.hidden=SH.theme!=='pattern';
+  ['size','theme','logo','side','iside','pat','pin'].forEach(k=>document.querySelectorAll('#sh-o-'+k+' button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===SH[k]?'true':'false')));
 }
 /* drag the preview to move the outfit photo, slider to zoom */
 let SHQ=0;
@@ -1547,6 +1548,11 @@ function shQueue(){const go=$('#sh-go'),sv=$('#sh-save');if(go)go.disabled=true;
 function wireShare(){
   const im=$('#sh-img'),z=$('#sh-zoom');if(!SH)return;
   if(z)z.addEventListener('input',()=>{SH.zm=(+z.value||100)/100;shFast()}),z.addEventListener('change',()=>buildShare());
+  const bind=(id,fn)=>{const e=$('#'+id);if(!e)return;e.addEventListener('input',()=>{fn(e);shFast()});e.addEventListener('change',()=>{shSave();buildShare()})};
+  bind('sh-col',e=>{SH.col=e.value;const t=$('#sh-hex');if(t)t.value=e.value});
+  bind('sh-hex',e=>{let v=e.value.trim();if(v[0]!=='#')v='#'+v;if(HEXR.test(v)){SH.col=v.toLowerCase();const c=$('#sh-col');if(c)c.value=SH.col}});
+  bind('sh-lt',e=>{SH.lt=+e.value||0});bind('sh-ps',e=>{SH.ps=+e.value||75});
+  bind('sh-pa',e=>{SH.pa=e.value});bind('sh-pb',e=>{SH.pb=e.value});
   if(!im||!SH.hasPhoto)return;
   im.style.touchAction='none';im.style.cursor='grab';
   let d=null;
@@ -1568,13 +1574,21 @@ function wireShare(){
 }
 function renderShare(){
   const h=$('#share');if(!SH){if(h)h.innerHTML='';return}
+  shDef();
   h.innerHTML='<div class="crop-s"><div class="crop find" role="dialog" aria-modal="true" aria-label="Share outfit">'
    +'<div class="sheet-h" style="margin-bottom:10px"><h2 style="margin:0">Share</h2><button type="button" class="x" data-act="share-close" aria-label="Close">'+ico(P.x)+'</button></div>'
    +'<div class="sh-prev"><img id="sh-img" alt="Preview of the image you will share" hidden><span id="sh-wait" class="hint">Building your image</span></div>'
    +(SH.mode==='fit'?'<div class="sh-opt" style="margin-bottom:4px"><div class="det" style="margin:0"><input id="sh-cap-inp" type="text" maxlength="60" placeholder="Add a caption (optional)" value="'+esc(SH.caption||'')+'" data-act="share-caption" autocomplete="off" style="width:100%;font-size:15px"></div></div>':'')
    +'<div class="sh-opts">'
    +shOpt('size','Size',[['sq','Square'],['st','Story']])
-   +shOpt('theme','Look',[['light','Light'],['dark','Dark']])
+   +shOpt('theme','Background',[['light','Light'],['dark','Dark'],['color','Color'],['pattern','Pattern']])
+   +'<div class="sh-sub" id="sh-bg-color"'+(SH.theme==='color'?'':' hidden')+'><div class="sh-row"><input type="color" id="sh-col" value="'+shHex(SH.col)+'" aria-label="Background color"><input type="text" id="sh-hex" value="'+shHex(SH.col)+'" maxlength="7" autocapitalize="off" autocomplete="off" spellcheck="false" aria-label="Hex code" placeholder="#2744e8"></div><div class="sh-row"><span class="hint">Darker</span><input id="sh-lt" type="range" min="-40" max="40" step="1" value="'+(SH.lt||0)+'" aria-label="Darker or lighter" style="flex:1"><span class="hint">Lighter</span></div></div>'
+   +'<div class="sh-sub" id="sh-bg-pat"'+(SH.theme==='pattern'?'':' hidden')+'>'
+   +shOpt('pat','Pattern',[['hound','Houndstooth'],['dots','Dots'],['check','Checker'],['gingham','Gingham'],['herring','Herringbone'],['stripe','Stripes'],['tartan','Tartan']])
+   +'<div class="sh-row" id="sh-pcols"><input type="color" id="sh-pa" value="'+shHex(SH.pa)+'" aria-label="Pattern color 1"><input type="color" id="sh-pb" value="'+shHex(SH.pb)+'" aria-label="Pattern color 2">'
+   +[['#111111','#ffffff','Black and white'],['#1e2a4a','#f1ebdd','Navy and cream'],['#1f5c45','#efe9d8','Green and cream'],['#2744e8','#ffffff','Cobalt and white'],['#7a1f2b','#efe6d6','Burgundy and cream']].map(q=>'<button type="button" class="sh-pre" data-act="share-preset" data-a="'+q[0]+'" data-b="'+q[1]+'" aria-label="'+q[2]+'" style="background:linear-gradient(135deg,'+q[0]+' 50%,'+q[1]+' 50%)"></button>').join('')+'</div>'
+   +'<div class="sh-row"><span class="hint">Subtle</span><input id="sh-ps" type="range" min="20" max="100" step="1" value="'+(SH.ps||75)+'" aria-label="Pattern strength" style="flex:1"><span class="hint">Bold</span></div>'
+   +shOpt('pin','Inside',[['d','Dark'],['l','Light']])+'</div>'
    +shOpt('logo','Rotation watermark',[['tr','Top right'],['bl','Bottom left'],['br','Bottom right']])
    +shOpt('side','Outfit photo',[['l','Left'],['r','Right']],!(SH.size==='sq'&&SH.hasPhoto))
    +shOpt('iside','Photo',[['f','Front'],['b','Back'],['2','Both']],!(SH.mode==='item'&&SH.hasBack))
@@ -1602,12 +1616,54 @@ function drawPiece(x,im,a,b,w,h,t,dark){
   x.globalCompositeOperation='multiply';x.drawImage(im,a,b,w,h);x.globalCompositeOperation='source-over';
 }
 const SHT={
-  light:{bg:'#F4F3EF',ink:'#14171C',ink2:'#6A717C',well:'#E7E9ED',ph:'#6A717C',acc:{cobalt:'#2744E8',heritage:'#D4001F',peony:'#2E9E6B',graphite:'#16181C',ember:'#D9480F',dusk:'#5B3FD4'}},
-  dark:{bg:'#101216',ink:'#F2F3F5',ink2:'#98A0AC',well:'#14171C',ph:'#6A717C',acc:{cobalt:'#8196FF',heritage:'#FF3B3B',peony:'#5FD39A',graphite:'#EDEDEE',ember:'#FF8A4C',dusk:'#9D82F5'}}
+  light:{dk:false,bg:'#F4F3EF',ink:'#14171C',ink2:'#6A717C',well:'#E7E9ED',ph:'#6A717C',acc:{cobalt:'#2744E8',heritage:'#D4001F',peony:'#2E9E6B',graphite:'#16181C',ember:'#D9480F',dusk:'#5B3FD4'}},
+  dark:{dk:true,bg:'#101216',ink:'#F2F3F5',ink2:'#98A0AC',well:'#14171C',ph:'#6A717C',acc:{cobalt:'#8196FF',heritage:'#FF3B3B',peony:'#5FD39A',graphite:'#EDEDEE',ember:'#FF8A4C',dusk:'#9D82F5'}}
 };
+/* share backgrounds: a solid color (with a lighter/darker slider) or a pattern drawn in code */
+const HEXR=/^#[0-9a-f]{6}$/i;
+const hex2rgb=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16));
+const rgb2hex=a=>'#'+a.map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('');
+const mixHex=(a,b,t)=>{const A=hex2rgb(a),B=hex2rgb(b);return rgb2hex(A.map((v,i)=>v+(B[i]-v)*t))};
+const lumHex=h=>{const c=hex2rgb(h).map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)});return .2126*c[0]+.7152*c[1]+.0722*c[2]};
+const shHex=v=>HEXR.test(v)?v.toLowerCase():'#2744e8';
+function shDef(){if(SH&&SH.col===undefined)Object.assign(SH,{col:SET.shcol,lt:SET.shlt,pat:SET.shpat,pa:SET.shpa,pb:SET.shpb,ps:SET.shps,pin:SET.shpin})}
+function shSave(){if(!SH)return;SET.shcol=shHex(SH.col);SET.shlt=SH.lt||0;SET.shpa=shHex(SH.pa);SET.shpb=shHex(SH.pb);SET.shps=SH.ps||75;saveSet()}
+function shPal(){
+  shDef();
+  if(SH.theme==='color'){
+    const base=shHex(SH.col),t=(SH.lt||0)/100,bg=t<0?mixHex(base,'#000000',-t):mixHex(base,'#ffffff',t),dark=lumHex(bg)<.35,P=dark?SHT.dark:SHT.light;
+    return Object.assign({},P,{dk:dark,bg:bg,well:dark?'rgba(255,255,255,.12)':'rgba(0,0,0,.07)'});
+  }
+  if(SH.theme==='pattern')return SH.pin==='l'?SHT.light:SHT.dark;
+  return SHT[SH.theme]||SHT.light;
+}
+function shTile(){
+  const id=SH.pat,s=Math.max(.2,Math.min(1,(SH.ps||75)/100)),A=shHex(SH.pa),B=mixHex(A,shHex(SH.pb),.3+.7*s),a=hex2rgb(A),b=hex2rgb(B);
+  const mk=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return [c,c.getContext('2d')]};
+  const px=(w,h,fn,sc)=>{const [c,g]=mk(w,h),im=g.createImageData(w,h);for(let y=0;y<h;y++)for(let x=0;x<w;x++){const col=fn(x,y),i=(y*w+x)*4;im.data[i]=col[0];im.data[i+1]=col[1];im.data[i+2]=col[2];im.data[i+3]=255}g.putImageData(im,0,0);const [c2,g2]=mk(w*sc,h*sc);g2.imageSmoothingEnabled=false;g2.drawImage(c,0,0,w*sc,h*sc);return c2};
+  if(id==='hound'){const th=v=>v%8<4;return px(8,8,(x,y)=>(x+y)%4<2?(th(x)?a:b):(th(y)?a:b),6)}
+  if(id==='tartan'){
+    const C={B:[30,58,107],K:[11,13,16],G:[29,90,60]},spec=[['B',12],['K',2],['B',2],['K',2],['B',2],['K',14],['G',14],['K',2],['G',14]],t=[];
+    spec.forEach(q=>{for(let k=0;k<q[1];k++)t.push(C[q[0]])});
+    return px(t.length,t.length,(x,y)=>(x+y)%4<2?t[x]:t[y],3);
+  }
+  if(id==='herring')return px(16,12,(x,y)=>{const u=x%16<8?x%8:7-x%8;return (y+u)%6<3?b:a},6);
+  const [c,g]=mk(96,96);g.fillStyle=A;g.fillRect(0,0,96,96);
+  if(id==='dots'){g.fillStyle=B;[[24,24],[72,72]].forEach(q=>{g.beginPath();g.arc(q[0],q[1],14,0,6.2832);g.fill()})}
+  else if(id==='check'){g.fillStyle=B;g.fillRect(0,0,48,48);g.fillRect(48,48,48,48)}
+  else if(id==='gingham'){g.fillStyle=B;g.globalAlpha=.5;g.fillRect(0,0,48,96);g.fillRect(0,0,96,48)}
+  else{g.fillStyle=B;for(let k=0;k<4;k++)g.fillRect(k*24+10,0,4,96)}
+  return c;
+}
+function shPaint(x,W,H,T){
+  x.fillStyle=T.bg;x.fillRect(0,0,W,H);
+  if(SH.theme!=='pattern')return;
+  x.fillStyle=x.createPattern(shTile(),'repeat');x.fillRect(0,0,W,H);
+  const m=40;x.fillStyle=T.bg;rr(x,m,m,W-2*m,H-2*m,44);x.fill();
+}
 async function drawShare(){
   if(SH.mode==='recap')return drawRecap();
-  const sz=SH.size,brands=SH.brands,T=SHT[SH.theme]||SHT.light;
+  const sz=SH.size,brands=SH.brands,T=shPal();
   const itemMode=SH.mode==='item',dd=(itemMode||SH.look)?{}:S.days[SH.d],o=SH.look?shLook():(itemMode||SH.mode==='scent'||SH.mode==='shoe')?dd:(SH.k?dd.more[SH.k-1]:dd);
   const W=SIZES[sz][0],H=SIZES[sz][1],c=document.createElement('canvas');c.width=W;c.height=H;
   const x=c.getContext('2d');
@@ -1622,7 +1678,7 @@ async function drawShare(){
   const imgs=await Promise.all(its.map(i=>loadSrc(photoSrc(iside==='b'?i.photo2:i.photo))));
   const img2=iside==='2'?await loadSrc(photoSrc(sc.photo2)):null;
   const fit=scentMode?null:await loadSrc(o.photo?photoSrc(o.photo):''),feetImg=(shoeMode&&SH.feet&&dd.shoePhoto)?await loadSrc(photoSrc(dd.shoePhoto)):null;
-  x.fillStyle=BG;x.fillRect(0,0,W,H);
+  shPaint(x,W,H,T);
   const pad=72;
   /* header: the date is always top left */
   x.textBaseline='alphabetic';x.textAlign='left';x.fillStyle=INK;x.font=F(700,40);
@@ -1652,7 +1708,7 @@ async function drawShare(){
       x.save();rr(x,tx,ty,t,t,Math.round(t*.14));x.clip();
       x.fillStyle=WELL;x.fillRect(tx,ty,t,t);
       if(imgs[i]&&scentMode&&!shoeMode){const im=imgs[i],k=Math.max(t/im.width,t/im.height),w=im.width*k,h=im.height*k;x.drawImage(im,tx+(t-w)/2,ty+(t-h)/2,w,h)}
-      else if(imgs[i]){const im=imgs[i],p=SH.theme==='dark'?0:t*.07,k=Math.min((t-2*p)/im.width,(t-2*p)/im.height),w=im.width*k,h=im.height*k;drawPiece(x,im,tx+(t-w)/2,ty+(t-h)/2,w,h,t,SH.theme==='dark')}
+      else if(imgs[i]){const im=imgs[i],p=T.dk?0:t*.07,k=Math.min((t-2*p)/im.width,(t-2*p)/im.height),w=im.width*k,h=im.height*k;drawPiece(x,im,tx+(t-w)/2,ty+(t-h)/2,w,h,t,T.dk)}
       else{x.fillStyle=T.ph;x.font=F(700,Math.round(t*.4),DISP);x.textAlign='center';x.fillText((it.name||'?').charAt(0).toUpperCase(),tx+t/2,ty+t/2+t*.14);x.textAlign='left'}
       x.restore();
       if(!lnames&&!brands)return;
@@ -2347,6 +2403,7 @@ document.addEventListener('click',e=>{
     case 'scent-set':setDayScent(S.dv,id);closeLooks();break;
     case 'scent-new':closeLooks();openItem(null,{cat:'scents',scentDay:S.dv});break;
     case 'scent-clear':setDayScent(S.dv,'');toast('Scent removed');break;
+    case 'share-preset':if(SH){SH.pa=el.dataset.a;SH.pb=el.dataset.b;const a=$('#sh-pa'),b=$('#sh-pb');if(a)a.value=SH.pa;if(b)b.value=SH.pb;shSave();shQueue()}break;
     case 'share-opt':if(SH){const k=el.dataset.k,v=el.dataset.v;if(SH[k]!==v){SH[k]=v;if(k!=='iside'){SET['sh'+k]=v;saveSet()}syncShareOpts();shQueue()}}break;
     case 'share-det':if(SH){SH.det=SET.shdet=!SH.det;saveSet();el.setAttribute('aria-pressed',SH.det?'true':'false');shQueue()}break;
     case 'share-tag':if(SH){SH.tag=SET.shtag=!SH.tag;saveSet();el.setAttribute('aria-pressed',SH.tag?'true':'false');shQueue()}break;
