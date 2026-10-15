@@ -36,3 +36,4 @@ Oct 15 phone calendar (Tone's iPhone vs iPad screenshots): on phones (<=520px) d
 - Done: no pieces selected now shows the whole outfit photo (fitted, not cropped to the square box). Scent/shoe cards lead with "SCENT OF THE DAY" / "SHOE OF THE DAY" as the title, date + rating underneath.
 - Checks: check.js and e2e.py pass.
 - Share cards: every layout (square with pieces, story, on-feet) now scales the whole photo to fit instead of cropping. Zoom/drag still crops on purpose.
+- Landing page (root index.html): nav and footer wordmark now ROTATION.fit (caps ROTATION, lowercase .fit). Live app link is /rotation/app/, root is the landing page.
