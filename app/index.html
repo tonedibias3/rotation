@@ -1892,9 +1892,11 @@ async function drawShare(){
     x.drawImage(im,ax+(aw-w)*fx,ay+(ah-h)*fy,w,h);x.restore();
     if(mine)SH.box={x:ax,y:ay,w:aw,h:ah,iw:w,ih:h,cw:W,ch:H};
   };
+  /* show the whole picture: scale it to fit the slot and center it, so nothing is cropped until the person zooms */
+  const whole=(ax,ay,aw,ah,im)=>{im=im||fit;const k0=Math.min(aw/im.width,ah/im.height),bw=Math.round(im.width*k0),bh=Math.round(im.height*k0);cover(ax+Math.round((aw-bw)/2),ay+Math.round((ah-bh)/2),bw,bh,im)};
   if(feetImg&&its[0]){
     const it=its[0],lab=(lnames||brands)?(lnames&&brands&&it.brand?120:80):0;
-    cover(pad,top,cw,ch-lab,feetImg);
+    whole(pad,top,cw,ch-lab,feetImg);
     if(lnames||brands){
       const showB=brands&&!!it.brand,showN=!itemMode&&(SH.names||(brands&&!it.brand));
       x.textAlign='center';let ly=top+ch-lab+44;
@@ -1927,15 +1929,17 @@ async function drawShare(){
     }
   }
   else if(!fit){tiles(pad,top,cw,ch,its.length<=2?1:its.length<=4?2:its.length<=9?3:4)}
-  else if(!its.length){const k0=Math.min(cw/fit.width,ch/fit.height),bw=Math.round(fit.width*k0),bh=Math.round(fit.height*k0);cover(pad+Math.round((cw-bw)/2),top+Math.round((ch-bh)/2),bw,bh)}
+  else if(!its.length){whole(pad,top,cw,ch)}
   else if(sz==='st'){
-    let ph=Math.min(860,Math.round(ch*.56));
-    if(fit.width<fit.height*.95)ph=Math.max(ph,Math.min(Math.round(ch*.64),Math.round(cw*fit.height/fit.width)));
-    cover(pad,top,cw,ph);
-    const n=its.length;tiles(pad,top+ph+40,cw,ch-ph-40,n<=3?n:Math.ceil(n/2));
+    const n=its.length,rowsT=n<=3?1:2;
+    const ph=Math.max(Math.round(ch*.4),Math.min(Math.round(ch*.7),ch-40-rowsT*330));
+    const k1=Math.min(cw/fit.width,ph/fit.height),shown=Math.round(fit.height*k1);
+    whole(pad,top,cw,ph);
+    const used=Math.max(shown,Math.round(ch*.3));
+    tiles(pad,top+used+40,cw,ch-used-40,n<=3?n:Math.ceil(n/2));
   }else{
     const pw=Math.round(cw*.46),right=SH.side==='r',gx=pad+(right?cw-pw:0);
-    cover(gx,top,pw,ch);
+    whole(gx,top,pw,ch);
     tiles(right?pad:pad+pw+40,top,cw-pw-40,ch,its.length<=2?1:its.length>6?3:2);
   }
   return c;
