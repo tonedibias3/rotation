@@ -254,13 +254,13 @@ svg{width:18px;height:18px;flex:none}
 .sw-t[aria-pressed="true"]::after{transform:translateX(20px)}
 .back{display:inline-flex;align-items:center;gap:6px;border:0;background:none;color:var(--accent);font:600 14px var(--f-body);padding:4px 0 12px;cursor:pointer}
 /* crop */
-.crop-s{position:fixed;inset:0;z-index:80;background:rgba(8,10,14,.78);display:grid;place-items:center;padding:16px;animation:fade .2s}
+.crop-s{position:fixed;inset:0;z-index:80;background:rgba(8,10,14,.78);display:grid;place-items:center;padding:16px;animation:fade .2s;overscroll-behavior:contain;touch-action:none}
+.crop-s .crop{max-height:100%;overflow:auto;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch}
 .crop{width:min(100%,400px);background:var(--surface);border-radius:26px;padding:18px;box-shadow:var(--shadow-pill)}
 .crop h2{margin:0 0 4px;font:800 18px var(--f-display);font-stretch:116%;text-transform:uppercase}
 .crop .hint{margin:0 0 12px}
-.crop-f{position:relative;width:100%;aspect-ratio:1;border-radius:20px;overflow:hidden;background:#fff;touch-action:none;cursor:grab;box-shadow:inset 0 0 0 1px var(--line)}
-.crop-f canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-.crop-f::after{content:"";position:absolute;inset:0;border-radius:20px;pointer-events:none;background:linear-gradient(rgba(19,22,27,.14),rgba(19,22,27,.14)) 33.33% 0/1px 100% no-repeat,linear-gradient(rgba(19,22,27,.14),rgba(19,22,27,.14)) 66.66% 0/1px 100% no-repeat,linear-gradient(rgba(19,22,27,.14),rgba(19,22,27,.14)) 0 33.33%/100% 1px no-repeat,linear-gradient(rgba(19,22,27,.14),rgba(19,22,27,.14)) 0 66.66%/100% 1px no-repeat}
+.crop-f{position:relative;width:calc(100% - 28px);margin:0 14px;aspect-ratio:1;touch-action:none;cursor:grab}
+.crop-f canvas{position:absolute;left:-14px;top:-14px;width:calc(100% + 28px);height:calc(100% + 28px);display:block;border-radius:22px}
 .crop-t{display:flex;gap:8px;margin:0 0 10px}.crop-t .btn{flex:1;padding-inline:8px}
 .crop-t .btn[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
 .crop-tw{display:flex;align-items:center;gap:10px;margin:-4px 0 10px}.crop-tw label{font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}.crop-tw input{flex:1;margin:0!important}
@@ -390,7 +390,7 @@ details.det{margin:0 0 16px;border:1px solid var(--line);border-radius:14px;padd
 details.det summary{cursor:pointer;padding:13px 0;font:600 14px var(--f-body);list-style:none}details.det summary::-webkit-details-marker{display:none}
 details.det summary i{font:400 12px var(--f-body);font-style:normal;color:var(--ink2);margin-left:6px}
 details.det[open] summary{border-bottom:1px solid var(--line);margin-bottom:14px}
-.photo-row.bk{margin-top:-4px}.ph.bk{font:500 12px var(--f-mono);letter-spacing:.06em;text-transform:uppercase}
+.photo-row.bk{margin-top:0}.bk-e{display:grid;gap:6px;justify-items:center;font:500 12px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}.bk-e svg{width:24px;height:24px}.bk-e i{font-style:normal}
 .field{min-width:0}.field input[type=date]{min-height:46px;display:block;width:100%;min-width:0;max-width:100%;-webkit-appearance:none;appearance:none;text-align:left}.field input[type=date]::-webkit-date-and-time-value{text-align:left;min-width:0}.two{align-items:end}
 .ctl{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-4px 0 10px}
 .seg.mini{padding:3px;border-radius:11px;flex:none}.seg.mini button{padding:7px 14px;font-size:12.5px;border-radius:8px}
@@ -407,7 +407,7 @@ details.det[open] summary{border-bottom:1px solid var(--line);margin-bottom:14px
 .vrow .dots{display:flex;gap:6px}.vrow .dots i{width:20px;height:20px;border-radius:50%;border:1px solid var(--line)}
 .arr-r{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font:600 15px var(--f-body)}.arr-r div{display:flex;gap:8px}.arr-r .rb:disabled{opacity:.3}
 .sh-prev{display:grid;place-items:center;background:rgba(127,127,127,.16);border-radius:16px;padding:10px;margin-bottom:12px;min-height:180px}
-.sh-opts{display:grid;gap:8px;margin-bottom:8px}.sh-sub{display:grid;gap:8px}.sh-sub[hidden]{display:none}.sh-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.sh-row input[type=color]{width:46px;height:40px;padding:0;border:0;border-radius:10px;background:none}.sh-row input[type=text]{width:112px;font-size:15px}.sh-pre{width:30px;height:30px;border-radius:50%;border:2px solid var(--line,#8884);padding:0}#sh-o-pat .seg{flex-wrap:wrap}#sh-o-pat .seg button{flex:1 1 auto;white-space:nowrap}.sh-opt .cap{margin-bottom:4px}.sh-actions{position:sticky;bottom:-1px;background:var(--surface);padding:12px 0 4px;margin-top:8px}.sh-prev img{max-width:100%;max-height:30vh;border-radius:8px;box-shadow:var(--shadow)}
+.sh-opts{display:grid;gap:8px;margin-bottom:8px}.sh-sub{display:grid;gap:8px}.sh-sub[hidden]{display:none}.sh-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.sh-row input[type=color]{width:46px;height:40px;padding:0;border:0;border-radius:10px;background:none}.sh-row input[type=text]{width:120px;font:500 15px var(--f-mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;-webkit-appearance:none;appearance:none}.sh-pre{width:30px;height:30px;border-radius:50%;border:2px solid var(--line,#8884);padding:0}#sh-o-pat .seg{flex-wrap:wrap}#sh-o-pat .seg button{flex:1 1 auto;white-space:nowrap}.sh-opt .cap{margin-bottom:4px}.sh-actions{position:sticky;bottom:-1px;background:var(--surface);padding:12px 0 4px;margin-top:8px}.sh-prev img{max-width:100%;max-height:30vh;border-radius:8px;box-shadow:var(--shadow)}
 .cell.wk{background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
 .cell.wk .n{color:var(--accent2,var(--accent))}
 .dow.wk{color:var(--accent2,var(--accent))}
@@ -1529,7 +1529,7 @@ function openShareItem(id){
 }
 function closeShare(){
   if(SH&&SH.url){try{URL.revokeObjectURL(SH.url)}catch(e){}}
-  SH=null;const h=$('#share');if(h)h.innerHTML='';
+  SH=null;const h=$('#share');if(h)h.innerHTML='';if(!S.sheet&&!S.vw&&!QA)document.body.style.overflow='';
 }
 function shOpt(key,label,opts,hide){
   return '<div class="sh-opt" id="sh-o-'+key+'"'+(hide?' hidden':'')+'><span class="cap">'+label+'</span><div class="seg" role="group" aria-label="'+label+'">'+opts.map(o=>'<button type="button" data-act="share-opt" data-k="'+key+'" data-v="'+o[0]+'" aria-pressed="'+(SH[key]===o[0])+'">'+o[1]+'</button>').join('')+'</div></div>';
@@ -1604,6 +1604,7 @@ function renderShare(){
    +'<div class="set-row"><span><b>Show brands</b><i>Works on its own, with or without names. Prices and where you bought it are never shown.</i></span><button type="button" class="sw-t" id="sh-br" data-act="share-brands" aria-pressed="'+SH.brands+'" aria-label="Show brands"></button></div>'
    +'<div class="btn-row sh-actions"><button type="button" class="btn primary" id="sh-go" data-act="share-go" disabled>Share</button><button type="button" class="btn ghost" id="sh-save" data-act="share-save" disabled>Save to Photos</button></div>'
    +'</div></div>';
+  document.body.style.overflow='hidden';
   wireShare();
 }
 const IMC=new Map();
@@ -1980,7 +1981,7 @@ function syncPhoto(){
   ['f','b'].forEach(sl=>{
     const k=PK(sl),x=k.px,src=d[k.pu]||photoSrc(d[k.ph]),pv=$('#pv'+x);
     if(!pv)return;
-    pv.innerHTML=src?'<img src="'+esc(src)+'" alt="Photo preview">':(sl==='f'?'<span class="ph" style="--c:'+(COLORS[d.color]||'#9a9ea6')+'">'+ICONS[d.category]+'</span>':'<span class="ph bk">Back</span>');
+    pv.classList.toggle('add',!src&&sl==='b');pv.innerHTML=src?'<img src="'+esc(src)+'" alt="Photo preview">':(sl==='f'?'<span class="ph" style="--c:'+(COLORS[d.color]||'#9a9ea6')+'">'+ICONS[d.category]+'</span>':'<span class="bk-e">'+ico(P.cam)+'<i>Back</i></span>');
     $('#pv-l'+x).textContent=src?(sl==='b'?'Replace back photo':'Replace photo'):(sl==='b'?'Add back photo':'Add photo');
     $('#pv-c'+x).hidden=!src;
     $('#pv-a'+x).hidden=!src;
@@ -2024,7 +2025,7 @@ async function onFile(file,sl){
 }
 
 /* ---------- photo crop ---------- */
-let CR=null;
+let CR=null;const CPAD=14;
 const CROP_OUT=720;
 function openCrop(img){
   const w=img.width||img.naturalWidth,h=img.height||img.naturalHeight;
@@ -2032,7 +2033,7 @@ function openCrop(img){
   const host=$('#crop');
   host.innerHTML='<div class="crop-s"><div class="crop" role="dialog" aria-modal="true" aria-label="Move and crop photo"><h2>Move and crop</h2><p class="hint">Drag any corner or edge handle to crop freely. Drag inside the box to move it. Drag outside it, pinch, or use the slider to move and zoom the photo.</p><div class="crop-f" id="crop-f"><canvas id="crop-c"></canvas></div><input id="crop-z" type="range" min="0" max="100" value="0" aria-label="Zoom"><div class="crop-t"><button type="button" class="btn ghost" data-act="crop-fit">Center piece</button><button type="button" class="btn ghost" id="crop-cl" data-act="crop-clean" aria-pressed="false">Clean background</button></div><div id="crop-tw" class="crop-tw" hidden><label for="crop-tol">Strength</label><input id="crop-tol" type="range" min="12" max="90" value="40" aria-label="Background cleanup strength"></div><div class="btn-row"><button type="button" class="btn ghost" data-act="crop-reset">Reset</button><button type="button" class="btn ghost danger" data-act="crop-remove">Remove photo</button><button type="button" class="btn ghost" data-act="crop-cancel">Cancel</button><button type="button" class="btn primary" data-act="crop-done">Done</button></div></div></div>';
   const f=$('#crop-f'),c=$('#crop-c'),box=f.clientWidth||300,dpr=Math.min(2,window.devicePixelRatio||1);
-  c.width=c.height=Math.round(box*dpr);
+  c.width=c.height=Math.round((box+2*CPAD)*dpr);
   CR={orig:img,clean:false,tol:40,img:img,w:w,h:h,box:box,cb:{x:0,y:0,w:box,h:box},drag:null,cx:w/2,cy:h/2,min:1,max:1,s:1,ptr:new Map(),pd:0};
   CR.min=box/Math.max(w,h);CR.max=Math.max(CR.min*6,box/Math.min(w,h)*3);CR.s=CR.min;fitBox();
   const tl=$('#crop-tol');
@@ -2176,17 +2177,22 @@ function paintCrop(ctx,size,crop,sy){
 }
 function drawCrop(){
   const c=$('#crop-c');if(!c||!CR)return;
-  const ctx=c.getContext('2d'),size=c.width,k=size/CR.box,cb=CR.cb;
-  paintCrop(ctx,size,false);
+  const ctx=c.getContext('2d'),k=c.width/(CR.box+2*CPAD),F=CR.box*k,cb=CR.cb;
+  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,c.width,c.height);
+  ctx.fillStyle='#1b1e24';ctx.fillRect(0,0,c.width,c.height);
+  ctx.save();ctx.translate(CPAD*k,CPAD*k);
+  ctx.save();rr(ctx,0,0,F,F,18*k);ctx.clip();
+  paintCrop(ctx,F,false);
   const x=cb.x*k,y=cb.y*k,w=cb.w*k,h=cb.h*k;
   ctx.fillStyle='rgba(8,10,14,.55)';
-  ctx.fillRect(0,0,size,y);ctx.fillRect(0,y+h,size,size-y-h);ctx.fillRect(0,y,x,h);ctx.fillRect(x+w,y,size-x-w,h);
-  const dpr=size/(c.clientWidth||size);
-  ctx.strokeStyle='#fff';ctx.lineWidth=2*dpr;ctx.strokeRect(x,y,w,h);
-  ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=1*dpr;
+  ctx.fillRect(0,0,F,y);ctx.fillRect(0,y+h,F,F-y-h);ctx.fillRect(0,y,x,h);ctx.fillRect(x+w,y,F-x-w,h);
+  ctx.restore();
+  ctx.strokeStyle='#fff';ctx.lineWidth=2*k;ctx.strokeRect(x,y,w,h);
+  ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=1*k;
   ctx.beginPath();[1/3,2/3].forEach(f=>{ctx.moveTo(x+w*f,y);ctx.lineTo(x+w*f,y+h);ctx.moveTo(x,y+h*f);ctx.lineTo(x+w,y+h*f)});ctx.stroke();
-  ctx.fillStyle='#fff';ctx.strokeStyle='rgba(8,10,14,.45)';ctx.lineWidth=1*dpr;
-  handles().forEach(p=>{const corner=p.fx%1===0&&p.fy%1===0;ctx.beginPath();ctx.arc(p.x*k,p.y*k,(corner?9:6)*dpr,0,6.2832);ctx.fill();ctx.stroke()});
+  ctx.fillStyle='#fff';ctx.strokeStyle='rgba(8,10,14,.45)';ctx.lineWidth=1*k;
+  handles().forEach(p=>{const corner=p.fx%1===0&&p.fy%1===0;ctx.beginPath();ctx.arc(p.x*k,p.y*k,(corner?9:6)*k,0,6.2832);ctx.fill();ctx.stroke()});
+  ctx.restore();
 }
 function cropReset(){if(!CR)return;CR.clean=false;applyClean();CR.cx=CR.w/2;CR.cy=CR.h/2;CR.s=CR.min;fitBox();setScale(CR.min);drawCrop()}
 function closeCrop(){CR=null;const h=$('#crop');if(h)h.innerHTML=''}

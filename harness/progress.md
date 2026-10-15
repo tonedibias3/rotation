@@ -11,3 +11,5 @@ Open issues:
 Cleanup Oct 14: removed dead cloud-sync/asset-upload code (window.claude, ASSETS, store flags), unused constants and a dead helper; app/index.html 195 KB -> 192 KB, 2454 -> ~2390 lines. Audit found no unused CSS, icons, keyframes, TODOs or console logs.
 iOS prep Oct 14: added NSLocationWhenInUse string (weather), ITSAppUsesNonExemptEncryption=false, @capacitor/share dependency.
 Next action: Tone picks the next batch (ideas: photo cleanup/auto-trim, share card polish, calendar/stats depth, iOS-native export).
+
+Oct 15 bug pass (iPad screenshots): crop dialog canvas now extends 14px past the frame so edge handles are never clipped; empty Back slot is a dashed camera tile (was a blank tinted square with undefined --c); share sheet locks page scroll and scrolls itself (overscroll-behavior contain); hex field styled. check.js 8/8. Open: screenshots (c) blank Photos-picker preview is iOS-side; (e)/(f) before/after-save differences need Tone's notes.
