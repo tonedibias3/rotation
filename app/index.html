@@ -486,7 +486,7 @@ const daysSince=s=>Math.round((parse(today())-parse(s))/864e5);
 const newId=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
 /* ---------- state ---------- */
-const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,occ:Array.isArray(o.occ)?o.occ.filter(x=>x&&x.id&&x.label).slice(0,4):[],accent:['cobalt','heritage','peony','graphite','ember','dusk'].indexOf(o.accent)>=0?o.accent:'cobalt',start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:'',order:Array.isArray(o.order)?o.order.filter(x=>typeof x==='string'):[],cview:o.cview==='swipe'?'swipe':'grid',sort:o.sort==='worn'?'worn':'brand',subs:(o.subs&&typeof o.subs==='object')?o.subs:{},shsize:o.shsize==='st'?'st':'sq',shbrand:o.shbrand!==false,shnames:o.shnames!==false,shtag:o.shtag!==false,shdet:o.shdet!==false,shtheme:['light','dark','color','pattern'].indexOf(o.shtheme)>=0?o.shtheme:'light',shcol:/^#[0-9a-f]{6}$/i.test(o.shcol)?o.shcol:'#2744e8',shlt:Math.max(-40,Math.min(40,+o.shlt||0)),shpat:['hound','dots','check','gingham','herring','stripe','tartan'].indexOf(o.shpat)>=0?o.shpat:'hound',shpa:/^#[0-9a-f]{6}$/i.test(o.shpa)?o.shpa:'#111111',shpb:/^#[0-9a-f]{6}$/i.test(o.shpb)?o.shpb:'#ffffff',shps:Math.max(20,Math.min(100,+o.shps||75)),shpin:o.shpin==='l'?'l':'d',shlogo:['tr','bl','br'].indexOf(o.shlogo)>=0?o.shlogo:'tr',shside:o.shside==='r'?'r':'l',lastBackup:+o.lastBackup||0,bkSnooze:+o.bkSnooze||0,gsoff:o.gsoff===true,shared:o.shared===true}})();
+const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,occ:Array.isArray(o.occ)?o.occ.filter(x=>x&&x.id&&x.label).slice(0,4):[],accent:['cobalt','heritage','peony','graphite','ember','dusk'].indexOf(o.accent)>=0?o.accent:'cobalt',start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:'',order:Array.isArray(o.order)?o.order.filter(x=>typeof x==='string'):[],cview:o.cview==='swipe'?'swipe':'grid',sort:o.sort==='worn'?'worn':'brand',subs:(o.subs&&typeof o.subs==='object')?o.subs:{},shsize:o.shsize==='st'?'st':'sq',shbrand:o.shbrand!==false,shnames:o.shnames!==false,shtag:o.shtag!==false,shdet:o.shdet!==false,shtheme:['light','dark','color','pattern'].indexOf(o.shtheme)>=0?o.shtheme:'light',shcol:/^#[0-9a-f]{6}$/i.test(o.shcol)?o.shcol:'#2744e8',shlt:Math.max(-40,Math.min(40,+o.shlt||0)),shpat:['hound','dots','check','gingham','herring','stripe','tartan','camo','duck','paisley'].indexOf(o.shpat)>=0?o.shpat:'hound',shpa:/^#[0-9a-f]{6}$/i.test(o.shpa)?o.shpa:'#111111',shpb:/^#[0-9a-f]{6}$/i.test(o.shpb)?o.shpb:'#ffffff',shps:Math.max(20,Math.min(100,+o.shps||75)),shpin:o.shpin==='l'?'l':'d',shlogo:['tr','bl','br'].indexOf(o.shlogo)>=0?o.shlogo:'tr',shside:o.shside==='r'?'r':'l',lastBackup:+o.lastBackup||0,bkSnooze:+o.bkSnooze||0,gsoff:o.gsoff===true,shared:o.shared===true}})();
 function applyOrder(){const o=SET.order;CATS.sort((a,b)=>{const ia=o.indexOf(a.id),ib=o.indexOf(b.id);return (ia<0?99:ia)-(ib<0?99:ib)})}
 applyOrder();
 const SUBS={tops:['Short sleeve','Long sleeve','T-shirt','Polo','Dress shirt','Collared','Sweater','Hoodie','Tank'],bottoms:['Jeans','Pants','Slacks','Shorts','Joggers'],shoes:['Sneakers','Boots','Dress','Loafers','Sandals'],outerwear:['Jacket','Coat','Vest','Blazer','Hoodie'],accessories:['Hat','Watch','Belt','Chain','Bag','Sunglasses'],scents:['Fresh','Woody','Sweet','Spicy']};
@@ -1585,9 +1585,9 @@ function renderShare(){
    +shOpt('theme','Background',[['light','Light'],['dark','Dark'],['color','Color'],['pattern','Pattern']])
    +'<div class="sh-sub" id="sh-bg-color"'+(SH.theme==='color'?'':' hidden')+'><div class="sh-row"><input type="color" id="sh-col" value="'+shHex(SH.col)+'" aria-label="Background color"><input type="text" id="sh-hex" value="'+shHex(SH.col)+'" maxlength="7" autocapitalize="off" autocomplete="off" spellcheck="false" aria-label="Hex code" placeholder="#2744e8"></div><div class="sh-row"><span class="hint">Darker</span><input id="sh-lt" type="range" min="-40" max="40" step="1" value="'+(SH.lt||0)+'" aria-label="Darker or lighter" style="flex:1"><span class="hint">Lighter</span></div></div>'
    +'<div class="sh-sub" id="sh-bg-pat"'+(SH.theme==='pattern'?'':' hidden')+'>'
-   +shOpt('pat','Pattern',[['hound','Houndstooth'],['dots','Dots'],['check','Checker'],['gingham','Gingham'],['herring','Herringbone'],['stripe','Stripes'],['tartan','Tartan']])
+   +shOpt('pat','Pattern',[['hound','Houndstooth'],['dots','Dots'],['check','Checkerboard'],['gingham','Gingham'],['herring','Herringbone'],['stripe','Stripes'],['tartan','Tartan'],['camo','Camo'],['duck','Duck camo'],['paisley','Paisley']])
    +'<div class="sh-row" id="sh-pcols"><input type="color" id="sh-pa" value="'+shHex(SH.pa)+'" aria-label="Pattern color 1"><input type="color" id="sh-pb" value="'+shHex(SH.pb)+'" aria-label="Pattern color 2">'
-   +[['#111111','#ffffff','Black and white'],['#1e2a4a','#f1ebdd','Navy and cream'],['#1f5c45','#efe9d8','Green and cream'],['#2744e8','#ffffff','Cobalt and white'],['#7a1f2b','#efe6d6','Burgundy and cream']].map(q=>'<button type="button" class="sh-pre" data-act="share-preset" data-a="'+q[0]+'" data-b="'+q[1]+'" aria-label="'+q[2]+'" style="background:linear-gradient(135deg,'+q[0]+' 50%,'+q[1]+' 50%)"></button>').join('')+'</div>'
+   +[['#111111','#ffffff','Black and white'],['#1e2a4a','#f1ebdd','Navy and cream'],['#1f5c45','#efe9d8','Green and cream'],['#2744e8','#ffffff','Cobalt and white'],['#7a1f2b','#efe6d6','Burgundy and cream'],['#3f4d2b','#cdbf94','Olive and tan'],['#111111','#d4001f','Black and red'],['#c4001a','#ffffff','Red and white']].map(q=>'<button type="button" class="sh-pre" data-act="share-preset" data-a="'+q[0]+'" data-b="'+q[1]+'" aria-label="'+q[2]+'" style="background:linear-gradient(135deg,'+q[0]+' 50%,'+q[1]+' 50%)"></button>').join('')+'</div>'
    +'<div class="sh-row"><span class="hint">Subtle</span><input id="sh-ps" type="range" min="20" max="100" step="1" value="'+(SH.ps||75)+'" aria-label="Pattern strength" style="flex:1"><span class="hint">Bold</span></div>'
    +shOpt('pin','Inside',[['d','Dark'],['l','Light']])+'</div>'
    +shOpt('logo','Rotation watermark',[['tr','Top right'],['bl','Bottom left'],['br','Bottom right']])
@@ -1650,6 +1650,30 @@ function shTile(){
     return px(t.length,t.length,(x,y)=>(x+y)%4<2?t[x]:t[y],3);
   }
   if(id==='herring')return px(16,12,(x,y)=>{const u=x%16<8?x%8:7-x%8;return (y+u)%6<3?b:a},6);
+  if(id==='camo'||id==='duck'){
+    const N=224,[c,g]=mk(N,N);g.fillStyle=A;g.fillRect(0,0,N,N);
+    let sd=id==='duck'?7:3;const rnd=()=>{sd=(sd*16807)%2147483647;return sd/2147483647};
+    const tones=[mixHex(A,B,.34),mixHex(A,B,.67),B];
+    const wrap=(fn,x,y)=>{[-N,0,N].forEach(dx=>[-N,0,N].forEach(dy=>fn(x+dx,y+dy)))};
+    const blob=(x,y,r)=>{g.beginPath();const n=9,pts=[];for(let k=0;k<n;k++){const a=k/n*6.2832,rr2=r*(.6+rnd()*.7);pts.push([x+Math.cos(a)*rr2*(id==='duck'?.7:1.15),y+Math.sin(a)*rr2*(id==='duck'?1.2:.8)])}
+      pts.forEach((q,k)=>{const nx=pts[(k+1)%n],mx=(q[0]+nx[0])/2,my=(q[1]+nx[1])/2;if(!k)g.moveTo(mx,my);else g.quadraticCurveTo(q[0],q[1],mx,my)});g.closePath();g.fill()};
+    tones.forEach((t,ti)=>{g.fillStyle=t;const cnt=id==='duck'?16-ti*3:13-ti*2;for(let k=0;k<cnt;k++){const x=rnd()*N,y=rnd()*N,r=(id==='duck'?22:30)-ti*5+rnd()*10;wrap((xx,yy)=>blob(xx,yy,r),x,y)}});
+    if(id==='duck'){g.fillStyle=mixHex(A,'#000000',.55);for(let k=0;k<46;k++){const x=rnd()*N,y=rnd()*N,h=14+rnd()*20;wrap((xx,yy)=>{g.beginPath();g.ellipse(xx,yy,2.4,h/2,0,0,6.2832);g.fill()},x,y)}}
+    return c;
+  }
+  if(id==='paisley'){
+    const N=160,[c,g]=mk(N,N);g.fillStyle=A;g.fillRect(0,0,N,N);
+    const drop=(cx,cy,sz,rot)=>{
+      const path=k=>{g.beginPath();g.moveTo(0,-k);g.bezierCurveTo(.35*k,-.45*k,.85*k,-.1*k,.8*k,.38*k);g.bezierCurveTo(.76*k,.85*k,.36*k,1*k,0,1*k);g.bezierCurveTo(-.4*k,1*k,-.8*k,.8*k,-.8*k,.35*k);g.bezierCurveTo(-.8*k,-.15*k,-.2*k,-.4*k,0,-k);g.closePath()};
+      g.save();g.translate(cx,cy);g.rotate(rot);g.fillStyle=B;path(sz);g.fill();
+      g.fillStyle=A;path(sz*.72);g.fill();g.fillStyle=B;path(sz*.5);g.fill();
+      g.fillStyle=A;g.beginPath();g.arc(0,sz*.28,sz*.14,0,6.2832);g.fill();
+      g.fillStyle=B;for(let k=0;k<5;k++){g.beginPath();g.arc(-sz*.8+k*sz*.4,-sz*1.16-Math.abs(k-2)*-3,2.2,0,6.2832);g.fill()}
+      g.restore()};
+    drop(42,52,34,-.55);drop(122,44,26,.75);drop(40,124,26,2.3);drop(118,118,34,2.6);
+    g.fillStyle=B;[[80,84],[82,12],[8,88],[154,84],[78,150]].forEach(q=>{g.beginPath();g.arc(q[0],q[1],3,0,6.2832);g.fill()});
+    return c;
+  }
   const [c,g]=mk(96,96);g.fillStyle=A;g.fillRect(0,0,96,96);
   if(id==='dots'){g.fillStyle=B;[[24,24],[72,72]].forEach(q=>{g.beginPath();g.arc(q[0],q[1],14,0,6.2832);g.fill()})}
   else if(id==='check'){g.fillStyle=B;g.fillRect(0,0,48,48);g.fillRect(48,48,48,48)}

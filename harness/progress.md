@@ -17,3 +17,5 @@ Oct 15 bug pass (iPad screenshots): crop dialog canvas now extends 14px past the
 Oct 15: Settings > Sort closet by (Brand | Most worn), within each section; persisted and restored on import. check.js 8/8.
 
 Oct 15: Added plan step 6b (CloudKit iCloud sync, native only, after Mac). Tone likes the idea; nothing built yet.
+
+Oct 15: Share-card patterns added: Camo, Duck camo, Paisley (Checker renamed Checkerboard); presets Olive/tan, Black/red, Red/white. check.js 8/8.
