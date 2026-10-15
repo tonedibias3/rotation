@@ -18,6 +18,9 @@ Legend: P = can run in parallel. Each step: reads/writes | output | check.
 6. Native value-adds so review does not see a plain web wrapper (guideline 4.2): haptics, home-screen widget, local reminder opt-in. Writes ios/ + app | builds in Xcode | needs the Mac.
 7. TestFlight build to friends. Needs Apple Developer ($99/yr) | build uploaded | Tone confirms install.
 
+6b. iCloud sync via CloudKit (Tone approved the idea Oct 15). After step 6, needs the Mac + Apple Developer account. Reads app data layer (IndexedDB `rotation`, localStorage `rotation.settings`/`rotation.v1`) | writes ios/ plugin + app sync layer | output: closet, logged days, looks and settings sync across the user's own devices, photos as CKAssets, private database only (the user's own iCloud, no Rotation server). Rules: opt-in toggle in Settings, local stays the source of truth and works offline; merge by item id + updatedAt (last write wins, deletes as tombstones); no sign-in screen (Apple ID is the account); no new network hosts in the web app (sync runs natively only; web keeps export/import); privacy page updated ("stored in your iCloud, we never see it"). | check: add on device A, appears on device B; offline edit then reconnect; delete propagates; export/import still works; `node scripts/check.js` passes.
+   Decide later: sync photos on cellular or Wi-Fi only; whether Android users get anything (not planned).
+
 ## Stage 3: Brand leftovers (P, small)
 8. Social icons beside handles on landing + beta card (Tone confirms spots). 
 9. Old-handle cleanup in the Desktop pitch deck/one-pager files (needs computer linked) and bios.
