@@ -1657,7 +1657,7 @@ function recapData(m){
   return {days:keys.length,top:top,tag:tg?tagLbl(tg):'',pieces:Object.keys(wm).length};
 }
 function openRecap(){
-  SH={mode:'recap',m:S.month,sel:new Set(),scent:false,hasScent:false,hasFeet:false,feet:false,d:S.month,k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:false,det:false,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:false,hasBack:!!it.photo2,iside:it.photo2?'2':'f',url:'',blob:null,seq:0};
+  SH={mode:'recap',m:S.month,sel:new Set(),scent:false,hasScent:false,hasFeet:false,feet:false,d:S.month,k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:false,det:false,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:false,hasBack:false,iside:'f',url:'',blob:null,seq:0};
   renderShare();buildShare();
 }
 /* the Rotation wordmark and web address: on every picture the app makes, the person only chooses the corner */
@@ -2471,8 +2471,10 @@ async function saveItem(){
     const id=sh.id||newId(),ex=sh.id?M.get(sh.id):null;
     await putItem(id,{name:d.name.trim(),brand:d.brand.trim(),nickname:d.nickname.trim(),category:d.category,color:(d.category==='scents'?'':(d.colors[0]||'')),colors:(d.category==='scents'?[]:d.colors.slice()),kinds:d.kinds.filter(k=>subsFor(d.category).indexOf(k)>=0),price:parsePrice(d.price),source:(d.source||'').trim(),bought:d.bought||'',released:(d.released||'').trim(),photo:photo,photo2:photo2,fav:!!d.fav,createdAt:ex&&ex.createdAt||Date.now()});
     const wasNew=!sh.id,log=sh.addToLog,sd=sh.scentDay,shd=sh.shoeDay;
+    const y0=window.scrollY;
     closeSheet();
     render();
+    keepY(y0);
     if(wasNew&&sd)setDayScent(sd,id);
     if(wasNew&&shd)setDayShoe(shd,id);
     if(log&&wasNew)toggleOutfit(id,true);
@@ -2491,11 +2493,13 @@ async function delClick(){
     setTimeout(()=>{if(S.sheet===sh&&sh.confirm){sh.confirm=false;const b2=$('#b-del');if(b2)b2.textContent='Remove'}},4000);
     return;
   }
-  try{const snap=M.get(sh.id)?Object.assign({},M.get(sh.id)):null;await removeItem(sh.id);closeSheet();render();toast('Piece removed',snap?async()=>{await putItem(snap.id,snap);render()}:null)}
+  try{const snap=M.get(sh.id)?Object.assign({},M.get(sh.id)):null;await removeItem(sh.id);const y1=window.scrollY;closeSheet();render();keepY(y1);toast('Piece removed',snap?async()=>{await putItem(snap.id,snap);render()}:null)}
   catch(e){toast('Could not remove that piece')}
 }
 
 function toTop(){window.scrollTo(0,0)}
+/* put the page back where it was after a re-render (iOS clamps the scroll while the page is rebuilt, so set it again as the layout settles) */
+function keepY(y){window.scrollTo(0,y);requestAnimationFrame(()=>{window.scrollTo(0,y);setTimeout(()=>window.scrollTo(0,y),120)})}
 
 /* ---------- toast ---------- */
 let toastT;
