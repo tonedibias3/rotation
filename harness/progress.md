@@ -49,3 +49,9 @@ Oct 15 phone calendar (Tone's iPhone vs iPad screenshots): on phones (<=520px) d
 ## Oct 16: closet flow requests (Tone)
 - Done: tap outside closes the saved look, saved looks list, scent and shoe sheets (looks-bg); piece view (long press) has a primary "Start outfit" button ("Add to today" when today already has pieces; hidden for scents) that jumps to Log with the piece added to today's outfit; favorites sort to the front of their closet row/grid (next to the Add tile) in both Brand and Most worn sorts.
 - Checks: check.js 9/9, e2e 28/28, headless test of fav order (move to front, unfavorite restores), tap-outside, tap-inside-stays-open.
+
+## Oct 16 (later): UX evaluation fixes (intent:evaluate P1-P3)
+Done: Undo toast (7s) for piece, look, shoe and erase-all removal. Backup restore now compares rows, asks only when something differs (keep phone / use backup / cancel), always adds new rows, bad file gets a clear message. In-app ask() sheet replaces native confirm/prompt in the weather flow. All CSS font sizes moved to rem; root size follows iOS text size (Dynamic Type probe, capped at 1.35x; `?tz=1.5` forces it for tests). Global reduced motion. Error toasts say what to do next. Empty closet hides search, filters and Arrange. Footer feedback link removed (Settings has it). Tray "Done" is now "View day".
+Decisions: no new network calls. Probe only scales on Apple devices.
+Open: not tested on a real iPhone (Dynamic Type probe in WKWebView, bottom bar above home indicator, VoiceOver). /intent:investigate not run.
+Next: Xcode build on a Mac (Stage 2).
