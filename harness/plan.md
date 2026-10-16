@@ -14,7 +14,7 @@ Legend: P = can run in parallel. Each step: reads/writes | output | check.
 - Removed Google photo search; added Quick add (many photos at once, per-batch type, optional names).
 
 ## Stage 2: App Store path (after Tone gets the Mac) (P with Stage 1 where noted)
-5. App Store listing kit (P). Writes harness/appstore.md | name/subtitle/keywords/description, privacy nutrition label answers, review notes, screenshot list using shots/ | checklist complete.
+5. App Store listing kit (P). Writes harness/appstore.md | name/subtitle/keywords/description, privacy nutrition label answers, review notes, screenshot list using shots/ | checklist complete. DRAFTED Oct 16 (harness/appstore.md; DECIDE items and screenshots remain).
 6. Native value-adds so review does not see a plain web wrapper (guideline 4.2): haptics, home-screen widget, local reminder opt-in. Writes ios/ + app | builds in Xcode | needs the Mac.
 7. TestFlight build to friends. Needs Apple Developer ($99/yr) | build uploaded | Tone confirms install.
 

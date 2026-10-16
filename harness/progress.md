@@ -75,3 +75,10 @@ Oct 16 bug pass (Tone, iPad): (1) adding or removing a piece while building a fi
 - Weak points logged (see project doc "pending-handoff.md"): rotation-site privacy page can drift from this repo's copy again (two copies); no email capture; Desktop pitch deck files unchecked for old handle (folder grant refused); real-device tests; handle reservations.
 - Next action: Tone connects ~/Desktop/rotation, decides email capture, then Stage 2 step 5 (App Store listing kit, no Mac needed).
 
+## Oct 16 (later): backup tests + App Store kit (Claude, requested by Tone)
+- Done: e2e.py now round-trips a rich backup (favorites, extra item fields, day outfit/tag/rating/shoe/scent/when, extra outfits, plans, scent-only day, looks, settings) through import, reload, export and a second device, plus idempotent re-import, the three conflict choices (keep phone, use backup, cancel) and a non-backup file. Reads persisted IndexedDB/localStorage, not app internals. 58/58. No app bug found. Commit 0cc9d48.
+- Done: harness/appstore.md drafted (name, subtitle, keywords, description, privacy label reasoning, review notes, screenshot plan, checklist).
+- Found: Info.plist location string says "never stored or shared" but the code stores a rounded position on device and sends it to Open-Meteo and BigDataCloud, and privacy.html says so. Needs Tone's OK to change the string (suggested text in appstore.md). Also decide whether to declare Coarse Location in the privacy label.
+- Rollback points: app repo e16d1c9 (before tests), site repo 02f7764. Tag push was blocked by the proxy, so commit hashes are the checkpoints.
+- Next action: Tone decides the location wording and label, connects ~/Desktop/rotation, decides email capture.
+
