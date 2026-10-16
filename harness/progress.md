@@ -55,3 +55,7 @@ Done: Undo toast (7s) for piece, look, shoe and erase-all removal. Backup restor
 Decisions: no new network calls. Probe only scales on Apple devices.
 Open: not tested on a real iPhone (Dynamic Type probe in WKWebView, bottom bar above home indicator, VoiceOver). /intent:investigate not run.
 Next: Xcode build on a Mac (Stage 2).
+
+## Oct 16: day view order + Clear day (Tone)
+- Done: day view sections now run Outfit, Shoe of the day, Scent of the day (was scent, shoe, outfit). New "Clear day" button in the day view and on the Log screen (log mode) wipes outfits, photos, shoe and scent for that day, keeps planned options, 7s Undo toast. Log "Clear" still clears just the current outfit.
+- Checks: check.js 9/9, e2e 28/28, headless test of order, clear, undo, disabled-when-empty.

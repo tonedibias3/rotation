@@ -1069,7 +1069,7 @@ function viewLog(){
    +fitRowHTML()
    +'<div id="rate">'+rateHTML()+'</div>'
    +(S.mode==='plan'?'':'<div class="btn-row share-row"><button type="button" class="btn primary" data-act="share-today" style="flex:1">Share this fit</button></div>')
-   +'<div class="btn-row"><button type="button" class="btn ghost" data-act="repeat"'+(canRepeat?'':' disabled')+'>'+(sel===t?'Repeat yesterday':'Repeat day before')+'</button><button type="button" class="btn ghost" data-act="clear">Clear</button><button type="button" class="btn ghost" data-act="look-save"'+(tgt.items.length?'':' disabled')+'>Save look</button><button type="button" class="btn ghost" data-act="looks-open">Saved looks'+(S.looks.length?' ('+S.looks.length+')':'')+'</button>'+(S.mode==='log'&&S.out>0?'<button type="button" class="btn ghost" id="rm-out" data-act="rm-out">Remove outfit</button>':'')
+   +'<div class="btn-row"><button type="button" class="btn ghost" data-act="repeat"'+(canRepeat?'':' disabled')+'>'+(sel===t?'Repeat yesterday':'Repeat day before')+'</button><button type="button" class="btn ghost" data-act="clear">Clear</button>'+(S.mode==='log'?'<button type="button" class="btn ghost" data-act="day-clear" data-d="'+sel+'"'+(loggedAny(dd)?'':' disabled')+'>Clear day</button>':'')+'<button type="button" class="btn ghost" data-act="look-save"'+(tgt.items.length?'':' disabled')+'>Save look</button><button type="button" class="btn ghost" data-act="looks-open">Saved looks'+(S.looks.length?' ('+S.looks.length+')':'')+'</button>'+(S.mode==='log'&&S.out>0?'<button type="button" class="btn ghost" id="rm-out" data-act="rm-out">Remove outfit</button>':'')
    +(S.mode==='plan'?'<button type="button" class="btn primary" id="lock" data-act="lock"'+(tgt.items.length?'':' disabled')+'>'+(sel>t?(tgt.locked?'Locked in. Tap to unlock':'Lock in option '+'ABCD'[S.opt]):'Wear option '+'ABCD'[S.opt])+'</button>':'')
    +'</div></div>'
    +'<div class="fv-row" style="display:flex;align-items:center;gap:10px;margin-top:18px"><button type="button" class="chip" data-act="fav-filter" aria-pressed="'+S.fav+'">'+ico(P.heart,1.8)+'Favorites only</button><p class="hint" style="margin:0">Tap to select. Press and hold a piece to view it.</p></div>'
@@ -1144,6 +1144,17 @@ function repeatPrev(){
   const t=target(true);
   t.items=y.items.filter(id=>M.has(id));t.tag=y.tag;
   scheduleDay(S.sel);refreshPicker();
+}
+
+const loggedAny=d=>!!d&&(d.items.length>0||!!d.photo||!!d.scent||!!d.shoe||!!d.shoePhoto||d.more.some(p=>p.items.length||p.photo));
+function clearDay(d){
+  const dd=S.days[d];if(!loggedAny(dd))return;
+  const snap=JSON.parse(JSON.stringify(dd));
+  S.days[d]=normDay({plans:dd.plans});
+  S.out=0;scheduleDay(d);
+  if(S.dv===d)closeDay();
+  render();refreshCal();
+  toast('Day cleared',()=>{S.days[d]=normDay(snap);scheduleDay(d);if(S.tab==='log')render();refreshCal()});
 }
 function clearOutfit(){
   const t=target(true);
@@ -1467,13 +1478,14 @@ function renderDay(){
   const multi=shown.length>1;
   const sc=dd.scent&&M.get(dd.scent)||null;
   let body='',total=0;
-  body+='<h3 class="dv-h" style="margin-top:0">Scent of the day</h3>'+(sc?'<div class="sc-row"><span class="thumb lg">'+tileInner(sc)+'</span><span class="ri-t"><b>'+esc(dn(sc))+'</b><i>'+esc(sc.brand||'')+'</i></span></div><span class="cap">Rate this scent</span><div class="rate-row" id="sc-rate" style="margin:2px 0 6px">'+scRateHTML(dd.scentRating||0,'rate-scent')+'</div><div class="btn-row" style="margin:8px 0 2px"><button type="button" class="btn ghost" data-act="share-scent-open">Share scent</button><button type="button" class="btn ghost" data-act="scent-pick">Change</button><button type="button" class="btn danger" data-act="scent-clear">Remove</button></div>':'<div class="btn-row" style="margin:0 0 2px"><button type="button" class="btn ghost" data-act="scent-pick">Add a scent</button></div>');
+  let scentHTML='',shoeHTML='';
+  scentHTML='<h3 class="dv-h">Scent of the day</h3>'+(sc?'<div class="sc-row"><span class="thumb lg">'+tileInner(sc)+'</span><span class="ri-t"><b>'+esc(dn(sc))+'</b><i>'+esc(sc.brand||'')+'</i></span></div><span class="cap">Rate this scent</span><div class="rate-row" id="sc-rate" style="margin:2px 0 6px">'+scRateHTML(dd.scentRating||0,'rate-scent')+'</div><div class="btn-row" style="margin:8px 0 2px"><button type="button" class="btn ghost" data-act="share-scent-open">Share scent</button><button type="button" class="btn ghost" data-act="scent-pick">Change</button><button type="button" class="btn danger" data-act="scent-clear">Remove</button></div>':'<div class="btn-row" style="margin:0 0 2px"><button type="button" class="btn ghost" data-act="scent-pick">Add a scent</button></div>');
   {const sh=shoeOf(dd);
-   body+='<h3 class="dv-h">Shoe of the day</h3>'+(sh?'<div class="sc-row"><span class="thumb lg">'+(dd.shoePhoto?'<img src="'+esc(photoSrc(dd.shoePhoto))+'" alt="" decoding="async">':tileInner(sh))+'</span><span class="ri-t"><b>'+esc(dn(sh))+'</b><i>'+esc(sh.brand||'')+'</i></span></div><div class="btn-row" style="margin:8px 0 2px"><button type="button" class="btn ghost" data-act="share-shoe-open">Share shoe</button><button type="button" class="btn ghost" data-act="shoe-day-pick">Change</button>'+(dd.shoe?'<button type="button" class="btn danger" data-act="shoe-clear" data-d="'+d+'">Remove</button>':'')+'</div><div class="btn-row" style="margin:8px 0 2px"><button type="button" class="btn ghost" data-act="shoe-photo">'+(dd.shoePhoto?'Change on-feet photo':'Add on-feet photo')+'</button>'+(dd.shoePhoto?'<button type="button" class="btn danger" data-act="shoe-photo-clear">Remove photo</button>':'')+'</div><input class="vh" id="f-shoe" aria-label="Choose an on-feet photo" type="file" accept="image/*">':'<div class="btn-row" style="margin:0 0 2px"><button type="button" class="btn ghost" data-act="shoe-day-pick">Add a shoe</button></div>');}
+   shoeHTML='<h3 class="dv-h">Shoe of the day</h3>'+(sh?'<div class="sc-row"><span class="thumb lg">'+(dd.shoePhoto?'<img src="'+esc(photoSrc(dd.shoePhoto))+'" alt="" decoding="async">':tileInner(sh))+'</span><span class="ri-t"><b>'+esc(dn(sh))+'</b><i>'+esc(sh.brand||'')+'</i></span></div><div class="btn-row" style="margin:8px 0 2px"><button type="button" class="btn ghost" data-act="share-shoe-open">Share shoe</button><button type="button" class="btn ghost" data-act="shoe-day-pick">Change</button>'+(dd.shoe?'<button type="button" class="btn danger" data-act="shoe-clear" data-d="'+d+'">Remove</button>':'')+'</div><div class="btn-row" style="margin:8px 0 2px"><button type="button" class="btn ghost" data-act="shoe-photo">'+(dd.shoePhoto?'Change on-feet photo':'Add on-feet photo')+'</button>'+(dd.shoePhoto?'<button type="button" class="btn danger" data-act="shoe-photo-clear">Remove photo</button>':'')+'</div><input class="vh" id="f-shoe" aria-label="Choose an on-feet photo" type="file" accept="image/*">':'<div class="btn-row" style="margin:0 0 2px"><button type="button" class="btn ghost" data-act="shoe-day-pick">Add a shoe</button></div>');}
   shown.forEach((x,xi)=>{
     total+=x.l.length;
     const tl=tagLbl(x.o.tag);
-    body+='<h3 class="dv-h">'+(multi?'Outfit '+(xi+1):'Outfit')+(x.o.when?' · '+whenLbl(x.o.when):'')+(tl?' · '+tl:'')+'</h3>';
+    body+='<h3 class="dv-h"'+(xi===0?' style="margin-top:0"':'')+'>'+(multi?'Outfit '+(xi+1):'Outfit')+(x.o.when?' · '+whenLbl(x.o.when):'')+(tl?' · '+tl:'')+'</h3>';
     {const dl=[x.o.place,x.o.wx].filter(Boolean).join(' · ');if(dl||x.o.note)body+='<p class="det-v">'+(dl?'<b>'+esc(dl)+'</b>':'')+(x.o.note?(dl?'<br>':'')+esc(x.o.note):'')+'</p>'}
     if(x.o.rating)body+='<div class="rate-row" style="margin-bottom:10px">'+starsHTML(x.o.rating,false)+'<span class="mono">'+x.o.rating.toFixed(1)+'</span></div>';
     if(x.o.photo)body+='<div class="fit-p"><img src="'+esc(photoSrc(x.o.photo))+'" alt="Outfit photo"></div>';
@@ -1488,11 +1500,12 @@ function renderDay(){
     const p=z.p,k=z.k,l=sorted(p.items);
     if(l.length)body+='<h3 class="dv-h">'+(p.locked?'Locked in':'Planned')+', option '+'ABCD'[k]+(p.when?' · '+whenLbl(p.when):'')+(tagLbl(p.tag)?' · '+tagLbl(p.tag):'')+'</h3>'+grid(l);
   });
+  body+=shoeHTML+scentHTML;
   const tag0=(!multi&&shown[0]&&tagLbl(shown[0].o.tag))||'';
   host.innerHTML='<div class="scrim" data-act="day-bg"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="dv-t" tabindex="-1">'
    +'<div class="sheet-h"><div><h2 id="dv-t">'+esc(fmt(d,{weekday:'long',month:'short',day:'numeric'}))+'</h2><div class="sub" style="margin-top:4px">'+(total?total+' piece'+(total===1?'':'s'):(sc?'Scent only':shoeOf(dd)?'Shoe only':''))+(multi?' · '+shown.length+' outfits':'')+(tag0?(total?' · ':'')+tag0:'')+'</div></div><button type="button" class="x" data-act="day-close" aria-label="Close">'+ico(P.x)+'</button></div>'
    +body
-   +'<div class="btn-row" style="margin-top:16px"><button type="button" class="btn primary" data-act="day-edit" data-o="0">Edit this day</button></div>'
+   +'<div class="btn-row" style="margin-top:16px"><button type="button" class="btn primary" data-act="day-edit" data-o="0">Edit this day</button>'+(loggedAny(dd)?'<button type="button" class="btn danger" data-act="day-clear" data-d="'+d+'">Clear day</button>':'')+'</div>'
    +'<input class="vh" id="f-fit" aria-label="Choose an outfit photo" type="file" accept="image/*">'
    +'</div></div>';
   document.body.style.overflow='hidden';
@@ -2613,6 +2626,7 @@ document.addEventListener('click',e=>{
     case 'when':setWhen(el.dataset.v);break;
     case 'repeat':repeatPrev();break;
     case 'clear':clearOutfit();break;
+    case 'day-clear':clearDay(el.dataset.d||S.dv||S.sel);break;
     case 'lock':lockPlan();break;
     case 'open-day':openDay(el.dataset.d);break;
     case 'day-close':closeDay();break;
