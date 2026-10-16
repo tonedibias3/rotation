@@ -422,7 +422,7 @@ details.det[open] summary{border-bottom:1px solid var(--line);margin-bottom:14px
 .day.wk:not([aria-pressed="true"]){background:color-mix(in srgb,var(--accent) 7%,var(--surface))}
 .cell .hero.none{background:transparent!important}
 @media (max-width:520px){
-.head{flex-wrap:wrap}
+.head:has(.mnav){flex-wrap:wrap}
 .mnav{gap:6px;margin-left:auto}
 .mnav .rb{width:36px;height:36px}
 .cal{gap:4px;margin-inline:-6px}
@@ -510,7 +510,7 @@ const P={
   right:'<path d="M9.5 6l6 6-6 6"/>',
   cam:'<rect x="3.5" y="6.5" width="17" height="13" rx="3"/><circle cx="12" cy="13" r="3.4"/><path d="M8.5 6.5l1-2h5l1 2"/>',
   stats:'<path d="M5 20v-8M12 20V5M19 20v-5"/>',
-  gear:'<circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4 18 18M18 6l-1.6 1.6M7.6 16.4 6 18"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
   x:'<path d="M6 6l12 12M18 6 6 18"/>'
 };
 const statsBtn=()=>'<button type="button" class="rb" data-act="tab" data-tab="stats" aria-label="Stats">'+ico(P.stats,1.7)+'</button>';
