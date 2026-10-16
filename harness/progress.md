@@ -65,3 +65,6 @@ Oct 16 bug pass (Tone, iPad): (1) adding or removing a piece while building a fi
 ## Oct 16: share patterns trimmed (Tone)
 - Removed Camo, Duck camo and Paisley from share-card patterns (too many options, didn't render well). Saved camo/duck/paisley settings fall back to Houndstooth. Seven patterns remain. check.js 9/9, e2e 28/28.
 - Same day: also removed the Olive/tan, Black/red and Red/white color presets (they were added for camo). Five presets remain. Tone's call.
+
+## Oct 16: tartan follows chosen colors (Tone)
+- Bug: tartan used hardcoded navy/black/green, so color swatches, presets and Subtle/Bold did nothing. Now built from the two chosen pattern colors (primary, secondary, darkened thin lines). Verified all 5 presets give different tiles. check.js 9/9, e2e 31/31.

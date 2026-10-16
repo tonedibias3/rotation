@@ -1841,7 +1841,7 @@ function shTile(){
   const px=(w,h,fn,sc)=>{const [c,g]=mk(w,h),im=g.createImageData(w,h);for(let y=0;y<h;y++)for(let x=0;x<w;x++){const col=fn(x,y),i=(y*w+x)*4;im.data[i]=col[0];im.data[i+1]=col[1];im.data[i+2]=col[2];im.data[i+3]=255}g.putImageData(im,0,0);const [c2,g2]=mk(w*sc,h*sc);g2.imageSmoothingEnabled=false;g2.drawImage(c,0,0,w*sc,h*sc);return c2};
   if(id==='hound'){const th=v=>v%8<4;return px(8,8,(x,y)=>(x+y)%4<2?(th(x)?a:b):(th(y)?a:b),6)}
   if(id==='tartan'){
-    const C={B:[30,58,107],K:[11,13,16],G:[29,90,60]},spec=[['B',12],['K',2],['B',2],['K',2],['B',2],['K',14],['G',14],['K',2],['G',14]],t=[];
+    const dk=a.map((v,i)=>Math.round((v*.45+b[i]*.15)*.6)),C={B:a,K:dk,G:b},spec=[['B',12],['K',2],['B',2],['K',2],['B',2],['K',14],['G',14],['K',2],['G',14]],t=[];
     spec.forEach(q=>{for(let k=0;k<q[1];k++)t.push(C[q[0]])});
     return px(t.length,t.length,(x,y)=>(x+y)%4<2?t[x]:t[y],3);
   }
