@@ -2711,7 +2711,7 @@ document.addEventListener('change',e=>{
   if(e.target.id==='f-fit'||e.target.id==='f-fitl'){const f=e.target.files&&e.target.files[0];if(f)onFit(f);e.target.value=''}
   if(e.target.id==='f-import'){const f=e.target.files&&e.target.files[0];if(f)importData(f);e.target.value=''}
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(ASK)closeAsk(-1);else if(SH)closeShare();else if(FD)closeFind();else if(CR)closeCrop();else if(S.arr){S.arr=false;renderArrange();render()}else if(S.vw)closeView();else if(S.sheet)closeSheet();else if(S.dv)closeDay()}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(ASK)closeAsk(-1);else if(SH)closeShare();else if(CR)closeCrop();else if(S.arr){S.arr=false;renderArrange();render()}else if(S.vw)closeView();else if(S.sheet)closeSheet();else if(S.dv)closeDay()}});
 
 let scrollT;
 window.addEventListener('scroll',()=>{

@@ -87,4 +87,5 @@ Oct 16 bug pass (Tone, iPad): (1) adding or removing a piece while building a fi
 - Code: `view-item` action replaces `open-item`; `editFromCard()` (skips when a sheet, view or arrange is open). Wall tab already opened the view on tap.
 - Tests: e2e 69/69 (new: closet tap, view Edit button, closet hold, no double open, Log tap selects, Log hold edits without selecting). check.js 9/9.
 - Open: not tested on a real iPad/iPhone touch (hold length 450 ms, iOS may show its own callout on photos); Tone to confirm. If Log tap should also open the view, say so; selecting would then move to a different control.
+- Same evening, separate commit: Escape key threw "FD is not defined" (leftover from the removed photo search, since Oct 14), so Escape never closed a view sheet or edit form on a keyboard. Removed the dead reference. e2e now 72/72 with a regression test that fails on the old code.
 
