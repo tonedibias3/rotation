@@ -39,3 +39,9 @@ Oct 15 phone calendar (Tone's iPhone vs iPad screenshots): on phones (<=520px) d
 - Landing page (root index.html): nav and footer wordmark now ROTATION.fit (caps ROTATION, lowercase .fit). Live app link is /rotation/app/, root is the landing page.
 - Saved looks sheet: tiles wrap inside the card (no overlap with Change photo / delete), piece-name text removed (tag label kept). Share photo hint now says whole photo shows by default, zoom then drag to move.
 - Fix: my phone calendar header wrap (.head flex-wrap) hit every tab and pushed the weather block under the title on Closet. Now scoped to the calendar header only (.head:has(.mnav)). Settings button icon changed from a sun-like icon to a real gear.
+
+## Oct 16: iOS review fixes (from ios-review pass on screenshots)
+- Done: nav pill moved to a bottom bar with a fade behind it (content no longer shows through the nav); Log tray and toast sit above it; --navh variable holds the bar height. Mono labels and tiny text raised to 11-12px (was 9-10px). Touch targets: round icon buttons 44px (calendar header, close X), chip remove X has a larger hit area. Add to Home Screen prompt on Closet for iPhone/iPad Safari tab users (3+ pieces, dismissible with Got it, setting a2hs); shows instead of the backup nudge until dismissed.
+- Already fine, no change: backup nudge (5 days in browser, 14 in app), navigator.storage.persist, aria-labels on icon buttons, calendar header at 375 (no overflow).
+- Decision: accent colors vary by the Accent setting on purpose (not a bug).
+- Checks: check.js 9/9, e2e 28/28, no horizontal overflow at 375 and 440, light and dark. Not tested: real iPhone safe area in the Capacitor app (contentInset always), large Dynamic Type sizes, VoiceOver.

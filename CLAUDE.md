@@ -21,7 +21,7 @@ Passion project by Tone (Antonio Isaac): a closet + outfit-log + wear-calendar a
 - Brand: ROTATION.fit wordmark (caps ROTATION, lowercase .fit). Handles: Instagram @rotation.fit, X @rotationfit. @rotationcloset is retired; it must never appear.
 - Public pages never link the beta app URL. App link only goes to beta testers on request.
 - Say Tone "vibe coded" Rotation, never "hand-coded".
-- Design: modern, must not look like a Claude app, no emoji. Pill nav that shrinks on scroll. Share images always carry the ROTATION.fit watermark (position movable, never off).
+- Design: modern, must not look like a Claude app, no emoji. Pill nav sits at the bottom of the screen (thumb reach, moved Oct 16), with search and add flanking it, and shrinks on scroll. Share images always carry the ROTATION.fit watermark (position movable, never off).
 - Colors are not saved for scents. Changing a day's scent resets its rating.
 - Git: attach tonedibias3/rotation with push access, then `git push origin HEAD:main`. Commit messages end with the Claude co-author trailer.
 - Keep user data on device. Any new network call must be added to the host allowlist in scripts/check.js on purpose.
