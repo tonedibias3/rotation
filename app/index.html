@@ -923,7 +923,7 @@ function viewCloset(){
    +(emp?'':'<div class="chips" role="group" aria-label="Filter by type">'+chip('all','All',n)+'<button type="button" class="chip" data-act="fav-filter" aria-pressed="'+S.fav+'">'+ico(P.heart,1.8)+'Favorites<i>'+S.items.filter(i=>i.fav).length+'</i></button>'+CATS.map(c=>chip(c.id,c.label,count(c.id))).join('')+'</div>')
    +(emp?'':'<div class="ctl">'+(S.filter!=='all'?'<div class="seg mini" role="group" aria-label="Layout"><button type="button" data-act="cview" data-v="grid" aria-pressed="'+(SET.cview==='grid')+'">Grid</button><button type="button" data-act="cview" data-v="swipe" aria-pressed="'+(SET.cview==='swipe')+'">Swipe</button></div>':'')+'<button type="button" class="link" data-act="arrange">Arrange sections</button></div>')
    +(S.filter!=='all'?'<div class="chips" id="kinds" role="group" aria-label="Filter by style"></div>':'')
-   +(!S.loading&&S.items.length?'<p class="hint" style="margin-bottom:4px">Tap a piece to edit it. Press and hold to view it.</p>':'')
+   +(!S.loading&&S.items.length?'<p class="hint" style="margin-bottom:4px">Tap a piece to view it. Press and hold to edit it.</p>':'')
    +'<div id="grid"></div>'+backupRow()+footText();
 }
 function lookCard(l){
@@ -969,7 +969,7 @@ function fillGrid(){
   }
   const q=S.q.trim().toLowerCase();
   const list=S.items.filter(i=>(S.filter==='all'||i.category===S.filter)&&(S.filter==='all'||S.kinds.every(k=>(i.kinds||[]).indexOf(k)>=0))&&(!S.fav||i.fav)&&(!q||[i.name,i.brand,i.nickname,i.color].concat(i.colors||[],i.kinds||[]).join(' ').toLowerCase().indexOf(q)>=0)).sort(SET.sort==='worn'?(w=>(a,b)=>catIdx(a.category)-catIdx(b.category)||(w[b.id]||0)-(w[a.id]||0)||byCat(a,b))(stats().wears):byCat).sort((a,b)=>catIdx(a.category)-catIdx(b.category)||(b.fav?1:0)-(a.fav?1:0));
-  const open=i=>card(i,'data-act="open-item" data-id="'+esc(i.id)+'"');
+  const open=i=>card(i,'data-act="view-item" data-id="'+esc(i.id)+'"');
   const plus=c=>'<button type="button" class="card" data-act="new-item" data-cat="'+c.id+'" aria-label="Add a new '+c.label.toLowerCase()+' piece"><span class="tile add">'+ico(P.plus,1.6)+'</span><span class="brand">New</span><span class="name">Add to '+c.label.toLowerCase()+'</span></button>';
   if(!list.length&&q){g.innerHTML='<p class="empty-note">Nothing matches that search.</p>';return}
   if(!list.length&&S.fav){g.innerHTML='<p class="empty-note">No favorites here yet. Open a piece and tap the heart.</p>';return}
@@ -1072,7 +1072,7 @@ function viewLog(){
    +'<div class="btn-row"><button type="button" class="btn ghost" data-act="repeat"'+(canRepeat?'':' disabled')+'>'+(sel===t?'Repeat yesterday':'Repeat day before')+'</button>'+(S.mode==='plan'?'<button type="button" class="btn ghost" data-act="clear">Clear</button>':'')+(S.mode==='log'?'<button type="button" class="btn ghost" data-act="day-clear" data-d="'+sel+'"'+(loggedAny(dd)?'':' disabled')+'>Clear day</button>':'')+'<button type="button" class="btn ghost" data-act="look-save"'+(tgt.items.length?'':' disabled')+'>Save look</button><button type="button" class="btn ghost" data-act="looks-open">Saved looks'+(S.looks.length?' ('+S.looks.length+')':'')+'</button>'+(S.mode==='log'&&S.out>0?'<button type="button" class="btn ghost" id="rm-out" data-act="rm-out">Remove outfit</button>':'')
    +(S.mode==='plan'?'<button type="button" class="btn primary" id="lock" data-act="lock"'+(tgt.items.length?'':' disabled')+'>'+(sel>t?(tgt.locked?'Locked in. Tap to unlock':'Lock in option '+'ABCD'[S.opt]):'Wear option '+'ABCD'[S.opt])+'</button>':'')
    +'</div></div>'
-   +'<div class="fv-row" style="display:flex;align-items:center;gap:10px;margin-top:18px"><button type="button" class="chip" data-act="fav-filter" aria-pressed="'+S.fav+'">'+ico(P.heart,1.8)+'Favorites only</button><p class="hint" style="margin:0">Tap to select. Press and hold a piece to view it.</p></div>'
+   +'<div class="fv-row" style="display:flex;align-items:center;gap:10px;margin-top:18px"><button type="button" class="chip" data-act="fav-filter" aria-pressed="'+S.fav+'">'+ico(P.heart,1.8)+'Favorites only</button><p class="hint" style="margin:0">Tap to select. Press and hold a piece to edit it.</p></div>'
    +(S.loading?'<div class="grid">'+'<div class="skel"></div>'.repeat(6)+'</div>':groups)
    +'<div class="tray" id="tray"></div>'+footText();
 }
@@ -2529,12 +2529,14 @@ function render(){
 
 /* ---------- events ---------- */
 let lpT=null,lpFired=false,lpX=0,lpY=0;
+/* tap on a piece opens its view; press and hold opens edit */
+function editFromCard(id){if(S.sheet||S.arr||S.vw||!M.has(id))return;openItem(id)}
 document.addEventListener('pointerdown',e=>{
   lpFired=false;clearTimeout(lpT);
   const c=e.target.closest('.card[data-id]');
   if(!c||e.button>0)return;
   lpX=e.clientX;lpY=e.clientY;
-  lpT=setTimeout(()=>{lpFired=true;viewItem(c.dataset.id)},450);
+  lpT=setTimeout(()=>{lpFired=true;editFromCard(c.dataset.id)},450);
 });
 document.addEventListener('pointermove',e=>{if(lpT&&(Math.abs(e.clientX-lpX)>8||Math.abs(e.clientY-lpY)>8))clearTimeout(lpT)});
 ['pointerup','pointercancel'].forEach(t=>document.addEventListener(t,()=>clearTimeout(lpT)));
@@ -2542,7 +2544,7 @@ document.addEventListener('contextmenu',e=>{
   const c=e.target.closest('.card[data-id]');
   if(!c)return;
   e.preventDefault();
-  if(!lpFired){lpFired=true;viewItem(c.dataset.id)}
+  if(!lpFired){lpFired=true;editFromCard(c.dataset.id)}
 });
 document.addEventListener('click',e=>{
   if(lpFired){lpFired=false;return}
@@ -2550,7 +2552,7 @@ document.addEventListener('click',e=>{
   const a=el.dataset.act,id=el.dataset.id;
   switch(a){
     case 'tab':S.tab=el.dataset.tab;render();toTop();break;
-    case 'open-item':openItem(id);break;
+    case 'view-item':viewItem(id);break;
     case 'new-item':openItem(null,{cat:el.dataset.cat,log:S.tab==='log'});break;
     case 'set':{const k=el.dataset.k,v=el.dataset.v;SET[k]=k==='splash'?v==='true':v;saveSet();if(k==='theme'||k==='accent')applyTheme();render();break}
     case 'wipe':wipeAll();break;

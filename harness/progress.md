@@ -82,3 +82,9 @@ Oct 16 bug pass (Tone, iPad): (1) adding or removing a piece while building a fi
 - Rollback points: app repo e16d1c9 (before tests), site repo 02f7764. Tag push was blocked by the proxy, so commit hashes are the checkpoints.
 - Next action: Tone decides the location wording and label, connects ~/Desktop/rotation, decides email capture.
 
+## Oct 16 (evening): tap = view, press and hold = edit (Tone)
+- Tone: long press to view made no sense. Closet: tap a piece opens the view sheet (has Start outfit / Add to today, Edit, favorite), press and hold opens the edit form. Log picker: tap still selects a piece for today's outfit (that is the point of that screen), press and hold opens edit. Hints updated on both screens. Calendar day sheets (shoe/scent pickers) keep tap = choose, hold = edit. Held release no longer also fires a tap.
+- Code: `view-item` action replaces `open-item`; `editFromCard()` (skips when a sheet, view or arrange is open). Wall tab already opened the view on tap.
+- Tests: e2e 69/69 (new: closet tap, view Edit button, closet hold, no double open, Log tap selects, Log hold edits without selecting). check.js 9/9.
+- Open: not tested on a real iPad/iPhone touch (hold length 450 ms, iOS may show its own callout on photos); Tone to confirm. If Log tap should also open the view, say so; selecting would then move to a different control.
+
