@@ -114,6 +114,88 @@ with sync_playwright() as p:
     pg5.evaluate("document.querySelector('[data-act=recap-open]').click()"); pg5.wait_for_timeout(2000)
     ok('month recap button opens the share sheet',pg5.locator('#sh-go').count()==1)
     ok('no page errors (scroll + recap)',not errs5,'; '.join(errs5)[:200])
+
+    # backup round trip with days, extra outfits, ratings, looks, favorites and settings (reads what is persisted, not app internals)
+    rich={'app':'rotation','v':2,
+     'items':[
+      {'id':'i00','name':'Black tee','brand':'Supreme','category':'tops','color':'black','photo':'','createdAt':now,'fav':True,'price':48,'sub':'T-shirt'},
+      {'id':'i01','name':'Wide jeans','brand':'Levi','category':'bottoms','color':'blue','photo':'','createdAt':now},
+      {'id':'i02','name':'Gym shorts','brand':'Nike','category':'bottoms','color':'grey','photo':'','createdAt':now},
+      {'id':'i03','name':'Jordan 4','brand':'Nike','category':'shoes','color':'green','photo':'','createdAt':now,'fav':True},
+      {'id':'i04','name':'Cap','brand':'New Era','category':'accessories','color':'navy','photo':'','createdAt':now},
+      {'id':'i05','name':'Bleu','brand':'Chanel','category':'scents','color':'','photo':'','createdAt':now,'sub':'Woody'}],
+     'days':{
+      '2026-10-10':{'items':['i00','i01'],'tag':'work','rating':4,'scent':'i05','scentRating':3.5,'shoe':'i03','when':'morning,afternoon','note':'long day','place':'Augusta',
+        'more':[{'items':['i02'],'tag':'casual','when':'evening','rating':2.5}],
+        'plans':[{'items':['i04'],'tag':'mixed'}]},
+      '2026-10-11':{'scent':'i05','scentRating':5}},
+     'looks':[{'id':'l1','name':'Friday','items':['i00','i01','i03']},{'id':'l2','name':'Gym','items':['i02']}],
+     'settings':{'sort':'worn','accent':'ember','cview':'swipe','order':['shoes','tops'],'occ':[{'id':'o1','label':'Gym'}],'subs':{'tops':['Crewneck']}}}
+    rf=out+'/rich.json'; json.dump(rich,open(rf,'w'))
+    alt=json.loads(json.dumps(rich)); alt['days']['2026-10-10']['rating']=1; alt['days']['2026-10-10']['note']='phone version'; del alt['days']['2026-10-11']; alt['looks']=alt['looks'][:1]
+    af=out+'/alt.json'; json.dump(alt,open(af,'w'))
+    SNAP="""async()=>{const db=await new Promise((res,rej)=>{const r=indexedDB.open('rotation',1);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+      const g=k=>new Promise(res=>{const q=db.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>res(q.result)});
+      return {items:(await g('items'))||[],days:(await g('days'))||{},looks:(await g('looks'))||[],set:JSON.parse(localStorage.getItem('rotation.settings')||'{}')}}"""
+    def snap(pg): return pg.evaluate(SNAP)
+    def chk(tag,sn):
+        it={i['id']:i for i in sn['items']}
+        ok(tag+': 6 pieces, favorites and extra fields kept',len(sn['items'])==6 and it['i00'].get('fav') is True and it['i03'].get('fav') is True and not it['i01'].get('fav') and it['i00'].get('price')==48 and it['i05'].get('sub')=='Woody',str(sn['items'])[:160])
+        d=sn['days'].get('2026-10-10',{})
+        ok(tag+': day outfit, tag, rating, shoe, scent, when kept',d.get('items')==['i00','i01'] and d.get('tag')=='work' and d.get('rating')==4 and d.get('shoe')=='i03' and d.get('scent')=='i05' and d.get('scentRating')==3.5 and d.get('when')=='morning,afternoon',str(d)[:200])
+        ok(tag+': extra outfit and plan kept',len(d.get('more',[]))==1 and d['more'][0]['items']==['i02'] and d['more'][0]['rating']==2.5 and d['plans'][0]['items']==['i04'],str(d.get('more'))[:160])
+        d11=sn['days'].get('2026-10-11',{})
+        ok(tag+': scent-only day kept',d11.get('scent')=='i05' and d11.get('scentRating')==5,str(d11)[:120])
+        ok(tag+': looks kept',[l['id'] for l in sn['looks']]==['l1','l2'] and sn['looks'][0]['items']==['i00','i01','i03'],str(sn['looks'])[:160])
+        st=sn['set']
+        ok(tag+': settings kept',st.get('sort')=='worn' and st.get('accent')=='ember' and st.get('cview')=='swipe' and st.get('order')==['shoes','tops'] and st['occ'][0]['label']=='Gym' and st['subs']['tops']==['Crewneck'],str(st)[:200])
+    def to_settings(pg):
+        pg.evaluate("(()=>{if(document.querySelector('#f-import'))return;const t=document.querySelector('[data-act=tab][data-tab=settings]');if(t)t.click()})()"); pg.wait_for_timeout(400)
+    pg6,errs6=boot(b)
+    to_settings(pg6)
+    pg6.set_input_files('#f-import',rf); pg6.wait_for_timeout(1800)
+    chk('import',snap(pg6))
+    pg6.reload(); pg6.wait_for_timeout(1500)
+    chk('after reload',snap(pg6))
+    to_settings(pg6)
+    with pg6.expect_download() as d6: pg6.evaluate("document.querySelector('[data-act=export]').click()")
+    bk6=out+'/bk6.json'; d6.value.save_as(bk6); j6=json.load(open(bk6))
+    ok('export keeps days and looks',len(j6['looks'])==2 and j6['days']['2026-10-10']['rating']==4 and j6['days']['2026-10-10']['more'][0]['items']==['i02'] and j6['days']['2026-10-11']['scentRating']==5)
+    # second fresh device restores from the re-exported file
+    pg7,errs7=boot(b)
+    to_settings(pg7)
+    pg7.set_input_files('#f-import',bk6); pg7.wait_for_timeout(1800)
+    chk('export -> import on 2nd device',snap(pg7))
+    # importing the same file again changes nothing and shows no conflict dialog
+    to_settings(pg7)
+    pg7.set_input_files('#f-import',bk6); pg7.wait_for_timeout(1200)
+    sn=snap(pg7)
+    ok('re-import is idempotent (no duplicates, no dialog)',len(sn['items'])==6 and len(sn['looks'])==2 and pg7.locator('#ask').count()==0)
+    # conflict handling on a third device whose phone copy of a day differs from the backup
+    def conflict_device():
+        pg,er=boot(b); to_settings(pg)
+        pg.set_input_files('#f-import',af); pg.wait_for_timeout(1800)
+        pg.set_input_files('#f-import',rf); pg.wait_for_timeout(1200)
+        return pg,er
+    pg8,errs8=conflict_device()
+    ok('conflict dialog appears when a day differs',pg8.locator('#ask').count()==1)
+    pg8.locator('#ask [data-i="0"]').click(); pg8.wait_for_timeout(1500)
+    ok('keep phone: day keeps the phone version',snap(pg8)['days']['2026-10-10']['rating']==1 and snap(pg8)['days']['2026-10-10']['note']=='phone version')
+    ok('keep phone: new days and looks from backup still added','2026-10-11' in snap(pg8)['days'] and len(snap(pg8)['looks'])==2)
+    pg9,errs9=conflict_device()
+    pg9.locator('#ask [data-i="1"]').click(); pg9.wait_for_timeout(1500)
+    ok('use backup: day takes the backup version',snap(pg9)['days']['2026-10-10']['rating']==4 and snap(pg9)['days']['2026-10-10']['note']=='long day')
+    pg10,errs10=conflict_device()
+    pg10.locator('#ask [data-i="2"]').click(); pg10.wait_for_timeout(1000)
+    sn10=snap(pg10)
+    ok('cancel: day unchanged and nothing from the backup added',sn10['days']['2026-10-10']['rating']==1 and '2026-10-11' not in sn10['days'] and len(sn10['looks'])==1)
+    # a file that is not a backup is refused and changes nothing
+    bad=out+'/bad.json'; open(bad,'w').write('{"hello":"world"}')
+    n_before=len(snap(pg7)['items'])
+    pg7.set_input_files('#f-import',bad); pg7.wait_for_timeout(800)
+    ok('non-backup file refused with a clear message','not a rotation backup' in pg7.evaluate("document.body.innerText.toLowerCase()") and len(snap(pg7)['items'])==n_before)
+    allerrs=errs6+errs7+errs8+errs9+errs10
+    ok('no page errors (backup round trip)',not allerrs,'; '.join(allerrs)[:200])
     b.close()
 w=max(len(r[1]) for r in res)
 for r in res: print(r[0],'|',r[1].ljust(w),'|',r[2])
