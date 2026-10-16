@@ -61,3 +61,6 @@ Next: Xcode build on a Mac (Stage 2).
 - Checks: check.js 9/9, e2e 28/28, headless test of order, clear, undo, disabled-when-empty.
 - Same day: removed the old Clear button in Log mode (Clear day replaces it). Plan mode keeps Clear for options. Tone's call.
 Oct 16 bug pass (Tone, iPad): (1) adding or removing a piece while building a fit in Log sent the page back to the top; saveItem/delete now restore scroll (keepY, re-applied as layout settles). (2) Calendar > Stats "Share <month> recap" button did nothing: openRecap referenced an undefined `it` (ReferenceError); fixed. e2e.py now has regression checks for both (31/31; recap check fails on the old code). check.js 9/9. Open: scroll fix is verified in headless Chromium only; Tone to confirm on iPad (the exact long-press-to-view-shoe path was not reproduced separately).
+
+## Oct 16: share patterns trimmed (Tone)
+- Removed Camo, Duck camo and Paisley from share-card patterns (too many options, didn't render well). Saved camo/duck/paisley settings fall back to Houndstooth. Seven patterns remain. check.js 9/9, e2e 28/28.
