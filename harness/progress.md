@@ -68,3 +68,10 @@ Oct 16 bug pass (Tone, iPad): (1) adding or removing a piece while building a fi
 
 ## Oct 16: tartan follows chosen colors (Tone)
 - Bug: tartan used hardcoded navy/black/green, so color swatches, presets and Subtle/Bold did nothing. Now built from the two chosen pattern colors (primary, secondary, darkened thin lines). Verified all 5 presets give different tiles. check.js 9/9, e2e 31/31.
+
+## Oct 16: launch-readiness sweep (Claude, requested by Tone)
+- Done: site privacy.html still described the retired Google photo search; removed. Both privacy pages (this repo and rotation-site) now have a "Feedback and backups" section (feedback email draft is editable, nothing sent automatically; backups saved by the user), dated Oct 16. Landing buttons "Follow on Instagram / X" got the Instagram and X icons (rotation-site 02f7764). App repo 1bdb0c1. check.js 9/9.
+- Verified already fine: no @rotationcloset in either repo, footer social icons, hello@rotation.fit, privacy link, feedback in Settings, backup nudge, Add to Home Screen prompt, navigator.storage.persist.
+- Weak points logged (see project doc "pending-handoff.md"): rotation-site privacy page can drift from this repo's copy again (two copies); no email capture; Desktop pitch deck files unchecked for old handle (folder grant refused); real-device tests; handle reservations.
+- Next action: Tone connects ~/Desktop/rotation, decides email capture, then Stage 2 step 5 (App Store listing kit, no Mac needed).
+

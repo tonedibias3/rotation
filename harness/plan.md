@@ -22,7 +22,7 @@ Legend: P = can run in parallel. Each step: reads/writes | output | check.
    Decide later: sync photos on cellular or Wi-Fi only; whether Android users get anything (not planned).
 
 ## Stage 3: Brand leftovers (P, small)
-8. Social icons beside handles on landing + beta card (Tone confirms spots). 
+8. Social icons beside handles on landing + beta card. DONE Oct 16 (footer, follow buttons, beta card).
 9. Old-handle cleanup in the Desktop pitch deck/one-pager files (needs computer linked) and bios.
 10. Facebook page decision recorded.
 
