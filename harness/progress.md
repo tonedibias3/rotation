@@ -45,3 +45,7 @@ Oct 15 phone calendar (Tone's iPhone vs iPad screenshots): on phones (<=520px) d
 - Already fine, no change: backup nudge (5 days in browser, 14 in app), navigator.storage.persist, aria-labels on icon buttons, calendar header at 375 (no overflow).
 - Decision: accent colors vary by the Accent setting on purpose (not a bug).
 - Checks: check.js 9/9, e2e 28/28, no horizontal overflow at 375 and 440, light and dark. Not tested: real iPhone safe area in the Capacitor app (contentInset always), large Dynamic Type sizes, VoiceOver.
+
+## Oct 16: closet flow requests (Tone)
+- Done: tap outside closes the saved look, saved looks list, scent and shoe sheets (looks-bg); piece view (long press) has a primary "Start outfit" button ("Add to today" when today already has pieces; hidden for scents) that jumps to Log with the piece added to today's outfit; favorites sort to the front of their closet row/grid (next to the Add tile) in both Brand and Most worn sorts.
+- Checks: check.js 9/9, e2e 28/28, headless test of fav order (move to front, unfavorite restores), tap-outside, tap-inside-stays-open.

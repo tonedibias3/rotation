@@ -903,7 +903,7 @@ function fillLooks(){
 function viewLook(id){
   const l=S.looks.find(x=>x.id===id);if(!l)return;
   const its=l.items.map(i=>M.get(i)).filter(Boolean),tg=TAGS.find(t=>t.id===l.tag);
-  $('#looks').innerHTML='<div class="crop-s"><div class="crop find lkv" role="dialog" aria-modal="true" aria-label="Saved look"><div class="sheet-h" style="margin-bottom:10px"><h2 style="margin:0">'+(tg?esc(tg.label)+' look':'Saved look')+'</h2><button type="button" class="x" data-act="looks-close" aria-label="Close">'+ico(P.x)+'</button></div>'
+  $('#looks').innerHTML='<div class="crop-s" data-act="looks-bg"><div class="crop find lkv" role="dialog" aria-modal="true" aria-label="Saved look"><div class="sheet-h" style="margin-bottom:10px"><h2 style="margin:0">'+(tg?esc(tg.label)+' look':'Saved look')+'</h2><button type="button" class="x" data-act="looks-close" aria-label="Close">'+ico(P.x)+'</button></div>'
    +(l.photo?'<div class="lkv-p"><img src="'+esc(photoSrc(l.photo))+'" alt="Photo of this look"></div>':'')
    +'<div class="lkv-l">'+its.map(i=>'<div class="ri"><span class="thumb">'+tileInner(i)+'</span><span class="ri-t"><b>'+esc(dn(i))+'</b><i>'+esc(i.brand||'')+'</i></span></div>').join('')+'</div>'
    +'<div class="btn-row" style="margin-top:14px"><button type="button" class="btn primary" data-act="look-wear" data-id="'+esc(id)+'">Wear today</button><button type="button" class="btn ghost" data-act="look-share" data-id="'+esc(id)+'">Share</button><button type="button" class="btn ghost" data-act="look-photo2" data-id="'+esc(id)+'">'+(l.photo?'Change photo':'Add photo')+'</button><button type="button" class="btn danger" data-act="look-del2" data-id="'+esc(id)+'">Delete</button></div>'
@@ -931,7 +931,7 @@ function fillGrid(){
     return;
   }
   const q=S.q.trim().toLowerCase();
-  const list=S.items.filter(i=>(S.filter==='all'||i.category===S.filter)&&(S.filter==='all'||S.kinds.every(k=>(i.kinds||[]).indexOf(k)>=0))&&(!S.fav||i.fav)&&(!q||[i.name,i.brand,i.nickname,i.color].concat(i.colors||[],i.kinds||[]).join(' ').toLowerCase().indexOf(q)>=0)).sort(SET.sort==='worn'?(w=>(a,b)=>catIdx(a.category)-catIdx(b.category)||(w[b.id]||0)-(w[a.id]||0)||byCat(a,b))(stats().wears):byCat);
+  const list=S.items.filter(i=>(S.filter==='all'||i.category===S.filter)&&(S.filter==='all'||S.kinds.every(k=>(i.kinds||[]).indexOf(k)>=0))&&(!S.fav||i.fav)&&(!q||[i.name,i.brand,i.nickname,i.color].concat(i.colors||[],i.kinds||[]).join(' ').toLowerCase().indexOf(q)>=0)).sort(SET.sort==='worn'?(w=>(a,b)=>catIdx(a.category)-catIdx(b.category)||(w[b.id]||0)-(w[a.id]||0)||byCat(a,b))(stats().wears):byCat).sort((a,b)=>catIdx(a.category)-catIdx(b.category)||(b.fav?1:0)-(a.fav?1:0));
   const open=i=>card(i,'data-act="open-item" data-id="'+esc(i.id)+'"');
   const plus=c=>'<button type="button" class="card" data-act="new-item" data-cat="'+c.id+'" aria-label="Add a new '+c.label.toLowerCase()+' piece"><span class="tile add">'+ico(P.plus,1.6)+'</span><span class="brand">New</span><span class="name">Add to '+c.label.toLowerCase()+'</span></button>';
   if(!list.length&&q){g.innerHTML='<p class="empty-note">Nothing matches that search.</p>';return}
@@ -1218,7 +1218,7 @@ function renderLooks(open){
   const h=$('#looks');if(!open&&!h.innerHTML)return;
   const list=S.looks.map(l=>({l:l,its:l.items.map(id=>M.get(id)).filter(Boolean)})).filter(x=>x.its.length);
   const sorted=list.map(x=>({l:x.l,its:x.its.slice().sort((a,b)=>catIdx(a.category)-catIdx(b.category))}));
-  h.innerHTML='<div class="crop-s"><div class="crop find" role="dialog" aria-modal="true" aria-label="Saved looks"><div class="sheet-h" style="margin-bottom:10px"><h2 style="margin:0">Saved looks</h2><button type="button" class="x" data-act="looks-close" aria-label="Close">'+ico(P.x)+'</button></div>'
+  h.innerHTML='<div class="crop-s" data-act="looks-bg"><div class="crop find" role="dialog" aria-modal="true" aria-label="Saved looks"><div class="sheet-h" style="margin-bottom:10px"><h2 style="margin:0">Saved looks</h2><button type="button" class="x" data-act="looks-close" aria-label="Close">'+ico(P.x)+'</button></div>'
    +(sorted.length?'<p class="hint" style="margin-top:0">Tap a look to load it into '+(S.mode==='plan'?'Option '+'ABCD'[S.opt]:'this outfit')+'. You can change it after.</p>'+sorted.map(x=>{
       const tg=TAGS.find(t=>t.id===x.l.tag);
       return '<div class="look"><button type="button" class="look-b" data-act="look-use" data-id="'+esc(x.l.id)+'"><span class="look-t">'+(x.l.photo?'<span class="look-p"><img src="'+esc(photoSrc(x.l.photo))+'" alt="Photo of this look"></span>':'')+x.its.slice(0,5).map(i=>'<span class="thumb">'+tileInner(i)+'</span>').join('')+(x.its.length>5?'<b>+'+(x.its.length-5)+'</b>':'')+'</span>'+(tg?'<span class="look-n"><i style="margin-left:0">'+esc(tg.label)+'</i></span>':'')+'</button><div class="look-side"><button type="button" class="chip" data-act="look-photo" data-id="'+esc(x.l.id)+'">'+(x.l.photo?'Change photo':'Add photo')+'</button><button type="button" class="x" data-act="look-del" data-id="'+esc(x.l.id)+'" aria-label="Delete saved look">'+ico(P.x)+'</button></div></div>'}).join('')
@@ -1512,14 +1512,14 @@ async function fitDone(){
 /* ---------- scent of the day from the calendar ---------- */
 function openScentPick(){
   const h=$('#looks'),list=S.items.filter(i=>i.category==='scents');
-  h.innerHTML='<div class="crop-s"><div class="crop find" role="dialog" aria-modal="true" aria-label="Scent of the day"><div class="sheet-h" style="margin-bottom:10px"><h2 style="margin:0">Scent of the day</h2><button type="button" class="x" data-act="looks-close" aria-label="Close">'+ico(P.x)+'</button></div>'
+  h.innerHTML='<div class="crop-s" data-act="looks-bg"><div class="crop find" role="dialog" aria-modal="true" aria-label="Scent of the day"><div class="sheet-h" style="margin-bottom:10px"><h2 style="margin:0">Scent of the day</h2><button type="button" class="x" data-act="looks-close" aria-label="Close">'+ico(P.x)+'</button></div>'
    +(list.length?'<p class="hint" style="margin:0 0 10px">Tap one to use it for '+esc(fmt(S.dv,{month:'short',day:'numeric'}))+'.</p><div class="grid dv">'+list.map(i=>card(i,'data-act="scent-set" data-id="'+esc(i.id)+'"')).join('')+'</div>':'<p class="hint">You have no scents yet. Add one with a photo, then it is ready to pick.</p>')
    +'<div class="btn-row" style="margin-top:14px"><button type="button" class="btn primary" data-act="scent-new">Add a new scent</button></div></div></div>';
 }
 function openShoePick(d){
   S.pd=d;
   const h=$('#looks'),list=S.items.filter(i=>i.category==='shoes'),dd=S.days[d];
-  h.innerHTML='<div class="crop-s"><div class="crop find" role="dialog" aria-modal="true" aria-label="Shoe of the day"><div class="sheet-h" style="margin-bottom:10px"><h2 style="margin:0">Shoe of the day</h2><button type="button" class="x" data-act="looks-close" aria-label="Close">'+ico(P.x)+'</button></div>'
+  h.innerHTML='<div class="crop-s" data-act="looks-bg"><div class="crop find" role="dialog" aria-modal="true" aria-label="Shoe of the day"><div class="sheet-h" style="margin-bottom:10px"><h2 style="margin:0">Shoe of the day</h2><button type="button" class="x" data-act="looks-close" aria-label="Close">'+ico(P.x)+'</button></div>'
    +(list.length?'<p class="hint" style="margin:0 0 10px">Tap one to use it for '+esc(fmt(d,{month:'short',day:'numeric'}))+'.</p><div class="grid dv">'+list.map(i=>card(i,'data-act="shoe-set" data-id="'+esc(i.id)+'"')).join('')+'</div>':'<p class="hint">You have no shoes yet. Add a pair with a photo, then it is ready to pick.</p>')
    +'<div class="btn-row" style="margin-top:14px"><button type="button" class="btn primary" data-act="shoe-new">Add a new pair</button>'+(dd&&dd.shoe?'<button type="button" class="btn danger" data-act="shoe-clear" data-d="'+d+'">Remove</button>':'')+'</div></div></div>';
 }
@@ -2076,6 +2076,7 @@ function viewItem(id){
   const st=stats(),w=st.wears[id]||0,src=photoSrc(it.photo);
   const cols=(Array.isArray(it.colors)&&it.colors.length?it.colors:(it.color?[it.color]:[]));
   const row=(k,v)=>v?'<div class="vrow"><span>'+k+'</span><b>'+esc(v)+'</b></div>':'';
+  const td=S.days[today()],todayHas=!!(td&&td.items&&td.items.length)&&it.category!=='scents';
   const host=$('#sheet');
   host.innerHTML='<div class="scrim" data-act="view-bg"><div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(it.name)+'" tabindex="-1">'
    +'<div class="sheet-h"><h2>'+esc(it.name)+'</h2><div class="sh-fx"><button type="button" class="x fvx" data-act="view-fav" aria-pressed="'+!!it.fav+'" aria-label="Favorite">'+ico(P.heart,1.8)+'</button><button type="button" class="x" data-act="view-close" aria-label="Close">'+ico(P.x)+'</button></div></div>'
@@ -2087,7 +2088,7 @@ function viewItem(id){
    +row('Worn',w?w+' time'+(w===1?'':'s')+' · last '+fmt(st.last[id],{month:'short',day:'numeric'}):'Not logged yet')
    +(typeof it.price==='number'?row('Paid',money(it.price))+(w?row('Cost per wear',money(Math.round(it.price/w*100)/100)):''):'')
    +row('Bought at',it.source)+row('Date bought',it.bought?fmt(it.bought,{year:'numeric',month:'short',day:'numeric'}):'')+row('Released',it.released)
-   +'<div class="btn-row" style="margin-top:18px"><button type="button" class="btn primary" data-act="view-edit">Edit</button><button type="button" class="btn ghost" data-act="share-item-open">Share</button><button type="button" class="btn ghost" data-act="view-close">Close</button></div>'
+   +'<div class="btn-row" style="margin-top:18px">'+(it.category==='scents'?'':'<button type="button" class="btn primary" data-act="view-wear">'+(todayHas?'Add to today':'Start outfit')+'</button>')+'<button type="button" class="btn ghost" data-act="view-edit">Edit</button><button type="button" class="btn ghost" data-act="share-item-open">Share</button><button type="button" class="btn ghost" data-act="view-close">Close</button></div>'
    +'</div></div>';
   document.body.style.overflow='hidden';
 }
@@ -2537,6 +2538,7 @@ document.addEventListener('click',e=>{
     case 'look-photo2':S.lk=id;{const f=$('#f-look');if(f)f.click()}break;
     case 'look-del2':delLook(id);closeLooks();if(S.tab==='closet'&&S.cm==='looks')fillLooks();break;
     case 'looks-close':closeLooks();break;
+    case 'looks-bg':if(e.target===el)closeLooks();break;
     case 'look-photo':S.lk=id;{const f=$('#f-look');if(f)f.click()}break;
     case 'look-use':useLook(id);break;
     case 'look-del':delLook(id);break;
@@ -2613,6 +2615,7 @@ document.addEventListener('click',e=>{
     case 'view-close':closeView();break;
     case 'view-bg':if(e.target===el)closeView();break;
     case 'view-edit':{const id2=S.vw;closeView();openItem(id2);break}
+    case 'view-wear':{const id2=S.vw;closeView();S.sel=today();S.mode='log';S.out=0;toggleOutfit(id2,true);S.tab='log';render();toTop();toast('Added to today');break}
     case 'occ-add':{const i=$('#f-occ'),v=i&&i.value.trim();if(!v)break;if(SET.occ.length>=4)break;if(BASE_TAGS.concat(SET.occ).some(t=>t.label.toLowerCase()===v.toLowerCase())){toast('You already have that one');break}SET.occ.push({id:'c'+Date.now().toString(36),label:v});saveSet();buildTags();render();break}
     case 'occ-del':SET.occ=SET.occ.filter(o=>o.id!==id);saveSet();buildTags();render();break;
     case 'photo-adjust':adjustPhoto(el.dataset.slot||'f');break;
