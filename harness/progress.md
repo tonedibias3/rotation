@@ -96,3 +96,5 @@ Oct 16 bug pass (Tone, iPad): (1) adding or removing a piece while building a fi
 - Not changed: "Look added to today" (saved look) still jumps to Log; calendar-day Edit and tab/filter/search navigation are intentional jumps. Ask Tone if the look flow should stay put too.
 - Rollback point: d9afbd2.
 
+
+Oct 17: "Lead with the back" (Tone, shorts where the back is the best part). Edit piece shows a switch (only when both photos exist) that swaps which photo is the main one; item stores `swap:true` and the two photo fields are physically swapped, so cards, Wall, Log and share all lead with the back with no other code touched. Piece view and item share labels flip (Back/Front) when swapped. Removing either photo resets the switch. e2e: 4 new checks (87/87), check.js 9/9. Open: Tone to try on the shorts.

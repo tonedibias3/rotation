@@ -1788,7 +1788,7 @@ function renderShare(){
    +shOpt('pin','Inside',[['d','Dark'],['l','Light']])+'</div>'
    +shOpt('logo','Rotation watermark',[['tr','Top right'],['bl','Bottom left'],['br','Bottom right']])
    +shOpt('side','Outfit photo',[['l','Left'],['r','Right']],!(SH.size==='sq'&&SH.hasPhoto))
-   +shOpt('iside','Photo',[['f','Front'],['b','Back'],['2','Both']],!(SH.mode==='item'&&SH.hasBack))
+   +shOpt('iside','Photo',(SH.mode==='item'&&(M.get(SH.item)||{}).swap?[['f','Back'],['b','Front'],['2','Both']]:[['f','Front'],['b','Back'],['2','Both']]),!(SH.mode==='item'&&SH.hasBack))
    +(SH.hasPhoto?'<div class="sh-opt" id="sh-o-move"><span class="cap">Photo</span><p class="hint" style="margin:0 0 6px">Your whole photo shows by default. Zoom in with the slider, then drag the preview to move it.</p><div style="display:flex;align-items:center;gap:12px"><input id="sh-zoom" type="range" min="100" max="300" step="5" value="'+Math.round((SH.zm||1)*100)+'" aria-label="Zoom photo" style="flex:1"><button type="button" class="link" data-act="share-reset">Reset</button></div></div>':'')
    +'</div>'
    +(SH.mode==='fit'?'<div class="sh-opt" style="margin-bottom:8px"><span class="cap">Pieces to show</span><div class="chips wrapc" id="sh-pcs">'+Array.from(SH.look?shLook().items:S.days[SH.d]&&(SH.k?S.days[SH.d].more[SH.k-1]:S.days[SH.d]).items||[]).filter(id=>M.has(id)).map(id=>'<button type="button" class="chip" data-act="share-piece" data-id="'+esc(id)+'" aria-pressed="'+SH.sel.has(id)+'">'+esc(M.get(id).nickname||M.get(id).name)+'</button>').join('')+'</div></div>':'')
@@ -2106,7 +2106,7 @@ function viewItem(id){
   const host=$('#sheet');
   host.innerHTML='<div class="scrim" data-act="view-bg"><div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(it.name)+'" tabindex="-1">'
    +'<div class="sheet-h"><h2>'+esc(it.name)+'</h2><div class="sh-fx"><button type="button" class="x fvx" data-act="view-fav" aria-pressed="'+!!it.fav+'" aria-label="Favorite">'+ico(P.heart,1.8)+'</button><button type="button" class="x" data-act="view-close" aria-label="Close">'+ico(P.x)+'</button></div></div>'
-   +(it.photo2?'<div class="seg mini" id="vside" role="group" aria-label="Side" style="margin-bottom:10px;width:max-content"><button type="button" data-act="view-side" data-v="f" aria-pressed="true">Front</button><button type="button" data-act="view-side" data-v="b" aria-pressed="false">Back</button><button type="button" data-act="view-side" data-v="2" aria-pressed="false">Both</button></div>':'')
+   +(it.photo2?'<div class="seg mini" id="vside" role="group" aria-label="Side" style="margin-bottom:10px;width:max-content"><button type="button" data-act="view-side" data-v="f" aria-pressed="true">'+(it.swap?'Back':'Front')+'</button><button type="button" data-act="view-side" data-v="b" aria-pressed="false">'+(it.swap?'Front':'Back')+'</button><button type="button" data-act="view-side" data-v="2" aria-pressed="false">Both</button></div>':'')
    +'<div class="vbig">'+(it.photo2?'<img id="vback" src="'+esc(photoSrc(it.photo2))+'" alt="" hidden>':'')+(src?'<img id="vfront" src="'+esc(src)+'" alt="">':'<span class="ph" style="--c:'+(COLORS[it.color]||'#9a9ea6')+'">'+(ICONS[it.category]||ICONS.tops)+'</span>')+'</div>'
    +(Array.isArray(it.kinds)&&it.kinds.length?'<div class="vkinds">'+it.kinds.map(k=>'<span>'+esc(k)+'</span>').join('')+'</div>':'')
    +row('Brand',it.brand)+row('Nickname',it.nickname)+row('Type',(CATS[catIdx(it.category)]||{}).label)
@@ -2143,7 +2143,7 @@ function openItem(id,preset){
   const it=id?M.get(id):null;
   if(id&&!it)return;
   S.slot='';S.sheet={scentDay:(preset&&preset.scentDay)||'',shoeDay:(preset&&preset.shoeDay)||'',id:id||null,confirm:false,busy:false,addToLog:!!(preset&&preset.log),draft:{
-    fav:!!(it&&it.fav),name:it?it.name:'',brand:it?it.brand||'':'',nickname:it?it.nickname||'':'',
+    fav:!!(it&&it.fav),swap:!!(it&&it.swap&&it.photo2),name:it?it.name:'',brand:it?it.brand||'':'',nickname:it?it.nickname||'':'',
     category:it?it.category:(preset&&preset.cat)||(S.tab==='closet'&&S.filter!=='all'?S.filter:'shoes'),
     color:it?it.color||'':'',colors:it?(Array.isArray(it.colors)&&it.colors.length?it.colors.slice():(it.color?[it.color]:[])):[],kinds:it&&Array.isArray(it.kinds)?it.kinds.slice():[],price:(it&&typeof it.price==='number')?String(it.price):'',source:it?it.source||'':'',photo:it?it.photo||'':'',photoBlob:null,photoData:'',previewUrl:'',photo2:it?it.photo2||'':'',photoBlob2:null,photoData2:'',previewUrl2:'',bought:it?it.bought||'':'',released:it?it.released||'':''
   }};
@@ -2160,6 +2160,7 @@ function renderSheet(){
    +'<div class="sheet-h"><h2 id="sh-t">'+(it?'Edit piece':'New piece')+'</h2><button type="button" class="x" data-act="sheet-close" aria-label="Close">'+ico(P.x)+'</button></div>'
    +'<div class="photo-row"><div class="tile" id="pv" data-act="pv-tap"></div><div class="photo-side"><label class="btn ghost" for="f-file">'+ico(P.cam)+'<span id="pv-l">Add photo</span></label><input class="vh" id="f-file" aria-label="Choose a photo for this piece" type="file" accept="image/*"><button type="button" class="btn ghost" id="pv-a" data-act="photo-adjust" hidden>Move and crop</button><button type="button" class="btn ghost danger" id="pv-c" data-act="photo-clear" data-slot="f" hidden>Remove photo</button></div></div>'
    +'<div class="photo-row bk"><div class="tile" id="pv2" data-act="pv-tap2"></div><div class="photo-side"><label class="btn ghost" for="f-file2">'+ico(P.cam)+'<span id="pv-l2">Add back photo</span></label><input class="vh" id="f-file2" aria-label="Choose a back photo for this piece" type="file" accept="image/*"><button type="button" class="btn ghost" id="pv-a2" data-act="photo-adjust" data-slot="b" hidden>Move and crop</button><button type="button" class="btn ghost danger" id="pv-c2" data-act="photo-clear" data-slot="b" hidden>Remove back photo</button><p class="hint">Optional. Shown when you view the piece.</p></div></div>'
+   +'<div class="set-row" id="lead-row" style="margin-bottom:12px" hidden><span><b>Lead with the back</b><i>Shows the back photo first on cards, the Wall and the Log.</i></span><button type="button" class="sw-t" data-act="draft-lead" aria-pressed="'+!!d.swap+'" aria-label="Lead with the back photo"></button></div>'
    +'<div class="set-row" style="margin-bottom:12px"><span><b>Favorite</b><i>Shows first in the Log and on your Wall.</i></span><button type="button" class="sw-t" data-act="draft-fav" aria-pressed="'+!!d.fav+'" aria-label="Favorite"></button></div>'
    +'<div class="field"><label for="f-name">Name</label><input id="f-name" data-f="name" value="'+esc(d.name)+'" placeholder="Union Jordan 4" autocomplete="off"></div>'
    +'<div class="two"><div class="field"><label for="f-brand">Brand</label><input id="f-brand" data-f="brand" list="brands" value="'+esc(d.brand)+'" placeholder="Jordan" autocomplete="off"></div><div class="field"><label for="f-nick">Nickname</label><input id="f-nick" data-f="nickname" value="'+esc(d.nickname)+'" placeholder="Optional" autocomplete="off"></div></div>'
@@ -2184,6 +2185,7 @@ function clearPhoto(sl){
   const k=PK(sl),dr=sh.draft;
   if(dr[k.pu]){try{URL.revokeObjectURL(dr[k.pu])}catch(x){}}
   dr[k.ph]='';dr[k.bl]=null;dr[k.da]='';dr[k.pu]='';
+  if(dr.swap){dr.swap=false;const lb=document.querySelector('[data-act=draft-lead]');if(lb)lb.setAttribute('aria-pressed','false')}
   syncPhoto();
 }
 function syncPhoto(){
@@ -2197,6 +2199,7 @@ function syncPhoto(){
     $('#pv-c'+x).hidden=!src;
     $('#pv-a'+x).hidden=!src;
   });
+  const lr=$('#lead-row');if(lr)lr.hidden=!((d.previewUrl||d.photo)&&(d.previewUrl2||d.photo2));
 }
 function syncKinds(){
   const sh=S.sheet,h=$('#s-kind');if(!sh||!h)return;
@@ -2445,7 +2448,7 @@ async function saveItem(){
     const photo=d.photoBlob?d.photoData:(d.photo||'');
     const photo2=d.photoBlob2?d.photoData2:(d.photo2||'');
     const id=sh.id||newId(),ex=sh.id?M.get(sh.id):null;
-    await putItem(id,{name:d.name.trim(),brand:d.brand.trim(),nickname:d.nickname.trim(),category:d.category,color:(d.category==='scents'?'':(d.colors[0]||'')),colors:(d.category==='scents'?[]:d.colors.slice()),kinds:d.kinds.filter(k=>subsFor(d.category).indexOf(k)>=0),price:parsePrice(d.price),source:(d.source||'').trim(),bought:d.bought||'',released:(d.released||'').trim(),photo:photo,photo2:photo2,fav:!!d.fav,createdAt:ex&&ex.createdAt||Date.now()});
+    await putItem(id,{name:d.name.trim(),brand:d.brand.trim(),nickname:d.nickname.trim(),category:d.category,color:(d.category==='scents'?'':(d.colors[0]||'')),colors:(d.category==='scents'?[]:d.colors.slice()),kinds:d.kinds.filter(k=>subsFor(d.category).indexOf(k)>=0),price:parsePrice(d.price),source:(d.source||'').trim(),bought:d.bought||'',released:(d.released||'').trim(),photo:photo,photo2:photo2,swap:!!(d.swap&&photo&&photo2),fav:!!d.fav,createdAt:ex&&ex.createdAt||Date.now()});
     const wasNew=!sh.id,log=sh.addToLog,sd=sh.scentDay,shd=sh.shoeDay;
     const y0=window.scrollY;
     closeSheet();
@@ -2588,6 +2591,7 @@ document.addEventListener('click',e=>{
     case 'wall-view':viewItem(id);break;
     case 'wall-share':openShareWall();break;
     case 'view-fav':toggleFav();break;
+    case 'draft-lead':if(S.sheet){const dr=S.sheet.draft;['photo','photoBlob','photoData','previewUrl'].forEach(k=>{const k2=k+'2',t=dr[k];dr[k]=dr[k2];dr[k2]=t});dr.swap=!dr.swap;el.setAttribute('aria-pressed',dr.swap?'true':'false');syncPhoto()}break;
     case 'draft-fav':if(S.sheet){S.sheet.draft.fav=!S.sheet.draft.fav;el.setAttribute('aria-pressed',S.sheet.draft.fav?'true':'false')}break;
     case 'day-look':dayLook(+el.dataset.o||0);break;
     case 'look-view':viewLook(id);break;
