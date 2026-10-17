@@ -540,7 +540,7 @@ const daysSince=s=>Math.round((parse(today())-parse(s))/864e5);
 const newId=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
 /* ---------- state ---------- */
-const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,occ:Array.isArray(o.occ)?o.occ.filter(x=>x&&x.id&&x.label).slice(0,4):[],accent:['cobalt','heritage','peony','graphite','ember','dusk'].indexOf(o.accent)>=0?o.accent:'cobalt',start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',ckind:['fits','shoes','scents'].indexOf(o.ckind)>=0?o.ckind:'all',cmode:o.cmode==='week'?'week':'month',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:'',order:Array.isArray(o.order)?o.order.filter(x=>typeof x==='string'):[],cview:o.cview==='swipe'?'swipe':'grid',sort:o.sort==='worn'?'worn':'brand',subs:(o.subs&&typeof o.subs==='object')?o.subs:{},shsize:o.shsize==='st'?'st':'sq',shbrand:o.shbrand!==false,shnames:o.shnames!==false,shtag:o.shtag!==false,shdet:o.shdet!==false,shtheme:['light','dark','color','pattern'].indexOf(o.shtheme)>=0?o.shtheme:'light',shcol:/^#[0-9a-f]{6}$/i.test(o.shcol)?o.shcol:'#2744e8',shlt:Math.max(-40,Math.min(40,+o.shlt||0)),shpat:['hound','dots','check','gingham','herring','stripe','tartan'].indexOf(o.shpat)>=0?o.shpat:'hound',shpa:/^#[0-9a-f]{6}$/i.test(o.shpa)?o.shpa:'#111111',shpb:/^#[0-9a-f]{6}$/i.test(o.shpb)?o.shpb:'#ffffff',shps:Math.max(20,Math.min(100,+o.shps||75)),shpin:o.shpin==='l'?'l':'d',shlogo:['tr','bl','br'].indexOf(o.shlogo)>=0?o.shlogo:'tr',shside:o.shside==='r'?'r':'l',lastBackup:+o.lastBackup||0,bkSnooze:+o.bkSnooze||0,gsoff:o.gsoff===true,a2hs:o.a2hs===true,shared:o.shared===true}})();
+const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('rotation.settings')||'{}')||{}}catch(e){}return {theme:o.theme==='light'||o.theme==='dark'?o.theme:'auto',splash:o.splash!==false,occ:Array.isArray(o.occ)?o.occ.filter(x=>x&&x.id&&x.label).slice(0,4):[],accent:['cobalt','heritage','peony','graphite','ember','dusk'].indexOf(o.accent)>=0?o.accent:'cobalt',start:['closet','log','calendar'].indexOf(o.start)>=0?o.start:'closet',week:o.week==='1'?'1':'0',ckind:['fits','shoes','scents'].indexOf(o.ckind)>=0?o.ckind:'all',cmode:o.cmode==='week'?'week':'month',dtag:['work','casual','mixed'].indexOf(o.dtag)>=0?o.dtag:'',order:Array.isArray(o.order)?o.order.filter(x=>typeof x==='string'):[],cview:o.cview==='swipe'?'swipe':'grid',sort:o.sort==='worn'?'worn':'brand',subs:(o.subs&&typeof o.subs==='object')?o.subs:{},shsize:o.shsize==='st'?'st':'sq',shbrand:o.shbrand!==false,shnames:o.shnames!==false,shtag:o.shtag!==false,shdet:o.shdet!==false,shtheme:['light','dark','color','pattern'].indexOf(o.shtheme)>=0?o.shtheme:'light',shcol:/^#[0-9a-f]{6}$/i.test(o.shcol)?o.shcol:'#2744e8',shlt:Math.max(-40,Math.min(40,+o.shlt||0)),shpat:['hound','dots','check','gingham','herring','stripe','tartan'].indexOf(o.shpat)>=0?o.shpat:'hound',shpa:/^#[0-9a-f]{6}$/i.test(o.shpa)?o.shpa:'#111111',shpb:/^#[0-9a-f]{6}$/i.test(o.shpb)?o.shpb:'#ffffff',shps:Math.max(20,Math.min(100,+o.shps||75)),shpin:o.shpin==='l'?'l':'d',shlogo:['tr','bl','br'].indexOf(o.shlogo)>=0?o.shlogo:'tr',shside:o.shside==='r'?'r':'l',lastBackup:+o.lastBackup||0,lastExp:o.lastExp&&+o.lastExp.t?{t:+o.lastExp.t,dev:String(o.lastExp.dev||'').slice(0,40)}:null,lastImp:o.lastImp&&+o.lastImp.t?{t:+o.lastImp.t,dev:String(o.lastImp.dev||'').slice(0,40),ft:+o.lastImp.ft||0,fd:String(o.lastImp.fd||'').slice(0,40)}:null,newest:+o.newest||0,bkSnooze:+o.bkSnooze||0,gsoff:o.gsoff===true,a2hs:o.a2hs===true,shared:o.shared===true}})();
 function applyOrder(){const o=SET.order;CATS.sort((a,b)=>{const ia=o.indexOf(a.id),ib=o.indexOf(b.id);return (ia<0?99:ia)-(ib<0?99:ib)})}
 applyOrder();
 const SUBS={tops:['Short sleeve','Long sleeve','T-shirt','Polo','Dress shirt','Collared','Sweater','Hoodie','Tank'],bottoms:['Jeans','Pants','Slacks','Shorts','Joggers'],shoes:['Sneakers','Boots','Dress','Loafers','Sandals'],outerwear:['Jacket','Coat','Vest','Blazer','Hoodie'],accessories:['Hat','Watch','Belt','Chain','Bag','Sunglasses'],scents:['Fresh','Woody','Sweet','Spicy']};
@@ -627,10 +627,18 @@ async function loadLocal(){
   }catch(e){}
   rebuild();
 }
+/* which device is this: shown next to the last export/import time so you can tell your phone, iPad and computer apart */
+function devLabel(){
+  const ua=navigator.userAgent||'',touch=(navigator.maxTouchPoints||0)>1;
+  const d=/iPhone/.test(ua)?'iPhone':/iPad/.test(ua)||(/Macintosh/.test(ua)&&touch)?'iPad':/Android/.test(ua)?'Android':/Macintosh/.test(ua)?'Mac':/Windows/.test(ua)?'Windows PC':/Linux/.test(ua)?'Linux':'this device';
+  const C=window.Capacitor,app=(C&&C.isNativePlatform&&C.isNativePlatform())||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+  return d+(app?' app':' browser');
+}
+const fmtDT=t=>t?new Date(t).toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'';
 async function exportData(){
-  const name='rotation-backup-'+today()+'.json';
-  const blob=new Blob([JSON.stringify({app:'rotation',v:2,items:S.items,days:S.days,looks:S.looks,settings:Object.assign({},SET)})],{type:'application/json'});
-  const done=()=>{SET.lastBackup=Date.now();saveSet();if(S.tab==='closet'||S.tab==='settings')render()};
+  const name='rotation-backup-'+today()+'.json',at=Date.now(),dev=devLabel();
+  const blob=new Blob([JSON.stringify({app:'rotation',v:2,exportedAt:at,device:dev,items:S.items,days:S.days,looks:S.looks,settings:Object.assign({},SET)})],{type:'application/json'});
+  const done=()=>{SET.lastBackup=Date.now();SET.lastExp={t:at,dev:dev};SET.newest=Math.max(SET.newest||0,at);saveSet();if(S.tab==='closet'||S.tab==='settings')render()};
   /* inside the iOS app a download link does nothing, so write the file and open the share sheet (Save to Files, AirDrop, Mail) */
   const C=window.Capacitor,P=C&&C.Plugins;
   if(C&&C.isNativePlatform&&C.isNativePlatform()&&P&&P.Filesystem&&P.Share){
@@ -655,6 +663,11 @@ async function importData(file){
   let j;
   try{j=JSON.parse(await file.text());if(!j||!Array.isArray(j.items))throw new Error('bad')}
   catch(e){toast('That file is not a Rotation backup. Pick a file you exported from Rotation.');return}
+  const ft=+j.exportedAt||file.lastModified||0,fd=typeof j.device==='string'?j.device.slice(0,40):'';
+  if(ft&&SET.newest&&ft<SET.newest-60000){
+    const r=await ask({title:'This backup is older',body:'This file was saved '+fmtDT(ft)+(fd?' on '+fd:'')+'. Your newest backup or import on this device is from '+fmtDT(SET.newest)+'. Importing an older file can bring back pieces you removed or older versions of days.',actions:[{label:'Cancel',kind:'primary'},{label:'Import it anyway'}]});
+    if(!r||r.i===0)return;
+  }
   const dayHas=d=>!!(d&&((d.items&&d.items.length)||d.scent||d.shoe||d.photo||(d.more&&d.more.length)));
   const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
   const addI=[],diffI=[];
@@ -685,14 +698,22 @@ async function importData(file){
       if(o.cview==='swipe'||o.cview==='grid')SET.cview=o.cview;if(o.sort==='worn'||o.sort==='brand')SET.sort=o.sort;
       saveSet();applyOrder();buildTags();applyTheme();
     }
+    SET.lastImp={t:Date.now(),dev:devLabel(),ft:ft,fd:fd};SET.newest=Math.max(SET.newest||0,ft);saveSet();
     rebuild();persistLocal();render();
     const kept=useBackup?0:diffI.length+diffD.length;
     toast('Restored '+items.length+' piece'+(items.length===1?'':'s')+', '+days.length+' day'+(days.length===1?'':'s')+' and '+addL.length+' look'+(addL.length===1?'':'s')+(kept?'. Kept '+kept+' already on this phone':''));
   }catch(e){toast('Could not restore that backup. Nothing was changed.')}
 }
+function backupLog(){
+  const e=SET.lastExp,i=SET.lastImp;
+  const l1='<div class="vrow"><span>Last export</span><b>'+(e?esc(fmtDT(e.t)+(e.dev?' on '+e.dev:'')):'Never on this device')+'</b></div>';
+  const l2='<div class="vrow"><span>Last import</span><b>'+(i?esc(fmtDT(i.t)+(i.dev?' on '+i.dev:'')):'Never on this device')+'</b></div>';
+  const l3=i&&i.ft?'<p class="hint" style="margin:6px 0 12px">That import was a backup saved '+esc(fmtDT(i.ft)+(i.fd?' on '+i.fd:''))+'.</p>':'<div style="height:12px"></div>';
+  return '<div style="margin:6px 0 0">'+l1+l2+l3+'</div>';
+}
 function backupRow(inSettings){
   if(!inSettings||S.loading)return '';
-  return '<div class="panel"><h2>Backup</h2><p>Your closet is stored in this browser only. Export a copy now and then. Import it to restore or move to another device.</p><div class="btn-row"><button type="button" class="btn ghost" data-act="export">Export backup</button><label class="btn ghost" for="f-import">Import backup</label><input class="vh" id="f-import" aria-label="Choose a backup file to import" type="file" accept="application/json,.json"></div></div>';
+  return '<div class="panel"><h2>Backup</h2><p>Your closet is stored in this browser only. Export a copy now and then. Import it to restore or move to another device.</p>'+backupLog()+'<div class="btn-row"><button type="button" class="btn ghost" data-act="export">Export backup</button><label class="btn ghost" for="f-import">Import backup</label><input class="vh" id="f-import" aria-label="Choose a backup file to import" type="file" accept="application/json,.json"></div></div>';
 }
 /* follow the iOS text size setting (Dynamic Type), capped so layouts hold */
 function textScale(){
