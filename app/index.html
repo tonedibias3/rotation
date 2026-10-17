@@ -2678,7 +2678,12 @@ document.addEventListener('click',e=>{
     case 'view-close':closeView();break;
     case 'view-bg':if(e.target===el)closeView();break;
     case 'view-edit':{const id2=S.vw;closeView();openItem(id2);break}
-    case 'view-wear':{const id2=S.vw;closeView();S.sel=today();S.mode='log';S.out=0;toggleOutfit(id2,true);S.tab='log';render();toTop();toast('Added to today');break}
+    case 'view-wear':{
+      /* add to the outfit without leaving the screen: no tab change, no re-render, same scroll position */
+      const id2=S.vw,y=window.scrollY;closeView();
+      if(S.tab!=='log'){S.sel=today();S.mode='log';S.out=0}
+      toggleOutfit(id2,true);keepY(y);
+      toast('Added to '+(S.sel===today()?'today':fmt(S.sel,{month:'short',day:'numeric'})));break}
     case 'occ-add':{const i=$('#f-occ'),v=i&&i.value.trim();if(!v)break;if(SET.occ.length>=4)break;if(BASE_TAGS.concat(SET.occ).some(t=>t.label.toLowerCase()===v.toLowerCase())){toast('You already have that one');break}SET.occ.push({id:'c'+Date.now().toString(36),label:v});saveSet();buildTags();render();break}
     case 'occ-del':SET.occ=SET.occ.filter(o=>o.id!==id);saveSet();buildTags();render();break;
     case 'photo-adjust':adjustPhoto(el.dataset.slot||'f');break;

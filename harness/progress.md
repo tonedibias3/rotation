@@ -89,3 +89,10 @@ Oct 16 bug pass (Tone, iPad): (1) adding or removing a piece while building a fi
 - Open: not tested on a real iPad/iPhone touch (hold length 450 ms, iOS may show its own callout on photos); Tone to confirm. If Log tap should also open the view, say so; selecting would then move to a different control.
 - Same evening, separate commit: Escape key threw "FD is not defined" (leftover from the removed photo search, since Oct 14), so Escape never closed a view sheet or edit form on a keyboard. Removed the dead reference. e2e now 72/72 with a regression test that fails on the old code.
 
+## Oct 16 (night): Add to today from the view sheet no longer jumps (Tone, screen recording)
+- Cause: the earlier scroll fix (Oct 16 bug pass) covered only the edit sheet (saveItem/removeItem call keepY). The view sheet button (`view-wear`) is a separate path and deliberately did `S.tab='log'; render(); toTop()`, so every add switched to Log and scrolled to the top. The old test only covered adding a NEW piece from Log, so it never touched this path.
+- Fix: `view-wear` now closes the view, adds the piece, keeps the current tab and scroll position (keepY), and toasts "Added to today" (or the selected date when already in Log on another day). No re-render.
+- Test (fails on the old code: 1362 -> 0 and tab changed; passes now 1362 -> 1362): e2e 81/81, check.js 9/9.
+- Not changed: "Look added to today" (saved look) still jumps to Log; calendar-day Edit and tab/filter/search navigation are intentional jumps. Ask Tone if the look flow should stay put too.
+- Rollback point: d9afbd2.
+

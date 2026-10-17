@@ -240,6 +240,36 @@ with sync_playwright() as p:
     pg12.keyboard.press('Escape'); pg12.wait_for_timeout(400)
     ok('Escape closes the edit form',pg12.locator('#f-name').count()==0)
     ok('no page errors on Escape',not errs12,'; '.join(errs12)[:200])
+
+    # regression: adding a piece from its view sheet keeps the screen where it was (no jump to the top, no tab change)
+    pg13,errs13=boot(b)
+    big13=mk(40)
+    for k,it in enumerate(big13['items']): it['category']='shoes' if k%2 else 'tops'
+    pf13=out+'/in40b.json'; json.dump(big13,open(pf13,'w'))
+    to_settings(pg13)
+    pg13.set_input_files('#f-import',pf13); pg13.wait_for_timeout(1800)
+    pg13.evaluate("document.querySelector('#pill [data-tab=closet]').click()"); pg13.wait_for_timeout(700)
+    pg13.evaluate("window.scrollTo(0,document.body.scrollHeight)"); pg13.wait_for_timeout(300)
+    pg13.evaluate("window.scrollBy(0,-500)"); pg13.wait_for_timeout(300)
+    y0=pg13.evaluate("window.scrollY")
+    vis=pg13.evaluate("(()=>{const l=[...document.querySelectorAll('.card[data-id]')].filter(c=>{const r=c.getBoundingClientRect();return r.top>120&&r.bottom<700&&r.left>=0&&r.right<=390});return l.slice(0,2).map(c=>c.dataset.id)})()")
+    ok('found pieces on screen far down the closet',y0>300 and len(vis)>=2,f'y0={y0} vis={vis}')
+    for n,cid in enumerate(vis[:2]):
+        try:
+            pg13.locator(f'.card[data-id="{cid}"]').first.click(timeout=4000); pg13.wait_for_timeout(450)
+            pg13.locator('#sheet [data-act=view-wear]').click(timeout=4000); pg13.wait_for_timeout(900)
+        except Exception as e:
+            ok(f'add #{n+1} from the view sheet: could open view and add',False,str(e).split('\n')[0][:120]); break
+        y1=pg13.evaluate("window.scrollY")
+        ok(f'add #{n+1} from the view sheet: page stays put',abs(y1-y0)<=40,f'{y0} -> {y1}')
+        ok(f'add #{n+1}: still on the Closet tab',pg13.evaluate("document.querySelector('#pill [data-tab=closet]').getAttribute('aria-current')")=='page')
+        ok(f'add #{n+1}: view sheet closed and confirmation shown',pg13.locator('#sheet [data-act=view-wear]').count()==0 and 'added to today' in pg13.inner_text('#toast').lower())
+    tk=pg13.evaluate("(()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())})()")
+    pg13.wait_for_timeout(1500)
+    dd=pg13.evaluate("""async(k)=>{const db=await new Promise((res,rej)=>{const r=indexedDB.open('rotation',1);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+      const v=await new Promise(res=>{const q=db.transaction('kv').objectStore('kv').get('days');q.onsuccess=()=>res(q.result)});return v&&v[k]?v[k].items:[]}""",tk)
+    ok('both pieces saved to today\'s outfit',sorted(dd)==sorted(vis[:2]),str(dd))
+    ok('no page errors (add from view)',not errs13,'; '.join(errs13)[:200])
     b.close()
 w=max(len(r[1]) for r in res)
 for r in res: print(r[0],'|',r[1].ljust(w),'|',r[2])
