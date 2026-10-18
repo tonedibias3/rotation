@@ -104,3 +104,6 @@ Oct 17 backup log (Tone, working across computer, iPad and phone): Settings > Ba
 ## Oct 18: "Stayed in" day
 Done: Log screen has a "Stayed in" chip (sets day.rest). It keeps the streak (streakInfo uses hasLog) but is excluded from wear stats and recap (they still use hasFit). Toggle has Undo. Stats copy says stay-in days count. Tone's idea from using the app on a lounge day.
 Open: calendar does not mark stay-in days visually yet.
+
+## Oct 18 (later): add-to-today jumps to Log, selected pieces ride to the front
+Done: "Add to today" / "Start outfit" from the closet piece view now switches to today's Log with the piece already selected (stays put if already on Log). In Log, selected pieces (and scent) move to the front of their row next to the New tile, row scrolls back to the start; unselect and they return to their usual spot (data-o holds base order; sortRails() in refreshPicker). Replaces the earlier "no tab change" behavior on purpose, per Tone.

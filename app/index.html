@@ -1077,9 +1077,11 @@ function viewLog(){
     });
     const n=isSc?(dd&&dd.scent?1:0):list.filter(i=>on.has(i.id)).length;
     if(S.fav&&!list.length)return '';
+    const isOn=i=>isSc?(!!dd&&dd.scent===i.id):on.has(i.id);
+    const ordered=list.map((i,k)=>({i:i,k:k})).sort((a,b)=>(isOn(b.i)-isOn(a.i))||(a.k-b.k));
     return '<section class="grp"><div class="grp-h"><h2>'+(isSc?'Scent of the day':c.label)+'</h2><span class="sub" id="cnt-'+c.id+'">'+(n?n+' selected · ':'')+list.length+'</span>'+(c.id==='shoes'?'<button type="button" class="chip" data-act="shoe-log" aria-pressed="'+(!!dd&&!!dd.shoe)+'">Shoe of the day</button>':'')+'</div><div class="rail">'
       +'<button type="button" class="card" data-act="new-item" data-cat="'+c.id+'" aria-label="Add a new '+c.label.toLowerCase()+' piece"><span class="tile add">'+ico(P.plus,1.6)+'</span><span class="brand">New</span><span class="name">Add to '+c.label.toLowerCase()+'</span></button>'
-      +list.map(i=>isSc?card(i,'data-act="scent" data-id="'+esc(i.id)+'" aria-pressed="'+(!!dd&&dd.scent===i.id)+'"'):card(i,'data-act="pick" data-id="'+esc(i.id)+'" aria-pressed="'+on.has(i.id)+'"')).join('')
+      +ordered.map(x=>{const i=x.i;return isSc?card(i,'data-act="scent" data-o="'+x.k+'" data-id="'+esc(i.id)+'" aria-pressed="'+(!!dd&&dd.scent===i.id)+'"'):card(i,'data-act="pick" data-o="'+x.k+'" data-id="'+esc(i.id)+'" aria-pressed="'+on.has(i.id)+'"')}).join('')
       +'</div></section>';
   }).join('');
   return '<div class="head"><div><div class="brand">Rotation</div><h1 class="h1">Log</h1><div class="sub">'+fmt(sel,{weekday:'long',month:'long',day:'numeric'})+'</div></div><div class="hr">'+streakChip()+'<button type="button" class="chip" data-act="today">Today</button>'+gearBtn()+'</div></div>'+(sel===t&&!isPlan?insightHTML():'')
@@ -1109,11 +1111,23 @@ function renderTray(){
   el.innerHTML='<div class="thumbs">'+(its.length?its.map(i=>'<span class="thumb">'+tileInner(i)+'</span>').join(''):'<span class="sub">Tap pieces to build the outfit</span>')+'</div><div class="tray-r"><span class="mono">'+(S.mode==='log'&&outCount()>1?'Outfit '+(S.out+1)+' · ':'')+its.length+' piece'+(its.length===1?'':'s')+'</span><span class="sv" id="savestate"></span></div><button type="button" class="btn primary tray-done" data-act="done">View day</button>';
   paintSave();
 }
+/* selected pieces ride at the front of their row, right after the New tile. Unselect and they slide back to their usual spot. */
+function sortRails(){
+  document.querySelectorAll('.grp .rail').forEach(r=>{
+    const cs=[].slice.call(r.querySelectorAll(':scope > .card[data-o]'));if(cs.length<2)return;
+    const sel=c=>c.getAttribute('aria-pressed')==='true'?0:1;
+    const want=cs.slice().sort((a,b)=>(sel(a)-sel(b))||(+a.dataset.o-+b.dataset.o));
+    if(want.every((c,k)=>c===cs[k]))return;
+    const after=cs[cs.length-1].nextSibling;want.forEach(c=>r.insertBefore(c,after));
+    r.scrollLeft=0;
+  });
+}
 function refreshPicker(){
   const t=target(false),on=new Set(t.items);
   document.querySelectorAll('.card[data-act="pick"]').forEach(b=>b.setAttribute('aria-pressed',on.has(b.dataset.id)?'true':'false'));
   const sd=S.days[S.sel],sc=sd&&sd.scent||'';
   document.querySelectorAll('.card[data-act="scent"]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.id===sc?'true':'false'));
+  sortRails();
   CATS.forEach(c=>{
     const el=$('#cnt-'+c.id);if(!el)return;
     const total=S.items.filter(i=>i.category===c.id).length;
@@ -2707,10 +2721,11 @@ document.addEventListener('click',e=>{
     case 'view-bg':if(e.target===el)closeView();break;
     case 'view-edit':{const id2=S.vw;closeView();openItem(id2);break}
     case 'view-wear':{
-      /* add to the outfit without leaving the screen: no tab change, no re-render, same scroll position */
-      const id2=S.vw,y=window.scrollY;closeView();
-      if(S.tab!=='log'){S.sel=today();S.mode='log';S.out=0}
-      toggleOutfit(id2,true);keepY(y);
+      /* from the closet: jump to today's Log with the piece already in the outfit. Already on Log: stay put. */
+      const id2=S.vw,y=window.scrollY,fromLog=S.tab==='log';closeView();
+      if(!fromLog){S.sel=today();S.mode='log';S.out=0;S.tab='log'}
+      toggleOutfit(id2,true);
+      if(fromLog)keepY(y);else{render();toTop()}
       toast('Added to '+(S.sel===today()?'today':fmt(S.sel,{month:'short',day:'numeric'})));break}
     case 'occ-add':{const i=$('#f-occ'),v=i&&i.value.trim();if(!v)break;if(SET.occ.length>=4)break;if(BASE_TAGS.concat(SET.occ).some(t=>t.label.toLowerCase()===v.toLowerCase())){toast('You already have that one');break}SET.occ.push({id:'c'+Date.now().toString(36),label:v});saveSet();buildTags();render();break}
     case 'occ-del':SET.occ=SET.occ.filter(o=>o.id!==id);saveSet();buildTags();render();break;
