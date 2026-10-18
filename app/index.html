@@ -247,6 +247,7 @@ html{font-size:calc(16px*var(--tz));-webkit-text-size-adjust:100%}
 .sw[data-v="multi"]{background:conic-gradient(#e8573f,#e6c53a,#3f8a5c,#3d6fd1,#7a55b8,#e8573f)}
 .sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--accent)}
 .sheet .btn-row .btn{flex:1}
+.rest-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}.rest-row .sub{flex:1;min-width:180px}
 .toast-u{margin-left:14px;border:0;background:transparent;color:var(--accent-ink-on,#8FA2FF);font:700 0.875rem var(--f-body);padding:12px 6px;margin-top:-11px;margin-bottom:-11px;min-height:44px;cursor:pointer;text-decoration:underline}
 .toast.has-u{display:flex;align-items:center;padding-top:11px;padding-bottom:11px}
 #ask .scrim{z-index:100}
@@ -559,10 +560,10 @@ function normDay(r){
   const pl=Array.isArray(r.plans)?r.plans:[];
   const mk=p=>({cover:(p&&typeof p.cover==='string')?p.cover:'',items:Array.isArray(p&&p.items)?p.items.slice():[],tag:(p&&p.tag)||'',place:dt(p&&p.place,30),wx:dt(p&&p.wx,30),note:dt(p&&p.note,140),when:nw(p&&p.when),locked:!!(p&&p.locked),photo:(p&&typeof p.photo==='string')?p.photo:'',rating:(p&&typeof p.rating==='number'&&p.rating>0&&p.rating<=5)?Math.round(p.rating*2)/2:0});
   const mo=Array.isArray(r.more)?r.more.map(mk).filter(o=>o.items.length||o.photo):[];
-  return {cover:typeof r.cover==='string'?r.cover:'',items:Array.isArray(r.items)?r.items.slice():[],tag:r.tag||'',place:dt(r.place,30),wx:dt(r.wx,30),note:dt(r.note,140),rating:(typeof r.rating==='number'&&r.rating>0&&r.rating<=5)?Math.round(r.rating*2)/2:0,photo:typeof r.photo==='string'?r.photo:'',scent:typeof r.scent==='string'?r.scent:'',scentRating:(typeof r.scentRating==='number'&&r.scentRating>0&&r.scentRating<=5)?Math.round(r.scentRating*2)/2:0,shoe:typeof r.shoe==='string'?r.shoe:'',shoePhoto:typeof r.shoePhoto==='string'?r.shoePhoto:'',when:nw(r.when),plans:[mk(pl[0]),mk(pl[1]),mk(pl[2]),mk(pl[3])],more:mo};
+  return {cover:typeof r.cover==='string'?r.cover:'',items:Array.isArray(r.items)?r.items.slice():[],tag:r.tag||'',place:dt(r.place,30),wx:dt(r.wx,30),note:dt(r.note,140),rating:(typeof r.rating==='number'&&r.rating>0&&r.rating<=5)?Math.round(r.rating*2)/2:0,photo:typeof r.photo==='string'?r.photo:'',scent:typeof r.scent==='string'?r.scent:'',scentRating:(typeof r.scentRating==='number'&&r.scentRating>0&&r.scentRating<=5)?Math.round(r.scentRating*2)/2:0,shoe:typeof r.shoe==='string'?r.shoe:'',shoePhoto:typeof r.shoePhoto==='string'?r.shoePhoto:'',rest:!!r.rest,when:nw(r.when),plans:[mk(pl[0]),mk(pl[1]),mk(pl[2]),mk(pl[3])],more:mo};
 }
 const outDoc=p=>({cover:p.cover||'',items:p.items.slice(),tag:p.tag||'',place:p.place||'',wx:p.wx||'',note:p.note||'',when:p.when||'',photo:p.photo||'',rating:p.rating||0,locked:!!p.locked});
-const dayEmpty=d=>!d||(!d.items.length&&!d.photo&&!d.scent&&!d.shoe&&!d.shoePhoto&&!d.plans.some(p=>p.items.length)&&!d.more.some(p=>p.items.length));
+const dayEmpty=d=>!d||(!d.rest&&!d.items.length&&!d.photo&&!d.scent&&!d.shoe&&!d.shoePhoto&&!d.plans.some(p=>p.items.length)&&!d.more.some(p=>p.items.length));
 const nw=v=>tlist(v).filter(w=>WR[w]!==undefined).sort((x,y)=>WR[x]-WR[y]).join(',');
 const WR={morning:0,afternoon:1,evening:2};
 const tlist=v=>v?String(v).split(',').filter(Boolean):[];
@@ -1083,7 +1084,7 @@ function viewLog(){
   }).join('');
   return '<div class="head"><div><div class="brand">Rotation</div><h1 class="h1">Log</h1><div class="sub">'+fmt(sel,{weekday:'long',month:'long',day:'numeric'})+'</div></div><div class="hr">'+streakChip()+'<button type="button" class="chip" data-act="today">Today</button>'+gearBtn()+'</div></div>'+(sel===t&&!isPlan?insightHTML():'')
    +'<div class="days" id="days">'+strip+'</div>'
-   +'<div class="stack">'+modeSeg+optSeg+'<div id="outwrap">'+outSegHTML()+'</div>'
+   +'<div class="stack">'+modeSeg+(S.mode!=='plan'&&sel<=t?'<div class="rest-row"><button type="button" class="chip" data-act="rest" data-d="'+sel+'" aria-pressed="'+!!(dd&&dd.rest)+'">Stayed in</button><span class="sub">'+(dd&&dd.rest?'Counts toward your streak. Not in your wear stats.':'Keeps your streak without logging pieces.')+'</span></div>':'')+optSeg+'<div id="outwrap">'+outSegHTML()+'</div>'
    +'<div><span class="cap">Time of day</span><div class="seg" id="whenseg" role="group" aria-label="Time of day">'+whenSeg()+'</div></div>'
    +'<div><span class="cap">Outfit type</span><div class="seg wrap" id="tagseg" role="group" aria-label="Outfit type">'+tagSeg()+'</div></div>'
    +'<div id="detbox">'+detHTML()+'</div>'
@@ -1432,7 +1433,7 @@ function viewStats(){
   const row=(i,right)=>'<div class="ri"><span class="thumb lg">'+tileInner(i)+'</span><span class="ri-t"><b>'+esc(dn(i))+'</b><i>'+esc(i.brand||(CATS[catIdx(i.category)]||CATS[0]).label)+'</i></span><span class="mono">'+right+'</span></div>';
   const rts=[];keys.forEach(k=>outfitsOf(S.days[k]).forEach(o=>{if(o.rating)rts.push(o.rating)}));
   const sk=streakInfo(),rc=recapData(S.month);
-  let insights='<div class="panel"><h2>Streak</h2><div class="nums"><div><b>'+sk.cur+'</b><span>Current</span></div><div><b>'+sk.best+'</b><span>Best</span></div></div><p class="hint" style="margin:10px 0 0">'+(sk.risk?'Log today to keep it going. ':'')+'Miss one day and your streak survives. It\u2019s forgiven once every 7 days.</p>'+(rc.days?'<div class="btn-row" style="margin-top:12px"><button type="button" class="btn primary" data-act="recap-open">Share '+esc(fmt(S.month+'-01',{month:'long'}))+' recap</button></div>':'')+'</div>';
+  let insights='<div class="panel"><h2>Streak</h2><div class="nums"><div><b>'+sk.cur+'</b><span>Current</span></div><div><b>'+sk.best+'</b><span>Best</span></div></div><p class="hint" style="margin:10px 0 0">'+(sk.risk?'Log today to keep it going. ':'')+'Stayed in days count too. Miss one day and your streak survives. It\u2019s forgiven once every 7 days.</p>'+(rc.days?'<div class="btn-row" style="margin-top:12px"><button type="button" class="btn primary" data-act="recap-open">Share '+esc(fmt(S.month+'-01',{month:'long'}))+' recap</button></div>':'')+'</div>';
   insights+='<div class="panel"><h2>This month</h2>';
   insights+=keys.length?'<div class="nums"><div><b>'+keys.length+'</b><span>Days</span></div>'+TAGS.filter(t=>tcnt[t.id]||['work','casual'].indexOf(t.id)>=0).slice(0,5).map(t=>'<div><b>'+(tcnt[t.id]||0)+'</b><span>'+esc(t.label)+'</span></div>').join('')+'</div>'+(rts.length?'<div class="rate-row" style="margin-top:14px">'+starsHTML(Math.round(rts.reduce((a,b)=>a+b,0)/rts.length*2)/2,false)+'<span class="mono">Avg '+(rts.reduce((a,b)=>a+b,0)/rts.length).toFixed(1)+' · '+rts.length+' rated</span></div>':''):'<p style="margin:0">Log an outfit and this month fills in.</p>';
   insights+='</div>';
@@ -1630,22 +1631,23 @@ function openShare(d,k,mode){
 
 /* ---------- streak, insight, recap ---------- */
 const hasFit=k=>{const d=S.days[k];return !!d&&outfitsOf(d).some(o=>o.items.some(id=>M.has(id)))};
+const hasLog=k=>hasFit(k)||!!(S.days[k]&&S.days[k].rest);
 function streakInfo(){
-  const t=today(),ks=Object.keys(S.days).filter(k=>k<=t&&hasFit(k)).sort();
+  const t=today(),ks=Object.keys(S.days).filter(k=>k<=t&&hasLog(k)).sort();
   if(!ks.length)return {cur:0,best:0,risk:false,done:false,saved:false};
-  const end=hasFit(t)?t:addDays(t,-1);
+  const end=hasLog(t)?t:addDays(t,-1);
   let d=ks[0],run=0,best=0,lf=null,saved=false,risk=false,g=0;
   while(d<=end&&g++<4000){
-    if(hasFit(d)){run++;if(run>best)best=run}
+    if(hasLog(d)){run++;if(run>best)best=run}
     else{
-      const canF=hasFit(addDays(d,-1))&&(lf===null||daysSince(lf)-daysSince(d)>=7);
-      if(canF&&hasFit(addDays(d,1))&&addDays(d,1)<=end){lf=d;if(daysSince(d)<=7)saved=true}
+      const canF=hasLog(addDays(d,-1))&&(lf===null||daysSince(lf)-daysSince(d)>=7);
+      if(canF&&hasLog(addDays(d,1))&&addDays(d,1)<=end){lf=d;if(daysSince(d)<=7)saved=true}
       else if(canF&&d===end&&d<t)risk=true;
       else run=0;
     }
     d=addDays(d,1);
   }
-  return {cur:run,best:best,risk:risk,done:hasFit(t),saved:saved};
+  return {cur:run,best:best,risk:risk,done:hasLog(t),saved:saved};
 }
 function streakChip(){
   const s=streakInfo();if(s.cur<2)return '';
@@ -2602,6 +2604,7 @@ document.addEventListener('click',e=>{
     case 'scent':pickScent(id);break;
     case 'day':pickDay(el.dataset.d);break;
     case 'today':S.month=today().slice(0,7);pickDay(today());break;
+    case 'rest':{const k=el.dataset.d||S.sel,dd0=S.days[k]||(S.days[k]=normDay({})),was=!!dd0.rest;dd0.rest=!was;scheduleDay(k);const y0=window.scrollY;render();window.scrollTo(0,y0);toast(was?'Stay-in day removed':'Stayed in. Streak kept.',()=>{const d1=S.days[k]||(S.days[k]=normDay({}));d1.rest=was;scheduleDay(k);render()});break}
     case 'mode':S.mode=el.dataset.v;S.opt=0;S.out=0;render();break;
     case 'opt':S.opt=+el.dataset.v;render();break;
     case 'tag':setTag(el.dataset.v);break;
