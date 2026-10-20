@@ -107,3 +107,9 @@ Open: calendar does not mark stay-in days visually yet.
 
 ## Oct 18 (later): add-to-today jumps to Log, selected pieces ride to the front
 Done: "Add to today" / "Start outfit" from the closet piece view now switches to today's Log with the piece already selected (stays put if already on Log). In Log, selected pieces (and scent) move to the front of their row next to the New tile, row scrolls back to the start; unselect and they return to their usual spot (data-o holds base order; sortRails() in refreshPicker). Replaces the earlier "no tab change" behavior on purpose, per Tone.
+
+## Oct 20: share sheet fixes (Tone, iPad screenshots)
+Done: (1) Share sheet always opens on Light background (was remembering the last choice). (2) Sharing a saved look now has a "MY LOOK" header, was blank. (3) Color background no longer tints the piece photos (multiply blend now only on plain Light; color gets flat rounded photos). (4) Story size: the outfit photo overlapped the tile row; photo box is now exactly the photo height and tiles start below it. (5) Share / Save to Photos bar is flush at the bottom of the sheet with a divider, so pieces chips no longer peek underneath it.
+Decision: no new toggles for the header date/tag line (Tone: too many options already).
+Tests: e2e 100/100 (new: reopens on Light after Color, action bar flush with sheet bottom), check.js 9/9. Checked a story + yellow render with test photos by eye.
+Open: not checked on a real iPad (Safari sticky behavior). Rollback point: 6fa0c5e.

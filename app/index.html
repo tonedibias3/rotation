@@ -423,7 +423,7 @@ details.det[open] summary{border-bottom:1px solid var(--line);margin-bottom:14px
 .vrow .dots{display:flex;gap:6px}.vrow .dots i{width:20px;height:20px;border-radius:50%;border:1px solid var(--line)}
 .arr-r{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font:600 0.9375rem var(--f-body)}.arr-r div{display:flex;gap:8px}.arr-r .rb:disabled{opacity:.3}
 .sh-prev{display:grid;place-items:center;background:rgba(127,127,127,.16);border-radius:16px;padding:10px;margin-bottom:12px;min-height:180px}
-.sh-opts{display:grid;gap:8px;margin-bottom:8px}.sh-sub{display:grid;gap:8px}.sh-sub[hidden]{display:none}.sh-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.sh-row input[type=color]{width:46px;height:40px;padding:0;border:0;border-radius:10px;background:none}.sh-row input[type=text]{width:120px;font:500 0.9375rem var(--f-mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;-webkit-appearance:none;appearance:none}.sh-pre{width:30px;height:30px;border-radius:50%;border:2px solid var(--line,#8884);padding:0}#sh-o-pat .seg{flex-wrap:wrap}#sh-o-pat .seg button{flex:1 1 auto;white-space:nowrap}.sh-opt .cap{margin-bottom:4px}.sh-actions{position:sticky;bottom:-1px;background:var(--surface);padding:12px 0 4px;margin-top:8px}.sh-prev img{max-width:100%;max-height:30vh;border-radius:8px;box-shadow:var(--shadow)}
+.sh-opts{display:grid;gap:8px;margin-bottom:8px}.sh-sub{display:grid;gap:8px}.sh-sub[hidden]{display:none}.sh-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.sh-row input[type=color]{width:46px;height:40px;padding:0;border:0;border-radius:10px;background:none}.sh-row input[type=text]{width:120px;font:500 0.9375rem var(--f-mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;-webkit-appearance:none;appearance:none}.sh-pre{width:30px;height:30px;border-radius:50%;border:2px solid var(--line,#8884);padding:0}#sh-o-pat .seg{flex-wrap:wrap}#sh-o-pat .seg button{flex:1 1 auto;white-space:nowrap}.sh-opt .cap{margin-bottom:4px}.crop:has(.sh-actions){padding-bottom:0}.sh-actions{position:sticky;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:12px 0 18px;margin-top:8px}.sh-prev img{max-width:100%;max-height:30vh;border-radius:8px;box-shadow:var(--shadow)}
 .cell.wk{background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
 .cell.wk .n{color:var(--accent2,var(--accent))}
 .dow.wk{color:var(--accent2,var(--accent))}
@@ -1639,7 +1639,7 @@ function openShare(d,k,mode){
   const dd=S.days[d];if(!dd)return;
   const one=mode==='scent'||mode==='shoe',o=one?dd:(k?dd.more[k-1]:dd);if(!o)return;
   if(mode==='scent'){if(!(dd.scent&&M.has(dd.scent)))return}else if(mode==='shoe'){if(!shoeOf(dd))return}else if(!o.items.length)return;
-  SH={mode:mode||'fit',sel:new Set(o.items.filter(id=>M.has(id))),scent:false,hasScent:!!(dd.scent&&M.has(dd.scent))&&!one&&o.items.indexOf(dd.scent)<0,hasFeet:mode==='shoe'&&!!dd.shoePhoto,feet:true,d:d,k:k,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:SET.shtag,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:!one&&!!o.photo,caption:'',url:'',blob:null,seq:0};
+  SH={mode:mode||'fit',sel:new Set(o.items.filter(id=>M.has(id))),scent:false,hasScent:!!(dd.scent&&M.has(dd.scent))&&!one&&o.items.indexOf(dd.scent)<0,hasFeet:mode==='shoe'&&!!dd.shoePhoto,feet:true,d:d,k:k,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:SET.shtag,theme:'light',logo:SET.shlogo,side:SET.shside,hasPhoto:!one&&!!o.photo,caption:'',url:'',blob:null,seq:0};
   renderShare();buildShare();
 }
 
@@ -1694,7 +1694,7 @@ function recapData(m){
   return {days:keys.length,top:top,tag:tg?tagLbl(tg):'',pieces:Object.keys(wm).length};
 }
 function openRecap(){
-  SH={mode:'recap',m:S.month,sel:new Set(),scent:false,hasScent:false,hasFeet:false,feet:false,d:S.month,k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:false,det:false,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:false,hasBack:false,iside:'f',url:'',blob:null,seq:0};
+  SH={mode:'recap',m:S.month,sel:new Set(),scent:false,hasScent:false,hasFeet:false,feet:false,d:S.month,k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:false,det:false,theme:'light',logo:SET.shlogo,side:SET.shside,hasPhoto:false,hasBack:false,iside:'f',url:'',blob:null,seq:0};
   renderShare();buildShare();
 }
 /* the Rotation wordmark and web address: on every picture the app makes, the person only chooses the corner */
@@ -1731,7 +1731,7 @@ async function drawRecap(){
     r.top.forEach((a,i)=>{
       const it=M.get(a[0]),tx=ox+i*(t+gap);
       x.save();rr(x,tx,y,t,t,Math.round(t*.14));x.clip();x.fillStyle=T.well;x.fillRect(tx,y,t,t);
-      if(imgs[i]){const im=imgs[i],p=T.dk?0:t*.07,k=Math.min((t-2*p)/im.width,(t-2*p)/im.height),w=im.width*k,h=im.height*k;drawPiece(x,im,tx+(t-w)/2,y+(t-h)/2,w,h,t,T.dk)}
+      if(imgs[i]){const im=imgs[i],flat=T.dk||SH.theme==='color',p=flat?0:t*.07,k=Math.min((t-2*p)/im.width,(t-2*p)/im.height),w=im.width*k,h=im.height*k;drawPiece(x,im,tx+(t-w)/2,y+(t-h)/2,w,h,t,flat)}
       else{x.fillStyle=T.ph;x.font=F(700,Math.round(t*.4),DISP);x.textAlign='center';x.fillText((it.name||'?').charAt(0).toUpperCase(),tx+t/2,y+t/2+t*.14);x.textAlign='left'}
       x.restore();
       x.textAlign='center';let ly=y+t+40;
@@ -1748,17 +1748,17 @@ function shLook(){const l=S.looks.find(x=>x.id===SH.look)||{items:[],tag:'',phot
 function openShareLook(id){
   const l=S.looks.find(x=>x.id===id);if(!l)return;
   const its=l.items.filter(i=>M.has(i));if(!its.length){toast('That look has no pieces left');return}
-  SH={mode:'fit',look:id,sel:new Set(its),scent:false,hasScent:false,hasFeet:false,feet:false,d:'',k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:SET.shtag,det:false,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:!!l.photo,caption:'',url:'',blob:null,seq:0};
+  SH={mode:'fit',look:id,sel:new Set(its),scent:false,hasScent:false,hasFeet:false,feet:false,d:'',k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:SET.shtag,det:false,theme:'light',logo:SET.shlogo,side:SET.shside,hasPhoto:!!l.photo,caption:'',url:'',blob:null,seq:0};
   closeLooks();renderShare();buildShare();
 }
 function openShareItem(id){
   const it=M.get(id);if(!it)return;
-  SH={mode:'item',item:id,sel:new Set(),scent:false,hasScent:false,hasFeet:false,feet:false,d:'',k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:SET.shtag,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:false,url:'',blob:null,seq:0};
+  SH={mode:'item',item:id,sel:new Set(),scent:false,hasScent:false,hasFeet:false,feet:false,d:'',k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:SET.shtag,theme:'light',logo:SET.shlogo,side:SET.shside,hasPhoto:false,url:'',blob:null,seq:0};
   renderShare();buildShare();
 }
 function openShareWall(){
   if(!favList().length)return;
-  SH={mode:'wall',sel:new Set(),scent:false,hasScent:false,hasFeet:false,feet:false,d:'',k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:false,det:false,theme:SET.shtheme,logo:SET.shlogo,side:SET.shside,hasPhoto:false,url:'',blob:null,seq:0};
+  SH={mode:'wall',sel:new Set(),scent:false,hasScent:false,hasFeet:false,feet:false,d:'',k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:false,det:false,theme:'light',logo:SET.shlogo,side:SET.shside,hasPhoto:false,url:'',blob:null,seq:0};
   renderShare();buildShare();
 }
 function closeShare(){
@@ -1918,7 +1918,7 @@ async function drawShare(){
   /* header: the date is always top left */
   x.textBaseline='alphabetic';x.textAlign='left';x.fillStyle=INK;x.font=F(700,40);
   const lnames=itemMode?false:SH.names;
-  const hdTxt=wallMode?'FAVORITES':itemMode?(SH.names&&sc?fitText(x,String(sc.nickname||sc.name||'').toUpperCase(),W-pad*2-(SH.logo==='tr'?380:0)):''):scentMode?(shoeMode?'SHOE OF THE DAY':'SCENT OF THE DAY'):SH.caption?SH.caption.toUpperCase():(SH.look?'':fmt(SH.d,{weekday:'long',month:'long',day:'numeric'}).toUpperCase());
+  const hdTxt=wallMode?'FAVORITES':itemMode?(SH.names&&sc?fitText(x,String(sc.nickname||sc.name||'').toUpperCase(),W-pad*2-(SH.logo==='tr'?380:0)):''):scentMode?(shoeMode?'SHOE OF THE DAY':'SCENT OF THE DAY'):SH.caption?SH.caption.toUpperCase():(SH.look?'MY LOOK':fmt(SH.d,{weekday:'long',month:'long',day:'numeric'}).toUpperCase());
   if(hdTxt)x.fillText(hdTxt,pad,pad+40);
   const tg={label:tagLbl(o.tag)};
   const meta=(itemMode||wallMode)?'':scentMode?[fmt(SH.d,{weekday:'long',month:'long',day:'numeric'}),(!shoeMode&&dd.scentRating)?'★ '+dd.scentRating.toFixed(1):''].filter(Boolean).join('  ·  '):[SH.tag&&tg&&tg.label,SH.det&&o.place,SH.det&&o.wx,o.when&&whenLbl(o.when),o.rating?'\u2605 '+o.rating.toFixed(1):''].filter(Boolean).join('  \u00b7  ');
@@ -1943,7 +1943,7 @@ async function drawShare(){
       x.save();rr(x,tx,ty,t,t,Math.round(t*.14));x.clip();
       x.fillStyle=WELL;x.fillRect(tx,ty,t,t);
       if(imgs[i]&&scentMode&&!shoeMode){const im=imgs[i],k=Math.max(t/im.width,t/im.height),w=im.width*k,h=im.height*k;x.drawImage(im,tx+(t-w)/2,ty+(t-h)/2,w,h)}
-      else if(imgs[i]){const im=imgs[i],p=T.dk?0:t*.07,k=Math.min((t-2*p)/im.width,(t-2*p)/im.height),w=im.width*k,h=im.height*k;drawPiece(x,im,tx+(t-w)/2,ty+(t-h)/2,w,h,t,T.dk)}
+      else if(imgs[i]){const im=imgs[i],flat=T.dk||SH.theme==='color',p=flat?0:t*.07,k=Math.min((t-2*p)/im.width,(t-2*p)/im.height),w=im.width*k,h=im.height*k;drawPiece(x,im,tx+(t-w)/2,ty+(t-h)/2,w,h,t,flat)}
       else{x.fillStyle=T.ph;x.font=F(700,Math.round(t*.4),DISP);x.textAlign='center';x.fillText((it.name||'?').charAt(0).toUpperCase(),tx+t/2,ty+t/2+t*.14);x.textAlign='left'}
       x.restore();
       if(!lnames&&!brands)return;
@@ -2007,9 +2007,8 @@ async function drawShare(){
     const n=its.length,rowsT=n<=3?1:2;
     const ph=Math.max(Math.round(ch*.4),Math.min(Math.round(ch*.7),ch-40-rowsT*330));
     const k1=Math.min(cw/fit.width,ph/fit.height),shown=Math.round(fit.height*k1);
-    whole(pad,top,cw,ph);
-    const used=Math.max(shown,Math.round(ch*.3));
-    tiles(pad,top+used+40,cw,ch-used-40,n<=3?n:Math.ceil(n/2));
+    whole(pad,top,cw,shown);
+    tiles(pad,top+shown+40,cw,ch-shown-40,n<=3?n:Math.ceil(n/2));
   }else{
     const pw=Math.round(cw*.46),right=SH.side==='r',gx=pad+(right?cw-pw:0);
     whole(gx,top,pw,ch);
