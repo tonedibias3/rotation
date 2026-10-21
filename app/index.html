@@ -1789,7 +1789,7 @@ function shOpt(key,label,opts,hide){
   return '<div class="sh-opt" id="sh-o-'+key+'"'+(hide?' hidden':'')+'><span class="cap">'+label+'</span><div class="seg" role="group" aria-label="'+label+'">'+opts.map(o=>'<button type="button" data-act="share-opt" data-k="'+key+'" data-v="'+o[0]+'" aria-pressed="'+(SH[key]===o[0])+'">'+o[1]+'</button>').join('')+'</div></div>';
 }
 function syncShareOpts(){
-  const e=$('#sh-o-side');if(e)e.hidden=!(SH.size==='sq'&&SH.hasPhoto&&SH.pic!=='0');
+  const e=$('#sh-o-side');if(e)e.hidden=!(SH.size==='sq'&&SH.hasPhoto&&SH.pic==='1');const pc=$('#sh-o-pcs');if(pc)pc.hidden=SH.pic==='o';
   const mv=$('#sh-o-move');if(mv)mv.hidden=SH.pic==='0';
   const bc=$('#sh-bg-color'),bp=$('#sh-bg-pat');if(bc)bc.hidden=SH.theme!=='color';if(bp)bp.hidden=SH.theme!=='pattern';
   ['size','theme','logo','side','iside','pat','pin','pic'].forEach(k=>document.querySelectorAll('#sh-o-'+k+' button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===SH[k]?'true':'false')));
@@ -1845,12 +1845,12 @@ function renderShare(){
    +'<div class="sh-row"><span class="hint">Subtle</span><input id="sh-ps" type="range" min="20" max="100" step="1" value="'+(SH.ps||75)+'" aria-label="Pattern strength" style="flex:1"><span class="hint">Bold</span></div>'
    +shOpt('pin','Inside',[['d','Dark'],['l','Light']])+'</div>'
    +shOpt('logo','Rotation watermark',[['tr','Top right'],['bl','Bottom left'],['br','Bottom right']])
-   +shOpt('pic','Outfit photo',[['1','Show'],['0','Hide']],!SH.hasPhoto||SH.mode!=='fit')
+   +shOpt('pic','Outfit photo',[['1','Show'],['0','Hide'],['o','Photo only']],!SH.hasPhoto||SH.mode!=='fit')
    +shOpt('side','Photo side',[['l','Left'],['r','Right']],!(SH.size==='sq'&&SH.hasPhoto&&SH.pic!=='0'))
    +shOpt('iside','Photo',(SH.mode==='item'&&(M.get(SH.item)||{}).swap?[['f','Back'],['b','Front'],['2','Both']]:[['f','Front'],['b','Back'],['2','Both']]),!(SH.mode==='item'&&SH.hasBack))
    +(SH.hasPhoto?'<div class="sh-opt" id="sh-o-move"><span class="cap">Photo</span><p class="hint" style="margin:0 0 6px">Your whole photo shows by default. Zoom in with the slider, then drag the preview to move it.</p><div style="display:flex;align-items:center;gap:12px"><input id="sh-zoom" type="range" min="100" max="300" step="5" value="'+Math.round((SH.zm||1)*100)+'" aria-label="Zoom photo" style="flex:1"><button type="button" class="link" data-act="share-reset">Reset</button></div></div>':'')
    +'</div>'
-   +(SH.mode==='fit'?'<div class="sh-opt" style="margin-bottom:8px"><span class="cap">Pieces to show</span><div class="chips wrapc" id="sh-pcs">'+Array.from(SH.look?shLook().items:S.days[SH.d]&&(SH.k?S.days[SH.d].more[SH.k-1]:S.days[SH.d]).items||[]).filter(id=>M.has(id)).map(id=>'<button type="button" class="chip" data-act="share-piece" data-id="'+esc(id)+'" aria-pressed="'+SH.sel.has(id)+'">'+esc(M.get(id).nickname||M.get(id).name)+'</button>').join('')+'</div></div>':'')
+   +(SH.mode==='fit'?'<div class="sh-opt" id="sh-o-pcs" style="margin-bottom:8px"><span class="cap">Pieces to show</span><div class="chips wrapc" id="sh-pcs">'+Array.from(SH.look?shLook().items:S.days[SH.d]&&(SH.k?S.days[SH.d].more[SH.k-1]:S.days[SH.d]).items||[]).filter(id=>M.has(id)).map(id=>'<button type="button" class="chip" data-act="share-piece" data-id="'+esc(id)+'" aria-pressed="'+SH.sel.has(id)+'">'+esc(M.get(id).nickname||M.get(id).name)+'</button>').join('')+'</div></div>':'')
    +(SH.mode==='scent'?'<div class="sh-opt" style="margin-bottom:8px"><span class="cap">Rate this scent</span><div class="rate-row" id="sh-rate">'+scRateHTML((S.days[SH.d]||{}).scentRating||0,'share-rate')+'</div></div>':'')
    +(SH.hasFeet?'<div class="set-row"><span><b>On-feet photo</b><i>Use your photo instead of the closet picture.</i></span><button type="button" class="sw-t" data-act="share-feet" aria-pressed="'+SH.feet+'" aria-label="On-feet photo"></button></div>':'')
    +(SH.hasScent?'<div class="set-row"><span><b>Include scent</b><i>Adds today\'s scent as another tile.</i></span><button type="button" class="sw-t" data-act="share-scent" aria-pressed="'+SH.scent+'" aria-label="Include scent"></button></div>':'')
@@ -1928,9 +1928,9 @@ async function drawShare(){
   const INK=T.ink,INK2=T.ink2,WELL=T.well,BG=T.bg,ACCENT=T.acc[SET.accent]||T.acc.cobalt;
   const F=(w,px,fam)=>w+' '+px+'px '+(fam||'"Instrument Sans",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif');
   const DISP='"Archivo","Helvetica Neue",Arial,sans-serif';
-  const shoeMode=SH.mode==='shoe',sc=itemMode?M.get(SH.item):shoeMode?shoeOf(dd):(dd.scent&&M.get(dd.scent)),scentMode=SH.mode==='scent'||shoeMode||itemMode;
-  const its=wallMode?favList().slice(0,sz==='st'?12:9):scentMode?(sc?[sc]:[]):o.items.filter(id=>SH.sel.has(id)).map(id=>M.get(id)).filter(Boolean).sort((a,b)=>catIdx(a.category)-catIdx(b.category));
-  if(!scentMode&&SH.scent&&sc)its.push(sc);
+  const photoOnly=SH.mode==='fit'&&SH.pic==='o'&&SH.hasPhoto,shoeMode=SH.mode==='shoe',sc=itemMode?M.get(SH.item):shoeMode?shoeOf(dd):(dd.scent&&M.get(dd.scent)),scentMode=SH.mode==='scent'||shoeMode||itemMode;
+  const its=wallMode?favList().slice(0,sz==='st'?12:9):scentMode?(sc?[sc]:[]):(photoOnly?[]:o.items.filter(id=>SH.sel.has(id))).map(id=>M.get(id)).filter(Boolean).sort((a,b)=>catIdx(a.category)-catIdx(b.category));
+  if(!scentMode&&!photoOnly&&SH.scent&&sc)its.push(sc);
   const iside=(itemMode&&sc&&sc.photo2)?(SH.iside||'2'):'f';
   const imgs=await Promise.all(its.map(i=>loadSrc(photoSrc(iside==='b'?i.photo2:i.photo))));
   const img2=iside==='2'?await loadSrc(photoSrc(sc.photo2)):null;

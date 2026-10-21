@@ -380,6 +380,11 @@ with sync_playwright() as p:
     ok('pieces-only share still renders an image',pg11.locator('#sh-img').is_visible())
     pg11.locator('#sh-o-pic button[data-v="1"]').click(); pg11.wait_for_timeout(1500)
     ok('showing the photo again restores the controls',pg11.locator('#sh-o-side').is_visible())
+    pg11.locator('#sh-o-pic button[data-v="o"]').click(); pg11.wait_for_timeout(2200)
+    ok('Photo only: pieces list hidden, move controls kept, image renders',not pg11.locator('#sh-o-pcs').is_visible() and pg11.locator('#sh-o-move').is_visible() and pg11.locator('#sh-img').is_visible())
+    pg11.screenshot(path='/tmp/photoonly.png')
+    pg11.locator('#sh-o-pic button[data-v="1"]').click(); pg11.wait_for_timeout(1500)
+    ok('back to Show: pieces list returns',pg11.locator('#sh-o-pcs').is_visible())
     ok('no page errors (share hide photo)',not errs11,'; '.join(errs11)[:200])
     # Center piece: leaves room around the piece and never cuts into it
     def rectpng(w,h,box):
