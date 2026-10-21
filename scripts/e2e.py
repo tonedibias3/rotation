@@ -381,6 +381,32 @@ with sync_playwright() as p:
     pg11.locator('#sh-o-pic button[data-v="1"]').click(); pg11.wait_for_timeout(1500)
     ok('showing the photo again restores the controls',pg11.locator('#sh-o-side').is_visible())
     ok('no page errors (share hide photo)',not errs11,'; '.join(errs11)[:200])
+    # Center piece: leaves room around the piece and never cuts into it
+    def rectpng(w,h,box):
+        rows=[]
+        for y in range(h):
+            row=b'\x00'
+            for x in range(w):
+                inside=box[0]<=x<box[2] and box[1]<=y<box[3]
+                row+=bytes((30,30,40)) if inside else bytes((240,240,240))
+            rows.append(row)
+        def ch(tg,d): c=struct.pack('>I',len(d))+tg+d; return c+struct.pack('>I',zlib.crc32(tg+d)&0xffffffff)
+        return b'\x89PNG\r\n\x1a\n'+ch(b'IHDR',struct.pack('>IIBBBBB',w,h,8,2,0,0,0))+ch(b'IDAT',zlib.compress(b''.join(rows)))+ch(b'IEND',b'')
+    def darkbox(pg,src_js):
+        return pg.evaluate("""async()=>{const im=new Image();im.src=%s;await im.decode();const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const x=c.getContext('2d');x.drawImage(im,0,0);const d=x.getImageData(0,0,c.width,c.height).data;let x0=1e9,y0=1e9,x1=-1,y1=-1;for(let y=0;y<c.height;y++)for(let X=0;X<c.width;X++){if(d[(y*c.width+X)*4]<120){if(X<x0)x0=X;if(X>x1)x1=X;if(y<y0)y0=y;if(y>y1)y1=y}}return [x0,y0,x1,y1,c.width,c.height]}"""%src_js)
+    for label,box in [('mid-photo piece',(70,150,170,300)),('piece running off the bottom edge',(70,250,170,400))]:
+        pgc,errsc=boot(b)
+        pgc.set_viewport_size({'width':820,'height':1100})
+        pgc.click('[data-act=seed]'); pgc.wait_for_timeout(900)
+        pgc.evaluate("document.querySelector('[data-act=new-item]').click()"); pgc.wait_for_timeout(600)
+        pgc.set_input_files('#f-file',{'name':'r.png','mimeType':'image/png','buffer':rectpng(300,400,box)}); pgc.wait_for_timeout(1500)
+        pgc.evaluate("document.querySelector('[data-act=crop-fit]').click()"); pgc.wait_for_timeout(500)
+        pgc.evaluate("document.querySelector('[data-act=crop-done]').click()"); pgc.wait_for_timeout(900)
+        src=pgc.evaluate("(document.querySelector('#pv img')||{}).src||''")
+        bx=darkbox(pgc,"document.querySelector('#pv img').src")
+        ok('Center piece keeps the whole piece ('+label+')',bx[0]<1e9 and bx[2]-bx[0]>=95 and bx[3]-bx[1]>=int((box[3]-box[1])*0.95*(bx[5]/400)),str(bx))
+        if box[3]<400: ok('Center piece leaves room around a mid-photo piece',bx[0]>0 and bx[1]>0 and bx[2]<bx[4]-1 and bx[3]<bx[5]-1,str(bx))
+        ok('no page errors (center piece)',not errsc,'; '.join(errsc)[:200])
     b.close()
 w=max(len(r[1]) for r in res)
 for r in res: print(r[0],'|',r[1].ljust(w),'|',r[2])
