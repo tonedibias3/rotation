@@ -1143,6 +1143,13 @@ function refreshPicker(){
   renderTray();
 }
 function toggleOutfit(id,force){
+  /* a fragrance is the day's scent, not an outfit piece (shoes are picked up from the outfit on their own) */
+  const pi=M.get(id);
+  if(pi&&pi.category==='scents'&&S.mode!=='plan'){
+    const dd=S.days[S.sel]||(S.days[S.sel]=normDay({})),want=force===undefined?dd.scent!==id:force;
+    if(want&&dd.scent!==id){dd.scent=id;dd.scentRating=0}else if(!want&&dd.scent===id){dd.scent='';dd.scentRating=0}
+    scheduleDay(S.sel);refreshPicker();refreshStart();return;
+  }
   const t=target(true);
   const i=t.items.indexOf(id);
   const want=force===undefined?i<0:force;
@@ -1942,8 +1949,7 @@ async function drawShare(){
       const tx=(r===rows-1?rowOx:ox)+cc*(t+gap),ty=oy+r*(t+lab+gap);
       x.save();rr(x,tx,ty,t,t,Math.round(t*.14));x.clip();
       x.fillStyle=WELL;x.fillRect(tx,ty,t,t);
-      if(imgs[i]&&scentMode&&!shoeMode){const im=imgs[i],k=Math.max(t/im.width,t/im.height),w=im.width*k,h=im.height*k;x.drawImage(im,tx+(t-w)/2,ty+(t-h)/2,w,h)}
-      else if(imgs[i]){const im=imgs[i],flat=T.dk||SH.theme==='color',p=flat?0:t*.07,k=Math.min((t-2*p)/im.width,(t-2*p)/im.height),w=im.width*k,h=im.height*k;drawPiece(x,im,tx+(t-w)/2,ty+(t-h)/2,w,h,t,flat)}
+      if(imgs[i]){const im=imgs[i],flat=T.dk||SH.theme==='color',p=flat?0:t*.07,k=Math.min((t-2*p)/im.width,(t-2*p)/im.height),w=im.width*k,h=im.height*k;drawPiece(x,im,tx+(t-w)/2,ty+(t-h)/2,w,h,t,flat)}
       else{x.fillStyle=T.ph;x.font=F(700,Math.round(t*.4),DISP);x.textAlign='center';x.fillText((it.name||'?').charAt(0).toUpperCase(),tx+t/2,ty+t/2+t*.14);x.textAlign='left'}
       x.restore();
       if(!lnames&&!brands)return;

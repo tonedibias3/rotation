@@ -113,3 +113,5 @@ Done: (1) Share sheet always opens on Light background (was remembering the last
 Decision: no new toggles for the header date/tag line (Tone: too many options already).
 Tests: e2e 100/100 (new: reopens on Light after Color, action bar flush with sheet bottom), check.js 9/9. Checked a story + yellow render with test photos by eye.
 Open: not checked on a real iPad (Safari sticky behavior). Rollback point: 6fa0c5e.
+
+Oct 21 (Tone, editing a day from the calendar): (1) a fragrance added in Log (New scent, or any scent picked through the outfit path) went into the outfit items instead of becoming the day's scent, so Scent of the day stayed empty while shoes (derived from outfit items) worked. toggleOutfit now routes scents to day.scent (toggle again clears; Plan mode unchanged). Reproduced on the old code, e2e +4 checks (104/104). (2) Scent share card drew the photo with cover (zoomed and cropped); it now fits the whole photo inside the square like shoes and other pieces. Open: Tone's screenshot of the cropped shoe/cologne did not arrive; need it to see which screen cuts the shoe bottom (suspects: share card, day view thumbs, or the photo itself).
