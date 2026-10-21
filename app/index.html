@@ -1659,7 +1659,7 @@ function openShare(d,k,mode){
   const dd=S.days[d];if(!dd)return;
   const one=mode==='scent'||mode==='shoe',o=one?dd:(k?dd.more[k-1]:dd);if(!o)return;
   if(mode==='scent'){if(!(dd.scent&&M.has(dd.scent)))return}else if(mode==='shoe'){if(!shoeOf(dd))return}else if(!o.items.length)return;
-  SH={mode:mode||'fit',sel:new Set(o.items.filter(id=>M.has(id))),scent:false,hasScent:!!(dd.scent&&M.has(dd.scent))&&!one&&o.items.indexOf(dd.scent)<0,hasFeet:mode==='shoe'&&!!dd.shoePhoto,feet:true,d:d,k:k,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:SET.shtag,theme:'light',logo:SET.shlogo,side:SET.shside,pic:'1',hasPhoto:!one&&!!o.photo,caption:'',url:'',blob:null,seq:0};
+  SH={mode:mode||'fit',sel:new Set(o.items.filter(id=>M.has(id))),scent:(mode||'fit')==='fit'&&!!(dd.scent&&M.has(dd.scent))&&!one&&o.items.indexOf(dd.scent)<0,hasScent:!!(dd.scent&&M.has(dd.scent))&&!one&&o.items.indexOf(dd.scent)<0,hasFeet:mode==='shoe'&&!!dd.shoePhoto,feet:true,d:d,k:k,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:SET.shtag,theme:'light',logo:SET.shlogo,side:SET.shside,pic:'1',hasPhoto:!one&&!!o.photo,caption:'',url:'',blob:null,seq:0};
   renderShare();buildShare();
 }
 

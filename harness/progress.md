@@ -123,3 +123,5 @@ Oct 21 share: "Outfit photo: Show | Hide" (Tone). In the fit share sheet, when t
 Oct 21 Center piece (Tone, shoe and cologne photos cropped tight): Center piece now adds 10% room around the detected piece, never zooms past 2x the whole-photo view, and does not zoom at all when the piece runs off a photo edge. Photos are still stored cropped (Tone declined keeping originals: too much). e2e +5 (118/118); NOTE the new checks also pass on the old code on synthetic images, so they guard the rule but do not prove the old bug. Tone's two photos need Replace photo (skip Center piece).
 
 Oct 21 Share "Photo only": Outfit photo row is now Show / Hide / Photo only. Photo only drops the piece tiles and pieces list and fills the card with the fit photo (zoom and drag kept). Not remembered between shares. e2e 120/120, check 9/9.
+
+Oct 21 Share: Include scent now defaults ON when the day has a scent not already in the outfit (still a toggle). e2e 120/120, check 9/9.
