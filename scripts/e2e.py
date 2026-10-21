@@ -340,6 +340,20 @@ with sync_playwright() as p:
     pg8.evaluate("document.querySelector('.card[data-act=scent][aria-pressed=true]').click()"); pg8.wait_for_timeout(300)
     ok('tapping the chosen scent again clears it',pg8.locator('.card[data-act=scent][aria-pressed=true]').count()==0)
     ok('no page errors (scent from Log)',not errs8,'; '.join(errs8)[:200])
+    # regression: a scent saved both as an outfit piece and as the day's scent counts as one wear and is tidied up
+    pg9b,errs9b=boot(b)
+    import datetime
+    td=datetime.date.today().isoformat()
+    dbl=mk(2); dbl['items'][0].update({'id':'sc1','name':'Costa test','category':'scents'}); dbl['items'][1].update({'id':'tp1','name':'Top test','category':'tops'})
+    dbl['days']={td:{'items':['tp1','sc1'],'scent':'sc1'}}
+    pfd=out+'/dbl.json'; json.dump(dbl,open(pfd,'w'))
+    pg9b.evaluate("document.querySelector('[data-act=tab][data-tab=settings]').click()"); pg9b.wait_for_timeout(400)
+    pg9b.set_input_files('#f-import',pfd); pg9b.wait_for_timeout(1500)
+    pg9b.reload(); pg9b.wait_for_timeout(1800)
+    pg9b.evaluate("document.querySelector('.card[data-id=sc1]').dispatchEvent(new MouseEvent('click',{bubbles:true}))"); pg9b.wait_for_timeout(500)
+    wv=pg9b.inner_text('.vrow:has(span:text-is("Worn"))') if pg9b.locator('.vrow:has(span:text-is("Worn"))').count() else pg9b.inner_text('#sheet')
+    ok('scent logged twice on one day counts as 1 wear','1 time' in wv and '2 times' not in wv,wv.replace(chr(10),' ')[:60])
+    ok('no page errors (double scent)',not errs9b,'; '.join(errs9b)[:200])
     b.close()
 w=max(len(r[1]) for r in res)
 for r in res: print(r[0],'|',r[1].ljust(w),'|',r[2])

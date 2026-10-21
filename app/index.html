@@ -731,7 +731,7 @@ async function init(){textScale();
   render();
   try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
   try{if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
-  await loadLocal();settleDays();S.loading=false;render();
+  await loadLocal();settleDays();healScents();S.loading=false;render();
 }
 
 async function putItem(id,doc){
@@ -787,7 +787,7 @@ function stats(){
   let any=false;
   keys.forEach(k=>{
     const d=S.days[k];
-    if(d&&d.scent){wears[d.scent]=(wears[d.scent]||0)+1;if(!last[d.scent]||k>last[d.scent])last[d.scent]=k}
+    if(d&&d.scent&&!outfitsOf(d).some(o=>o.items.indexOf(d.scent)>=0)){wears[d.scent]=(wears[d.scent]||0)+1;if(!last[d.scent]||k>last[d.scent])last[d.scent]=k}
     if(d&&d.shoe&&M.has(d.shoe)&&!outfitsOf(d).some(o=>o.items.indexOf(d.shoe)>=0)){wears[d.shoe]=(wears[d.shoe]||0)+1;if(!last[d.shoe]||k>last[d.shoe])last[d.shoe]=k}
     outfitsOf(d).forEach(o=>{any=true;new Set(o.items).forEach(id=>{wears[id]=(wears[id]||0)+1;if(!last[id]||k>last[id])last[id]=k})});
   });
@@ -1332,6 +1332,19 @@ function finishDay(){
 }
 
 /* ---------- queued outfits: future outfits wait, locked plans become worn on the day ---------- */
+/* days saved before Oct 21 could hold a fragrance as an outfit piece; make it the day's scent instead */
+function healScents(){
+  const sc=new Set(S.items.filter(i=>i.category==='scents').map(i=>i.id));if(!sc.size)return;
+  Object.keys(S.days).forEach(k=>{
+    const d=S.days[k];if(!d)return;let ch=false;
+    const hit=d.items.filter(id=>sc.has(id));
+    if(hit.length&&(!d.scent||hit.indexOf(d.scent)>=0)){
+      if(!d.scent)d.scent=hit[0];
+      d.items=d.items.filter(id=>!sc.has(id));ch=true;
+    }
+    if(ch)scheduleDay(k);
+  });
+}
 function settleDays(){
   const t=today();let n=0;
   Object.keys(S.days).forEach(k=>{
