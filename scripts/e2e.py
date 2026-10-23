@@ -385,6 +385,14 @@ with sync_playwright() as p:
     pg11.screenshot(path='/tmp/photoonly.png')
     pg11.locator('#sh-o-pic button[data-v="1"]').click(); pg11.wait_for_timeout(1500)
     ok('back to Show: pieces list returns',pg11.locator('#sh-o-pcs').is_visible())
+    pg11.evaluate("()=>{window.__t='';navigator.canShare=()=>true;navigator.share=async d=>{window.__t=d.text||''}}")
+    def cap():
+        pg11.evaluate("window.__t=''"); pg11.click('#sh-go'); pg11.wait_for_timeout(500); return pg11.evaluate("window.__t")
+    pg11.locator('#sh-o-to button[data-v="x"]').click()
+    ok('caption for X uses @rotationfit and asks what is in your #rotationapp',cap().endswith('@rotationfit') and 'in your #rotationapp?' in cap(),cap())
+    pg11.locator('#sh-o-to button[data-v="ig"]').click()
+    ok('caption for Instagram uses @rotation.fit',cap().endswith('@rotation.fit') and '@rotationfit' not in cap(),cap())
+    pg11.locator('#sh-o-to button[data-v="x"]').click()
     ok('no page errors (share hide photo)',not errs11,'; '.join(errs11)[:200])
     # Center piece: leaves room around the piece and never cuts into it
     def rectpng(w,h,box):

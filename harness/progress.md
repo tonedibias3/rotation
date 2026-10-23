@@ -125,3 +125,5 @@ Oct 21 Center piece (Tone, shoe and cologne photos cropped tight): Center piece 
 Oct 21 Share "Photo only": Outfit photo row is now Show / Hide / Photo only. Photo only drops the piece tiles and pieces list and fills the card with the fit photo (zoom and drag kept). Not remembered between shares. e2e 120/120, check 9/9.
 
 Oct 21 Share: Include scent now defaults ON when the day has a scent not already in the outfit (still a toggle). e2e 120/120, check 9/9.
+
+Oct 23 Share caption per app: new "Caption for" option (X / Instagram / Other, remembered, default X). Caption is now "#KOTD what's in your #rotationapp? @rotationfit" (X), "@rotation.fit" (Instagram), "rotation.fit" (Other). Instagram drops share-sheet text, so choosing Instagram also copies the caption to the clipboard. The share sheet cannot tell which app the person picks, hence the setting. e2e 122/122, check 9/9.

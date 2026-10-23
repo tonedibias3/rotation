@@ -1659,7 +1659,7 @@ function openShare(d,k,mode){
   const dd=S.days[d];if(!dd)return;
   const one=mode==='scent'||mode==='shoe',o=one?dd:(k?dd.more[k-1]:dd);if(!o)return;
   if(mode==='scent'){if(!(dd.scent&&M.has(dd.scent)))return}else if(mode==='shoe'){if(!shoeOf(dd))return}else if(!o.items.length)return;
-  SH={mode:mode||'fit',sel:new Set(o.items.filter(id=>M.has(id))),scent:(mode||'fit')==='fit'&&!!(dd.scent&&M.has(dd.scent))&&!one&&o.items.indexOf(dd.scent)<0,hasScent:!!(dd.scent&&M.has(dd.scent))&&!one&&o.items.indexOf(dd.scent)<0,hasFeet:mode==='shoe'&&!!dd.shoePhoto,feet:true,d:d,k:k,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:SET.shtag,theme:'light',logo:SET.shlogo,side:SET.shside,pic:'1',hasPhoto:!one&&!!o.photo,caption:'',url:'',blob:null,seq:0};
+  SH={mode:mode||'fit',sel:new Set(o.items.filter(id=>M.has(id))),scent:(mode||'fit')==='fit'&&!!(dd.scent&&M.has(dd.scent))&&!one&&o.items.indexOf(dd.scent)<0,hasScent:!!(dd.scent&&M.has(dd.scent))&&!one&&o.items.indexOf(dd.scent)<0,hasFeet:mode==='shoe'&&!!dd.shoePhoto,feet:true,d:d,k:k,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:SET.shtag,theme:'light',logo:SET.shlogo,side:SET.shside,pic:'1',to:SET.shto||'x',hasPhoto:!one&&!!o.photo,caption:'',url:'',blob:null,seq:0};
   renderShare();buildShare();
 }
 
@@ -1714,7 +1714,7 @@ function recapData(m){
   return {days:keys.length,top:top,tag:tg?tagLbl(tg):'',pieces:Object.keys(wm).length};
 }
 function openRecap(){
-  SH={mode:'recap',m:S.month,sel:new Set(),scent:false,hasScent:false,hasFeet:false,feet:false,d:S.month,k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:false,det:false,theme:'light',logo:SET.shlogo,side:SET.shside,pic:'1',hasPhoto:false,hasBack:false,iside:'f',url:'',blob:null,seq:0};
+  SH={mode:'recap',m:S.month,sel:new Set(),scent:false,hasScent:false,hasFeet:false,feet:false,d:S.month,k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:false,det:false,theme:'light',logo:SET.shlogo,side:SET.shside,pic:'1',to:SET.shto||'x',hasPhoto:false,hasBack:false,iside:'f',url:'',blob:null,seq:0};
   renderShare();buildShare();
 }
 /* the Rotation wordmark and web address: on every picture the app makes, the person only chooses the corner */
@@ -1768,17 +1768,17 @@ function shLook(){const l=S.looks.find(x=>x.id===SH.look)||{items:[],tag:'',phot
 function openShareLook(id){
   const l=S.looks.find(x=>x.id===id);if(!l)return;
   const its=l.items.filter(i=>M.has(i));if(!its.length){toast('That look has no pieces left');return}
-  SH={mode:'fit',look:id,sel:new Set(its),scent:false,hasScent:false,hasFeet:false,feet:false,d:'',k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:SET.shtag,det:false,theme:'light',logo:SET.shlogo,side:SET.shside,pic:'1',hasPhoto:!!l.photo,caption:'',url:'',blob:null,seq:0};
+  SH={mode:'fit',look:id,sel:new Set(its),scent:false,hasScent:false,hasFeet:false,feet:false,d:'',k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:SET.shtag,det:false,theme:'light',logo:SET.shlogo,side:SET.shside,pic:'1',to:SET.shto||'x',hasPhoto:!!l.photo,caption:'',url:'',blob:null,seq:0};
   closeLooks();renderShare();buildShare();
 }
 function openShareItem(id){
   const it=M.get(id);if(!it)return;
-  SH={mode:'item',item:id,sel:new Set(),scent:false,hasScent:false,hasFeet:false,feet:false,d:'',k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:SET.shtag,theme:'light',logo:SET.shlogo,side:SET.shside,pic:'1',hasPhoto:false,url:'',blob:null,seq:0};
+  SH={mode:'item',item:id,sel:new Set(),scent:false,hasScent:false,hasFeet:false,feet:false,d:'',k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:SET.shtag,theme:'light',logo:SET.shlogo,side:SET.shside,pic:'1',to:SET.shto||'x',hasPhoto:false,url:'',blob:null,seq:0};
   renderShare();buildShare();
 }
 function openShareWall(){
   if(!favList().length)return;
-  SH={mode:'wall',sel:new Set(),scent:false,hasScent:false,hasFeet:false,feet:false,d:'',k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:false,det:false,theme:'light',logo:SET.shlogo,side:SET.shside,pic:'1',hasPhoto:false,url:'',blob:null,seq:0};
+  SH={mode:'wall',sel:new Set(),scent:false,hasScent:false,hasFeet:false,feet:false,d:'',k:0,size:SET.shsize,brands:SET.shbrand,names:SET.shnames,tag:false,det:false,theme:'light',logo:SET.shlogo,side:SET.shside,pic:'1',to:SET.shto||'x',hasPhoto:false,url:'',blob:null,seq:0};
   renderShare();buildShare();
 }
 function closeShare(){
@@ -1792,7 +1792,7 @@ function syncShareOpts(){
   const e=$('#sh-o-side');if(e)e.hidden=!(SH.size==='sq'&&SH.hasPhoto&&SH.pic==='1');const pc=$('#sh-o-pcs');if(pc)pc.hidden=SH.pic==='o';
   const mv=$('#sh-o-move');if(mv)mv.hidden=SH.pic==='0';
   const bc=$('#sh-bg-color'),bp=$('#sh-bg-pat');if(bc)bc.hidden=SH.theme!=='color';if(bp)bp.hidden=SH.theme!=='pattern';
-  ['size','theme','logo','side','iside','pat','pin','pic'].forEach(k=>document.querySelectorAll('#sh-o-'+k+' button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===SH[k]?'true':'false')));
+  ['size','theme','logo','side','iside','pat','pin','pic','to'].forEach(k=>document.querySelectorAll('#sh-o-'+k+' button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===SH[k]?'true':'false')));
 }
 /* drag the preview to move the outfit photo, slider to zoom */
 let SHQ=0;
@@ -1845,6 +1845,7 @@ function renderShare(){
    +'<div class="sh-row"><span class="hint">Subtle</span><input id="sh-ps" type="range" min="20" max="100" step="1" value="'+(SH.ps||75)+'" aria-label="Pattern strength" style="flex:1"><span class="hint">Bold</span></div>'
    +shOpt('pin','Inside',[['d','Dark'],['l','Light']])+'</div>'
    +shOpt('logo','Rotation watermark',[['tr','Top right'],['bl','Bottom left'],['br','Bottom right']])
+   +shOpt('to','Caption for',[['x','X'],['ig','Instagram'],['o','Other']])
    +shOpt('pic','Outfit photo',[['1','Show'],['0','Hide'],['o','Photo only']],!SH.hasPhoto||SH.mode!=='fit')
    +shOpt('side','Photo side',[['l','Left'],['r','Right']],!(SH.size==='sq'&&SH.hasPhoto&&SH.pic!=='0'))
    +shOpt('iside','Photo',(SH.mode==='item'&&(M.get(SH.item)||{}).swap?[['f','Back'],['b','Front'],['2','Both']]:[['f','Front'],['b','Back'],['2','Both']]),!(SH.mode==='item'&&SH.hasBack))
@@ -2055,10 +2056,12 @@ async function buildShare(fast){
 }
 const shareName=()=>SH.mode==='recap'?'rotation-recap-'+SH.m+'.png':SH.mode==='wall'?'rotation-favorites.png':SH.mode==='item'?'rotation-piece-'+String((M.get(SH.item)||{}).name||'piece').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'.png':'rotation-'+(SH.mode==='scent'?'scent-':SH.mode==='shoe'?'shoe-':'fit-')+SH.d+(SH.k&&SH.mode==='fit'?'-'+(SH.k+1):'')+'.png';
 /* the caption that goes with a shared picture: one hashtag for the kind of post, the app tag, then the handle (a real @ so it is tappable) */
-const shareTags=()=>{const m=SH?SH.mode:'fit',t=m==='wall'?'#favorites':m==='scent'?'#SOTD':m==='shoe'?'#KOTD':m==='item'?'#closetcheck':m==='recap'?'#monthinreview':'#OOTD';return t+' #rotationapp @rotationfit'};
+const shareTags=()=>{const m=SH?SH.mode:'fit',t=m==='wall'?'#favorites':m==='scent'?'#SOTD':m==='shoe'?'#KOTD':m==='item'?'#closetcheck':m==='recap'?'#monthinreview':'#OOTD',to=SH&&SH.to||'x';return t+' what\u2019s in your #rotationapp? '+(to==='ig'?'@rotation.fit':to==='x'?'@rotationfit':'rotation.fit')};
 async function doShare(){
   if(!SH||!SH.blob)return;
   const file=new File([SH.blob],shareName(),{type:'image/png'});
+  /* Instagram drops the text from a share, so keep the caption on the clipboard to paste */
+  if(SH.to==='ig'){try{await navigator.clipboard.writeText(shareTags());toast('Caption copied. Paste it in Instagram.')}catch(e){}}
   try{
     if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text:shareTags()});return}
   }catch(e){if(e&&e.name==='AbortError')return}
