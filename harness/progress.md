@@ -129,3 +129,5 @@ Oct 21 Share: Include scent now defaults ON when the day has a scent not already
 Oct 23 Share caption per app: new "Caption for" option (X / Instagram / Other, remembered, default X). Caption is now "#KOTD what's in your #rotationapp? @rotationfit" (X), "@rotation.fit" (Instagram), "rotation.fit" (Other). Instagram drops share-sheet text, so choosing Instagram also copies the caption to the clipboard. The share sheet cannot tell which app the person picks, hence the setting. e2e 122/122, check 9/9.
 
 Oct 25 Share: when a caption is typed on a day share, the date now shows on the line under it (caption used to replace the date). Looks still use "MY LOOK" (looks have no date); tag-as-header idea left unbuilt pending Tone's answer. e2e 123/123, check 9/9.
+
+Oct 25 Share menu declutter: Names + Brands merged into one Labels row (Names and brands / Names / Brands / None); Show tag folded into Show details for days (looks keep a Show tag switch); Background, Rotation watermark and Photo side moved under a collapsed Style section; Caption for sits right under Size. Same settings keys as before so saved choices carry over. e2e 126/126, check 9/9.

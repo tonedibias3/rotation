@@ -32,6 +32,7 @@ with sync_playwright() as p:
     ok('share sheet opens after picking a piece',pg.locator('#sh-go').count()==1)
     pg.screenshot(path=out+'/share.png')
     # share sheet always opens on Light, even after Color was chosen last time; action bar sits flush at the sheet bottom
+    pg.locator('.sh-more summary').click(); pg.wait_for_timeout(200)
     pg.click('[data-act=share-opt][data-k=theme][data-v=color]'); pg.wait_for_timeout(400)
     pg.screenshot(path=out+'/share-color.png')
     pg.click('[data-act=share-close]'); pg.wait_for_timeout(300)
@@ -374,6 +375,7 @@ with sync_playwright() as p:
     pg11.set_input_files('#f-import',pf10); pg11.wait_for_timeout(1200)
     pg11.evaluate("document.querySelector('#pill [data-tab=log]').click()"); pg11.wait_for_timeout(700)
     pg11.locator('button:has-text("Share this fit")').click(); pg11.wait_for_timeout(2500)
+    pg11.locator('.sh-more summary').click(); pg11.wait_for_timeout(200)
     ok('outfit photo Show/Hide row is offered',pg11.locator('#sh-o-pic').is_visible() and pg11.locator('#sh-o-side').is_visible())
     pg11.locator('#sh-o-pic button[data-v="0"]').click(); pg11.wait_for_timeout(2200)
     ok('hiding the photo hides photo side and move controls',not pg11.locator('#sh-o-side').is_visible() and not pg11.locator('#sh-o-move').is_visible())
@@ -396,6 +398,13 @@ with sync_playwright() as p:
     pg11.fill('#sh-cap-inp','Mask on'); pg11.wait_for_timeout(2500)
     ok('caption share still renders (date goes under the caption)',pg11.locator('#sh-img').is_visible())
     pg11.locator('#sh-img').screenshot(path='/tmp/capdate.png')
+    ok('Labels is one row and the old Names/Brands/Tag switches are gone',pg11.locator('#sh-o-lab').is_visible() and pg11.locator('[data-act=share-names]').count()==0 and pg11.locator('[data-act=share-brands]').count()==0 and pg11.locator('[data-act=share-tag]').count()==0)
+    pg11.locator('#sh-o-lab button[data-v=""]').click(); pg11.wait_for_timeout(300)
+    ok('Labels None turns names and brands off',pg11.locator('#sh-o-lab button[data-v=""]').get_attribute('aria-pressed')=='true' and pg11.locator('#sh-o-lab button[data-v="nb"]').get_attribute('aria-pressed')=='false')
+    pg11.locator('#sh-o-lab button[data-v="nb"]').click(); pg11.wait_for_timeout(300)
+    d0=pg11.locator('[data-act=share-det]').get_attribute('aria-pressed')
+    pg11.locator('[data-act=share-det]').click(); pg11.wait_for_timeout(300)
+    ok('Show details is one switch that flips',pg11.locator('[data-act=share-det]').get_attribute('aria-pressed')!=d0)
     ok('no page errors (share hide photo)',not errs11,'; '.join(errs11)[:200])
     # Center piece: leaves room around the piece and never cuts into it
     def rectpng(w,h,box):
