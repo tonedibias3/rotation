@@ -127,3 +127,5 @@ Oct 21 Share "Photo only": Outfit photo row is now Show / Hide / Photo only. Pho
 Oct 21 Share: Include scent now defaults ON when the day has a scent not already in the outfit (still a toggle). e2e 120/120, check 9/9.
 
 Oct 23 Share caption per app: new "Caption for" option (X / Instagram / Other, remembered, default X). Caption is now "#KOTD what's in your #rotationapp? @rotationfit" (X), "@rotation.fit" (Instagram), "rotation.fit" (Other). Instagram drops share-sheet text, so choosing Instagram also copies the caption to the clipboard. The share sheet cannot tell which app the person picks, hence the setting. e2e 122/122, check 9/9.
+
+Oct 25 Share: when a caption is typed on a day share, the date now shows on the line under it (caption used to replace the date). Looks still use "MY LOOK" (looks have no date); tag-as-header idea left unbuilt pending Tone's answer. e2e 123/123, check 9/9.

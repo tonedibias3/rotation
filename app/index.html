@@ -1944,7 +1944,7 @@ async function drawShare(){
   const hdTxt=wallMode?'FAVORITES':itemMode?(SH.names&&sc?fitText(x,String(sc.nickname||sc.name||'').toUpperCase(),W-pad*2-(SH.logo==='tr'?380:0)):''):scentMode?(shoeMode?'SHOE OF THE DAY':'SCENT OF THE DAY'):SH.caption?SH.caption.toUpperCase():(SH.look?'MY LOOK':fmt(SH.d,{weekday:'long',month:'long',day:'numeric'}).toUpperCase());
   if(hdTxt)x.fillText(hdTxt,pad,pad+40);
   const tg={label:tagLbl(o.tag)};
-  const meta=(itemMode||wallMode)?'':scentMode?[fmt(SH.d,{weekday:'long',month:'long',day:'numeric'}),(!shoeMode&&dd.scentRating)?'★ '+dd.scentRating.toFixed(1):''].filter(Boolean).join('  ·  '):[SH.tag&&tg&&tg.label,SH.det&&o.place,SH.det&&o.wx,o.when&&whenLbl(o.when),o.rating?'\u2605 '+o.rating.toFixed(1):''].filter(Boolean).join('  \u00b7  ');
+  const meta=(itemMode||wallMode)?'':scentMode?[fmt(SH.d,{weekday:'long',month:'long',day:'numeric'}),(!shoeMode&&dd.scentRating)?'★ '+dd.scentRating.toFixed(1):''].filter(Boolean).join('  ·  '):[(SH.caption&&!SH.look)?fmt(SH.d,{weekday:'long',month:'long',day:'numeric'}):'',SH.tag&&tg&&tg.label,SH.det&&o.place,SH.det&&o.wx,o.when&&whenLbl(o.when),o.rating?'\u2605 '+o.rating.toFixed(1):''].filter(Boolean).join('  \u00b7  ');
   if(meta){x.fillStyle=INK2;x.font=F(500,30);x.fillText(meta,pad,pad+88)}
   let noteTxt=(!itemMode&&!scentMode&&SH.det&&o.note)?o.note:'';
   if(noteTxt){x.font=F(500,28);while(noteTxt.length>3&&x.measureText(noteTxt).width>W-pad*2){noteTxt=noteTxt.slice(0,-2)}if(noteTxt!==o.note)noteTxt=noteTxt.trim()+'\u2026';x.fillStyle=INK;x.fillText(noteTxt,pad,pad+(meta?132:88))}

@@ -393,6 +393,9 @@ with sync_playwright() as p:
     pg11.locator('#sh-o-to button[data-v="ig"]').click()
     ok('caption for Instagram uses @rotation.fit',cap().endswith('@rotation.fit') and '@rotationfit' not in cap(),cap())
     pg11.locator('#sh-o-to button[data-v="x"]').click()
+    pg11.fill('#sh-cap-inp','Mask on'); pg11.wait_for_timeout(2500)
+    ok('caption share still renders (date goes under the caption)',pg11.locator('#sh-img').is_visible())
+    pg11.locator('#sh-img').screenshot(path='/tmp/capdate.png')
     ok('no page errors (share hide photo)',not errs11,'; '.join(errs11)[:200])
     # Center piece: leaves room around the piece and never cuts into it
     def rectpng(w,h,box):
