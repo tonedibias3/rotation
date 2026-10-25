@@ -131,3 +131,11 @@ Oct 23 Share caption per app: new "Caption for" option (X / Instagram / Other, r
 Oct 25 Share: when a caption is typed on a day share, the date now shows on the line under it (caption used to replace the date). Looks still use "MY LOOK" (looks have no date); tag-as-header idea left unbuilt pending Tone's answer. e2e 123/123, check 9/9.
 
 Oct 25 Share menu declutter: Names + Brands merged into one Labels row (Names and brands / Names / Brands / None); Show tag folded into Show details for days (looks keep a Show tag switch); Background, Rotation watermark and Photo side moved under a collapsed Style section; Caption for sits right under Size. Same settings keys as before so saved choices carry over. e2e 126/126, check 9/9.
+
+Oct 25 NOTES FROM TONE (Share screen, no code changed; screenshot to follow):
+1. Photo zoom slider is unusable: when zoomed, the photo preview scrolls off the top, so he cannot see the photo while adjusting. Needs the preview to stay visible (sticky preview, or zoom/drag controls that sit with the preview).
+2. Remove "Caption for" (X / Instagram / Other). Originally the share knew the app by itself (X tag for Twitter, IG tag for IG) with no extra setting. Find how that worked and restore it; do not add a picker. Note: the web share sheet does not report which app was chosen, so check how the first version did it (maybe separate buttons or per-app caption) before deciding.
+3. Style drawer shows a raw "U2212" (minus sign) when open. Our CSS content escape is wrong. Replace with a proper chevron or a plain minus.
+4. Rotation watermark position should NOT be hidden in the Style drawer. Other users put it in all different places; Tone uses bottom right. Move it back to the main screen.
+5. Overall still cluttered, too much scrolling just to post. Tone likes that Background and Pattern are collapsible. Needs a brainstorm session on what to cut or group (ideas to bring: sticky Share button already there; Pieces and Labels could collapse; Details and Scent could move into one "Include" group).
+Do not build until Tone says go.
