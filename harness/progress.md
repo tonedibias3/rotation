@@ -146,3 +146,5 @@ Oct 25 Screenshots from Tone (iPhone, confirm the notes above):
 - Labels row: "Names and brands" wraps onto 3 lines. Shorten (e.g. "Both") when it is rebuilt.
 - Photo and Pieces to show are far apart from the Outfit photo toggle. Group by task when we brainstorm.
 Still no code changes. Waiting for Tone's go.
+
+Oct 25 Share fixes from Tone's notes: removed "Caption for" (the very first version used one fixed caption for every app; the share sheet cannot tell which app is picked), caption is now one line: "#KOTD what's in your #rotationapp? rotation.fit" (no @handle, works everywhere); Style drawer minus now renders (CSS escape was wrong); preview is pinned (sticky) at the top of the sheet so the photo stays visible while zooming (computed style tested, NOT yet seen on a phone); Rotation watermark moved out of the Style drawer to sit under Size; Labels "Names and brands" renamed "Both". e2e 128/128, check 9/9. Still open: overall clutter brainstorm.
