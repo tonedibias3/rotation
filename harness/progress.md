@@ -139,3 +139,10 @@ Oct 25 NOTES FROM TONE (Share screen, no code changed; screenshot to follow):
 4. Rotation watermark position should NOT be hidden in the Style drawer. Other users put it in all different places; Tone uses bottom right. Move it back to the main screen.
 5. Overall still cluttered, too much scrolling just to post. Tone likes that Background and Pattern are collapsible. Needs a brainstorm session on what to cut or group (ideas to bring: sticky Share button already there; Pieces and Labels could collapse; Details and Scent could move into one "Include" group).
 Do not build until Tone says go.
+
+Oct 25 Screenshots from Tone (iPhone, confirm the notes above):
+- Cause of "u2212": the Style drawer CSS uses '−', which CSS does not understand (CSS wants \2212). Easy fix.
+- Zoom: the slider sits several screens below the preview. Scrolled to the slider, only the bottom of the preview shows, so you cannot see the photo move. Fix idea: keep the preview pinned at the top of the sheet while scrolling, or put zoom and Reset right under the preview.
+- Labels row: "Names and brands" wraps onto 3 lines. Shorten (e.g. "Both") when it is rebuilt.
+- Photo and Pieces to show are far apart from the Outfit photo toggle. Group by task when we brainstorm.
+Still no code changes. Waiting for Tone's go.
