@@ -391,7 +391,7 @@ with sync_playwright() as p:
     def cap():
         pg11.evaluate("window.__t=''"); pg11.click('#sh-go'); pg11.wait_for_timeout(500); return pg11.evaluate("window.__t")
     c0=cap()
-    ok('no Caption for picker; one caption asks what is in your #rotationapp',pg11.locator('#sh-o-to').count()==0 and 'in your #rotationapp?' in c0 and c0.endswith('rotation.fit') and '@' not in c0,c0)
+    ok('no Caption for picker; one caption tags @rotationfit and asks what is in your #rotationapp',pg11.locator('#sh-o-to').count()==0 and 'in your #rotationapp?' in c0 and c0.endswith('@rotationfit') and '@rotation.fit' not in c0,c0)
     ok('watermark position is on the main screen, not in the Style drawer',pg11.locator('#sh-o-logo').count()==1 and pg11.locator('.sh-more #sh-o-logo').count()==0)
     ok('preview stays pinned while scrolling',pg11.evaluate("getComputedStyle(document.querySelector('.sh-prev')).position")=='sticky')
     ok('Style drawer marker is a real minus, not text',pg11.evaluate("getComputedStyle(document.querySelector('.sh-more'),'::after')")!=None and pg11.evaluate("getComputedStyle(document.querySelector('.sh-more summary'),'::after').content")=='\" \u2212\"')
