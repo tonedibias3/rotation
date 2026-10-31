@@ -277,7 +277,7 @@ html{font-size:calc(16px*var(--tz));-webkit-text-size-adjust:100%}
 .crop .hint{margin:0 0 12px}
 .crop-f{position:relative;width:calc(100% - 28px);margin:0 14px;aspect-ratio:1;touch-action:none;cursor:grab}
 .crop-f canvas{position:absolute;left:-14px;top:-14px;width:calc(100% + 28px);height:calc(100% + 28px);display:block;border-radius:22px}
-.crop-t{display:flex;gap:8px;margin:0 0 10px}.crop-t .btn{flex:1;padding-inline:8px}
+.crop-t{display:flex;gap:8px;margin:0 0 10px}.crop-t .btn{flex:1;padding-inline:8px;line-height:1.15}
 .crop-t .btn[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
 .crop-tw{display:flex;align-items:center;gap:10px;margin:-4px 0 10px}.crop-tw label{font:500 0.75rem var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}.crop-tw input{flex:1;margin:0!important}
 .crop input[type=range]{width:100%;margin:16px 0 14px;accent-color:var(--accent)}
@@ -2303,7 +2303,7 @@ function openCrop(img){
   const w=img.width||img.naturalWidth,h=img.height||img.naturalHeight;
   if(!w||!h){toast('Could not read that photo');return}
   const host=$('#crop');
-  host.innerHTML='<div class="crop-s"><div class="crop" role="dialog" aria-modal="true" aria-label="Move and crop photo"><h2>Move and crop</h2><p class="hint">Drag any corner or edge handle to crop freely. Drag inside the box to move it. Drag outside it, pinch, or use the slider to move and zoom the photo.</p><div class="crop-f" id="crop-f"><canvas id="crop-c"></canvas></div><input id="crop-z" type="range" min="0" max="100" value="0" aria-label="Zoom"><div class="crop-t"><button type="button" class="btn ghost" data-act="crop-fit">Center piece</button><button type="button" class="btn ghost" id="crop-cl" data-act="crop-clean" aria-pressed="false">Clean background</button></div><div id="crop-tw" class="crop-tw" hidden><label for="crop-tol">Strength</label><input id="crop-tol" type="range" min="12" max="90" value="40" aria-label="Background cleanup strength"></div><div class="btn-row"><button type="button" class="btn ghost" data-act="crop-reset">Reset</button><button type="button" class="btn ghost danger" data-act="crop-remove">Remove photo</button><button type="button" class="btn ghost" data-act="crop-cancel">Cancel</button><button type="button" class="btn primary" data-act="crop-done">Done</button></div></div></div>';
+  host.innerHTML='<div class="crop-s"><div class="crop" role="dialog" aria-modal="true" aria-label="Move and crop photo"><h2>Move and crop</h2><p class="hint">Drag any corner or edge handle to crop freely. Drag inside the box to move it. Drag outside it, pinch, or use the slider to move and zoom the photo.</p><div class="crop-f" id="crop-f"><canvas id="crop-c"></canvas></div><input id="crop-z" type="range" min="0" max="100" value="0" aria-label="Zoom"><div class="crop-t"><button type="button" class="btn ghost" data-act="crop-rotate" aria-label="Rotate photo a quarter turn">Rotate</button><button type="button" class="btn ghost" data-act="crop-fit">Center piece</button><button type="button" class="btn ghost" id="crop-cl" data-act="crop-clean" aria-pressed="false">Clean background</button></div><div id="crop-tw" class="crop-tw" hidden><label for="crop-tol">Strength</label><input id="crop-tol" type="range" min="12" max="90" value="40" aria-label="Background cleanup strength"></div><div class="btn-row"><button type="button" class="btn ghost" data-act="crop-reset">Reset</button><button type="button" class="btn ghost danger" data-act="crop-remove">Remove photo</button><button type="button" class="btn ghost" data-act="crop-cancel">Cancel</button><button type="button" class="btn primary" data-act="crop-done">Done</button></div></div></div>';
   const f=$('#crop-f'),c=$('#crop-c'),box=f.clientWidth||300,dpr=Math.min(2,window.devicePixelRatio||1);
   c.width=c.height=Math.round((box+2*CPAD)*dpr);
   CR={orig:img,clean:false,tol:40,img:img,w:w,h:h,box:box,cb:{x:0,y:0,w:box,h:box},drag:null,cx:w/2,cy:h/2,min:1,max:1,s:1,ptr:new Map(),pd:0};
@@ -2394,6 +2394,19 @@ function applyClean(){
   CR.min=CR.box/Math.max(CR.w,CR.h);CR.max=Math.max(CR.min*6,CR.box/Math.min(CR.w,CR.h)*3);
   if(btn)btn.setAttribute('aria-pressed','true');if(tw)tw.hidden=false;
   setScale(CR.s);
+}
+/* turn the photo a quarter turn clockwise; the crop starts over on the turned picture */
+function cropRotate(){
+  if(!CR)return;
+  const src=CR.orig,w=src.width||src.naturalWidth,h=src.height||src.naturalHeight;
+  const c=document.createElement('canvas');c.width=h;c.height=w;
+  const x=c.getContext('2d');x.translate(h,0);x.rotate(Math.PI/2);x.drawImage(src,0,0);
+  CR.orig=c;CR.clean=false;CR.img=c;CR.w=c.width;CR.h=c.height;CR.bbox=null;
+  CR.min=CR.box/Math.max(CR.w,CR.h);CR.max=Math.max(CR.min*6,CR.box/Math.min(CR.w,CR.h)*3);
+  CR.cx=CR.w/2;CR.cy=CR.h/2;CR.s=CR.min;
+  const btn=$('#crop-cl'),tw=$('#crop-tw'),z=$('#crop-z');
+  if(btn)btn.setAttribute('aria-pressed','false');if(tw)tw.hidden=true;if(z)z.value=0;
+  fitBox();drawCrop();
 }
 function toggleClean(){if(!CR)return;CR.clean=!CR.clean;applyClean()}
 function centerPiece(){
@@ -2759,6 +2772,7 @@ document.addEventListener('click',e=>{
     case 'pv-tap2':if(S.sheet&&(S.sheet.draft.previewUrl2||S.sheet.draft.photo2))adjustPhoto('b');else{const f2=$('#f-file2');if(f2)f2.click()}break;
     case 'crop-reset':cropReset();break;
     case 'crop-fit':centerPiece();break;
+    case 'crop-rotate':cropRotate();break;
     case 'crop-clean':toggleClean();break;
     case 'crop-cancel':closeCrop();break;
     case 'crop-done':cropDone();break;
