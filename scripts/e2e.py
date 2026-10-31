@@ -432,6 +432,17 @@ with sync_playwright() as p:
         ok('Center piece keeps the whole piece ('+label+')',bx[0]<1e9 and bx[2]-bx[0]>=95 and bx[3]-bx[1]>=int((box[3]-box[1])*0.95*(bx[5]/400)),str(bx))
         if box[3]<400: ok('Center piece leaves room around a mid-photo piece',bx[0]>0 and bx[1]>0 and bx[2]<bx[4]-1 and bx[3]<bx[5]-1,str(bx))
         ok('no page errors (center piece)',not errsc,'; '.join(errsc)[:200])
+    # Share a photo with no pieces picked (only showing what was worn)
+    pnp=mk(3); pnp['days']={td10:{'items':[],'photo':du((60,80,200))}}
+    pfnp=out+'/nopieces.json'; json.dump(pnp,open(pfnp,'w'))
+    pgn,errsn=boot(b)
+    pgn.click('[data-act=seed]'); pgn.wait_for_timeout(1000)
+    pgn.evaluate("document.querySelector('[data-act=tab][data-tab=settings]').click()"); pgn.wait_for_timeout(300)
+    pgn.set_input_files('#f-import',pfnp); pgn.wait_for_timeout(1200)
+    pgn.evaluate("document.querySelector('#pill [data-tab=log]').click()"); pgn.wait_for_timeout(700)
+    pgn.locator('button:has-text("Share this fit")').click(); pgn.wait_for_timeout(2500)
+    ok('a day with a photo and no pieces can still be shared',pgn.locator('#sh-go').count()==1 and pgn.locator('#sh-img').is_visible())
+    ok('no page errors (share photo only day)',not errsn,'; '.join(errsn)[:200])
     # Rotate: a quarter turn clockwise in the crop dialog
     pgr,errsr=boot(b)
     pgr.set_viewport_size({'width':820,'height':1100})

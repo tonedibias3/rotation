@@ -152,3 +152,5 @@ Oct 25 Share fixes from Tone's notes: removed "Caption for" (the very first vers
 Oct 26 Share caption tags the X handle: "#KOTD what's in your #rotationapp? @rotationfit". Tone said "@rotationapp"; used @rotationfit (the X handle on file) and flagged it. Instagram stories carry no caption (nothing is copied or added). e2e 128/128, check 9/9.
 
 Oct 31 Crop dialog: new Rotate button (quarter turn clockwise per tap) next to Center piece / Clean background. Works for piece, outfit, shoe and look photos (all use the crop dialog). Rotating resets Clean background and restarts the crop box on the turned picture. e2e 131/131 (turn direction and size checked), check 9/9. Not seen on a real phone/iPad yet.
+
+Oct 31 Share with a photo and no pieces: "Share this fit" used to say "Pick what you are wearing first" unless pieces were tapped. Now a day (or extra outfit) with an outfit photo can be shared with zero pieces; the share is just the photo. Toast text when there is neither: "Add a photo or pick what you are wearing first". e2e 133/133, check 9/9.
