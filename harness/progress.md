@@ -154,3 +154,5 @@ Oct 26 Share caption tags the X handle: "#KOTD what's in your #rotationapp? @rot
 Oct 31 Crop dialog: new Rotate button (quarter turn clockwise per tap) next to Center piece / Clean background. Works for piece, outfit, shoe and look photos (all use the crop dialog). Rotating resets Clean background and restarts the crop box on the turned picture. e2e 131/131 (turn direction and size checked), check 9/9. Not seen on a real phone/iPad yet.
 
 Oct 31 Share with a photo and no pieces: "Share this fit" used to say "Pick what you are wearing first" unless pieces were tapped. Now a day (or extra outfit) with an outfit photo can be shared with zero pieces; the share is just the photo. Toast text when there is neither: "Add a photo or pick what you are wearing first". e2e 133/133, check 9/9.
+
+Oct 31 Calendar day screen: the Share button was hidden when a day had a photo but no pieces. Now shown whenever the outfit has a pieces list or a photo. e2e 135/135, check 9/9.

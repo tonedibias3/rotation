@@ -442,6 +442,12 @@ with sync_playwright() as p:
     pgn.evaluate("document.querySelector('#pill [data-tab=log]').click()"); pgn.wait_for_timeout(700)
     pgn.locator('button:has-text("Share this fit")').click(); pgn.wait_for_timeout(2500)
     ok('a day with a photo and no pieces can still be shared',pgn.locator('#sh-go').count()==1 and pgn.locator('#sh-img').is_visible())
+    pgn.evaluate("document.querySelector('[data-act=share-close]').click()"); pgn.wait_for_timeout(300)
+    pgn.evaluate("document.querySelector('#pill [data-tab=calendar]').click()"); pgn.wait_for_timeout(700)
+    pgn.evaluate("document.querySelector('[data-act=open-day][data-d=\"%s\"]').click()"%td10); pgn.wait_for_timeout(700)
+    ok('day screen shows a Share button for a photo with no pieces',pgn.locator('[data-act=share-open]').count()==1)
+    pgn.evaluate("document.querySelector('[data-act=share-open]').click()"); pgn.wait_for_timeout(2000)
+    ok('that Share button opens the share sheet',pgn.locator('#sh-go').count()==1)
     ok('no page errors (share photo only day)',not errsn,'; '.join(errsn)[:200])
     # Rotate: a quarter turn clockwise in the crop dialog
     pgr,errsr=boot(b)
